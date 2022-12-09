@@ -10,5 +10,5 @@
     "node_modules": true,
     "bin": true
   },
-  "cSpell.words": ["pixi"]
+  "cSpell.words": ["opentype", "pixi"]
 }
