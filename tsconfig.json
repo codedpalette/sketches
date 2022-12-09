@@ -1,6 +1,9 @@
 {
   "compilerOptions": {
     "strict": true,
-    "isolatedModules": true
+    "noEmitOnError": true,
+    "isolatedModules": true,
+    "target": "ES2015",
+    "moduleResolution": "node"
   }
 }
