@@ -12,16 +12,28 @@ function drawLines(lines: LineLike[], graphics: Graphics) {
 }
 
 function drawPath(path: paper.CompoundPath, graphics: Graphics) {
-  for (let curve of path.curves) {
-    graphics.moveTo(curve.segment1.point.x, curve.segment1.point.y);
-    graphics.bezierCurveTo(
-      curve.point1.x,
-      curve.point1.y,
-      curve.point2.x,
-      curve.point2.y,
-      curve.segment2.point.x,
-      curve.segment2.point.y
-    );
+  for (let childPath of path.children as paper.Path[]) {
+    let first = true;
+    let [curX, curY, prevX, prevY, inX, inY, outX, outY]: number[] = [];
+    for (let segment of childPath.segments) {
+      [curX, curY] = [segment.point.x, segment.point.y];
+      if (first) {
+        graphics.moveTo(curX, curY);
+        first = false;
+      } else {
+        let handle = segment.handleIn;
+        [inX, inY] = [curX + handle.x, curY + handle.y];
+        if (inX === curX && inY === curY && outX === prevX && outY === prevY) {
+          graphics.lineTo(curX, curY);
+        } else {
+          graphics.bezierCurveTo(outX, outY, inX, inY, curX, curY);
+        }
+      }
+      [prevX, prevY] = [curX, curY];
+      let handle = segment.handleOut;
+      [outX, outY] = [prevX + handle.x, prevY + handle.y];
+    }
+    childPath.closed && graphics.closePath();
   }
 }
 

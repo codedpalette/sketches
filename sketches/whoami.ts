@@ -1,6 +1,6 @@
 import { Container, DisplayObject, Graphics, Rectangle } from "pixi.js";
 import { Sketch2D } from "../library/sketch";
-import { glyphToPath, calculateGlyphBoundingBox, textToPath } from "../library/text";
+import { glyphToPath, calculateGlyphBoundingBox, textToPath } from "../library/svg";
 import { drawPath, drawLines, LineLike } from "../library/drawing";
 import * as paper from "paper";
 import * as opentype from "opentype.js";
