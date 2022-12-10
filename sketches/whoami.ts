@@ -1,46 +1,42 @@
 import { Container, DisplayObject, Graphics, Rectangle } from "pixi.js";
 import { Sketch2D } from "../library/sketch";
+import { glyphToPath, calculateGlyphBoundingBox, textToPath } from "../library/text";
+import { drawPath, drawLines, LineLike } from "../library/drawing";
 import * as paper from "paper";
 import * as opentype from "opentype.js";
 
 class WhoAmI extends Sketch2D {
-  font: opentype.Font;
-  debug: boolean;
-  mainPaths: paper.CompoundPath[];
+  private mainFont: opentype.Font;
+  private secondaryFonts: opentype.Font[];
+  private mainPaths: paper.CompoundPath[];
 
-  constructor(font: opentype.Font, debug = false) {
-    super();
-    this.font = font;
-    this.debug = debug;
+  constructor(mainFont: opentype.Font, secondaryFonts: opentype.Font[], debug = false) {
+    super(debug);
+    this.mainFont = mainFont;
+    this.secondaryFonts = secondaryFonts;
     this.mainPaths = [];
     paper.setup([this.width, this.height]);
   }
 
-  private glyphToPath(glyph: opentype.Glyph): paper.CompoundPath {
-    const path = new paper.CompoundPath(glyph.getPath().toPathData(2));
-    path.scale(1, -1, [0, 0]);
-    path.translate([-path.bounds.x, 0]);
-    return path;
-  }
-
-  private calculateBoundingBox(path: paper.CompoundPath) {
-    const yFactor =
-      path.data.yFactor !== undefined ? path.data.yFactor : (path.data.yFactor = path.bounds.y / path.bounds.height);
-    const heightFactor =
-      path.data.heightFactor || (path.data.heightFactor = (path.bounds.height + path.bounds.y) / path.bounds.height);
-    const boundingBox = new Rectangle(
-      path.bounds.x,
-      path.bounds.y - path.bounds.height * yFactor,
-      path.bounds.width,
-      path.bounds.height * heightFactor
-    );
-    return boundingBox;
+  private drawBaselines(lineHeight: number, lineMargin: number, margin: number): Graphics {
+    const graphics = new Graphics();
+    graphics.lineStyle(1, 0xff0000);
+    const lines: LineLike[] = [
+      [-this.width / 2, lineMargin, this.width / 2, lineMargin],
+      [-this.width / 2, lineMargin + lineHeight, this.width / 2, lineMargin + lineHeight],
+      [-this.width / 2, -lineMargin, this.width / 2, -lineMargin],
+      [-this.width / 2, -lineMargin - lineHeight, this.width / 2, -lineMargin - lineHeight],
+      [-this.width / 2 + margin, this.height / 2, -this.width / 2 + margin, -this.height / 2],
+      [this.width / 2 - margin, this.height / 2, this.width / 2 - margin, -this.height / 2],
+    ];
+    drawLines(lines, graphics);
+    return graphics;
   }
 
   private drawMainGlyph(x: number, y: number, char: string, lineHeight: number): Graphics {
     const graphics = new Graphics();
-    const path = this.glyphToPath(this.font.charToGlyph(char));
-    const boundingBox = this.calculateBoundingBox(path);
+    const path = glyphToPath(this.mainFont.charToGlyph(char));
+    const boundingBox = calculateGlyphBoundingBox(path);
     const scaleX = lineHeight / boundingBox.width; //TODO: Maybe fix for very wide letters
     const scaleY = lineHeight / boundingBox.height;
     path.translate([-boundingBox.width / 2, -boundingBox.height / 2]);
@@ -49,20 +45,10 @@ class WhoAmI extends Sketch2D {
 
     if (this.debug) {
       graphics.lineStyle(1, 0x00ff00);
-      graphics.drawShape(this.calculateBoundingBox(path));
+      graphics.drawShape(calculateGlyphBoundingBox(path));
     }
     graphics.lineStyle(1, 0x0000ff);
-    for (let curve of path.curves) {
-      graphics.moveTo(curve.segment1.point.x, curve.segment1.point.y);
-      graphics.bezierCurveTo(
-        curve.point1.x,
-        curve.point1.y,
-        curve.point2.x,
-        curve.point2.y,
-        curve.segment2.point.x,
-        curve.segment2.point.y
-      );
-    }
+    drawPath(path, graphics);
     graphics.position.set(x, y);
     return graphics;
   }
@@ -75,6 +61,7 @@ class WhoAmI extends Sketch2D {
     margin: number
   ): Container {
     const mainTextContainer = new Container();
+    this.debug && mainTextContainer.addChild(this.drawBaselines(lineHeight, lineMargin, margin));
     const xStart = -this.width / 2 + margin;
     [firstLine, secondLine].forEach((line, lineIdx) => {
       const y = lineIdx == 0 ? lineMargin + lineHeight / 2 : -lineMargin - lineHeight / 2;
@@ -85,28 +72,14 @@ class WhoAmI extends Sketch2D {
         mainTextContainer.addChild(this.drawMainGlyph(x, y, char, lineHeight));
       });
     });
-    this.debug && mainTextContainer.addChild(this.drawBaselines(lineHeight, lineMargin, margin));
     return mainTextContainer;
   }
 
-  private drawBaselines(lineHeight: number, lineMargin: number, margin: number): Graphics {
+  private generateSecondaryText(): Graphics {
+    const textPath = textToPath("Who am i", this.secondaryFonts[0]);
     const graphics = new Graphics();
-    graphics.lineStyle(1, 0xff0000);
-    const lines = [
-      [-this.width / 2, lineMargin, this.width / 2, lineMargin],
-      [-this.width / 2, lineMargin + lineHeight, this.width / 2, lineMargin + lineHeight],
-      [-this.width / 2, 0, this.width / 2, 0],
-      [-this.width / 2, -lineMargin, this.width / 2, -lineMargin],
-      [-this.width / 2, -lineMargin - lineHeight, this.width / 2, -lineMargin - lineHeight],
-      [-this.width / 2 + margin, this.height / 2, -this.width / 2 + margin, -this.height / 2],
-      [0, this.height / 2, 0, -this.height / 2],
-      [this.width / 2 - margin, this.height / 2, this.width / 2 - margin, -this.height / 2],
-    ];
-    lines.forEach((line) => {
-      const [x1, y1, x2, y2] = line;
-      graphics.moveTo(x1, y1);
-      graphics.lineTo(x2, y2);
-    });
+    graphics.lineStyle(1, 0x00f);
+    drawPath(textPath, graphics);
     return graphics;
   }
 
@@ -116,11 +89,15 @@ class WhoAmI extends Sketch2D {
     const margin = 10;
 
     const container = new Container();
-    container.addChild(this.generateMainText("ХТО", "Я?", lineHeight, lineMargin, margin));
+    //container.addChild(this.generateMainText("ХТО", "Я?", lineHeight, lineMargin, margin));
+    container.addChild(this.generateSecondaryText());
     return container;
   }
 }
 
-opentype.load("whoami/StalinistOne-Regular.ttf", (err, font) => {
-  font ? new WhoAmI(font, true).draw() : console.error(err);
-});
+async function start() {
+  const mainFont = await opentype.load("whoami/StalinistOne-Regular.ttf");
+  const roboto = await opentype.load("whoami/Roboto/Roboto-Regular.ttf");
+  new WhoAmI(mainFont, [roboto], true).draw();
+}
+start();
