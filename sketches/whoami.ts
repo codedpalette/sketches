@@ -6,12 +6,19 @@ import * as paper from "paper";
 import * as opentype from "opentype.js";
 import { concaveHull } from "../library/geometry";
 
+type FontFamily = {
+  regular: opentype.Font;
+  bold: opentype.Font;
+  italic: opentype.Font;
+  boldItalic: opentype.Font;
+};
+
 class WhoAmI extends Sketch2D {
   private mainFont: opentype.Font;
-  private secondaryFonts: opentype.Font[];
+  private secondaryFonts: FontFamily[];
   private mainPaths: paper.CompoundPath[];
 
-  constructor(mainFont: opentype.Font, secondaryFonts: opentype.Font[], debug = false) {
+  constructor(mainFont: opentype.Font, secondaryFonts: FontFamily[], debug = false) {
     super(debug);
     this.mainFont = mainFont;
     this.secondaryFonts = secondaryFonts;
@@ -77,7 +84,7 @@ class WhoAmI extends Sketch2D {
   }
 
   private generateSecondaryText(): Graphics {
-    const textPath = textToPath("Who am i", this.secondaryFonts[0]);
+    const textPath = textToPath("Who am i", this.secondaryFonts[0].regular);
     const points = pathToPoints(textPath);
     const polygonHull = concaveHull(points);
     const graphics = new Graphics();
@@ -102,7 +109,20 @@ class WhoAmI extends Sketch2D {
 
 async function start() {
   const mainFont = await opentype.load("whoami/StalinistOne-Regular.ttf");
-  const roboto = await opentype.load("whoami/Roboto/Roboto-Regular.ttf");
-  new WhoAmI(mainFont, [roboto], true).draw();
+  const secondaryFonts = await Promise.all(
+    ["Verdana", "Courier New", "Georgia"].map(async (fontName) => {
+      const regular = await opentype.load(`whoami/${fontName}/${fontName}.ttf`);
+      const bold = await opentype.load(`whoami/${fontName}/${fontName} Bold.ttf`);
+      const italic = await opentype.load(`whoami/${fontName}/${fontName} Italic.ttf`);
+      const boldItalic = await opentype.load(`whoami/${fontName}/${fontName} Bold Italic.ttf`);
+      return {
+        regular,
+        bold,
+        italic,
+        boldItalic,
+      };
+    })
+  );
+  new WhoAmI(mainFont, secondaryFonts, true).draw();
 }
 start();

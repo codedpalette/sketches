@@ -13,8 +13,8 @@ function glyphToPath(glyph: opentype.Glyph): paper.CompoundPath {
   return pathDataToPath(glyph.getPath().toPathData(2));
 }
 
-function textToPath(text: string, font: opentype.Font): paper.CompoundPath {
-  return pathDataToPath(font.getPath(text, 0, 0, 72).toPathData(2));
+function textToPath(text: string, font: opentype.Font): paper.CompoundPath {  
+  return pathDataToPath(font.getPath(text, 0, 0, 72).toPathData(2)); //TODO: fallback to Arial
 }
 
 function calculateGlyphBoundingBox(path: paper.CompoundPath) {
