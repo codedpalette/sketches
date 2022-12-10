@@ -22,6 +22,7 @@ export abstract class Sketch2D {
   draw(): void {
     const container = this.setup();
     container.position = { x: this.width / 2, y: this.height / 2 };
+    container.scale.set(1, -1);
     this.app.stage.addChild(container);
 
     this.app.ticker.add((delta) => {

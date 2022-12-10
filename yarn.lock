@@ -2080,6 +2080,11 @@ p-locate@^5.0.0:
   dependencies:
     p-limit "^3.0.2"
 
+paper@^0.12.17:
+  version "0.12.17"
+  resolved "https://registry.yarnpkg.com/paper/-/paper-0.12.17.tgz#57215615f3db5a32826ab60d3e08bc7953614052"
+  integrity sha512-oCe+e1C2w8hKIcGoAqUjD0GGxGPv+itrRXlEFUmp3H8tY/NTnHOkYgpJFPGw6OJ8Q1Wa6+RgzlY7Dx/2WWHtkA==
+
 parcel-reporter-static-files-copy@^1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/parcel-reporter-static-files-copy/-/parcel-reporter-static-files-copy-1.4.0.tgz#9966b71273533c54201b7c02c6340a7956a583b9"
