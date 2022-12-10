@@ -31,4 +31,16 @@ function calculateGlyphBoundingBox(path: paper.CompoundPath) {
   return boundingBox;
 }
 
-export { glyphToPath, textToPath, calculateGlyphBoundingBox };
+function pathToPoints(path: paper.CompoundPath): paper.Point[] {
+  const points = [];
+  const step = 3;
+  for (let childPath of path.children as paper.Path[]) {
+    const pathLength = childPath.length;
+    for (let i = 0; i < pathLength; i += step) {
+      points.push(childPath.getPointAt(i));
+    }
+  }
+  return points;
+}
+
+export { glyphToPath, textToPath, calculateGlyphBoundingBox, pathToPoints };

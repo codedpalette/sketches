@@ -4,6 +4,7 @@
     "noEmitOnError": true,
     "isolatedModules": true,
     "target": "ES2015",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true
   }
 }

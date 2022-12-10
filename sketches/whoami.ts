@@ -1,9 +1,10 @@
 import { Container, DisplayObject, Graphics, Rectangle } from "pixi.js";
 import { Sketch2D } from "../library/sketch";
-import { glyphToPath, calculateGlyphBoundingBox, textToPath } from "../library/svg";
+import { glyphToPath, calculateGlyphBoundingBox, textToPath, pathToPoints } from "../library/svg";
 import { drawPath, drawLines, LineLike } from "../library/drawing";
 import * as paper from "paper";
 import * as opentype from "opentype.js";
+import { concaveHull } from "../library/geometry";
 
 class WhoAmI extends Sketch2D {
   private mainFont: opentype.Font;
@@ -77,9 +78,13 @@ class WhoAmI extends Sketch2D {
 
   private generateSecondaryText(): Graphics {
     const textPath = textToPath("Who am i", this.secondaryFonts[0]);
+    const points = pathToPoints(textPath);
+    const polygonHull = concaveHull(points);
     const graphics = new Graphics();
-    graphics.lineStyle(1, 0x00f);
+    graphics.lineStyle(1, 0x0000ff);
     drawPath(textPath, graphics);
+    graphics.lineStyle(1, 0x00ff00);
+    graphics.drawPolygon(polygonHull);
     return graphics;
   }
 

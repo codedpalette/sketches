@@ -7,11 +7,13 @@
     "staticPath": "assets"
   },
   "dependencies": {
+    "hull.js": "^1.0.3",
     "opentype.js": "^1.3.4",
     "paper": "^0.12.17",
     "pixi.js": "^7.0.4"
   },
   "devDependencies": {
+    "@types/hull.js": "^1.0.2",
     "@types/opentype.js": "^1.3.4",
     "@typescript-eslint/eslint-plugin": "^5.45.0",
     "@typescript-eslint/parser": "^5.45.0",

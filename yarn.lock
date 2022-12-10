@@ -980,6 +980,11 @@
   resolved "https://registry.yarnpkg.com/@types/earcut/-/earcut-2.1.1.tgz#573a0af609f17005c751f6f4ffec49cfe358ea51"
   integrity sha512-w8oigUCDjElRHRRrMvn/spybSMyX8MTkKA5Dv+tS1IE/TgmNZPqUYtvYBXGY8cieSE66gm+szeK+bnbxC2xHTQ==
 
+"@types/hull.js@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@types/hull.js/-/hull.js-1.0.2.tgz#8a6b90967f133c77b6352c9c1d09aa972679d79e"
+  integrity sha512-7zNbT+oMjnyVEQTNArmUdlLWxdqVsxCChQq1wmc1gATAjKC/45I/rBk3JBGJSID5IAqWveRbWfzfCWGjRXZm2w==
+
 "@types/json-schema@^7.0.9":
   version "7.0.11"
   resolved "https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.11.tgz#d421b6c527a3037f7c84433fd2c4229e016863d3"
@@ -1719,6 +1724,11 @@ htmlparser2@^7.1.1:
     domhandler "^4.2.2"
     domutils "^2.8.0"
     entities "^3.0.1"
+
+hull.js@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/hull.js/-/hull.js-1.0.3.tgz#cb734fc8034e98e9f24c5893bfd97d0d48a99975"
+  integrity sha512-CM6zaH0+3mdmjmvJnpxfmJ6K7juoF0GnmjE1g+m5JRj+ynP23VwSoUtIuVUePF9icr1J1/1zybhscCltyftAaw==
 
 ieee754@^1.1.13:
   version "1.2.1"
