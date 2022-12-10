@@ -1,6 +1,6 @@
 import { Container, DisplayObject, Graphics, Rectangle } from "pixi.js";
 import { Sketch2D } from "../library/sketch";
-import { Path, PaperScope } from "paper";
+import * as paper from "paper";
 import * as opentype from "opentype.js";
 
 class WhoAmI extends Sketch2D {
@@ -11,8 +11,28 @@ class WhoAmI extends Sketch2D {
     super();
     this.font = font;
     this.debug = debug;
-    const scope = new PaperScope();
-    scope.setup([this.width, this.height]);
+    paper.setup([this.width, this.height]);
+  }
+
+  private glyphToPath(glyph: opentype.Glyph): paper.CompoundPath {
+    const path = new paper.CompoundPath(glyph.getPath().toPathData(2));
+    path.scale(1, -1, [0, 0]);
+    path.translate([-path.bounds.x, 0]);
+    return path;
+  }
+
+  private calculateBoundingBox(path: paper.CompoundPath) {
+    const yFactor =
+      path.data.yFactor !== undefined ? path.data.yFactor : (path.data.yFactor = path.bounds.y / path.bounds.height);
+    const heightFactor =
+      path.data.heightFactor || (path.data.heightFactor = (path.bounds.height + path.bounds.y) / path.bounds.height);
+    const boundingBox = new Rectangle(
+      path.bounds.x,
+      path.bounds.y - path.bounds.height * yFactor,
+      path.bounds.width,
+      path.bounds.height * heightFactor
+    );
+    return boundingBox;
   }
 
   private generateMainText(firstLine: string, secondLine: string, lineHeight: number, margin: number): Graphics {
@@ -22,18 +42,20 @@ class WhoAmI extends Sketch2D {
       [...line].forEach((char, charIdx) => {});
     });
 
-    const glyph = this.font.charToGlyph("Х");
-    const path = new Path(glyph.getPath().toPathData(2));
-    const boundingBox = new Rectangle(path.bounds.x, path.bounds.y, path.bounds.width, path.bounds.height);
-    const curves = path.curves;
-
+    const path = this.glyphToPath(this.font.charToGlyph("Х"));
+    const boundingBox = this.calculateBoundingBox(path);
     const scale = 300 / boundingBox.height;
-    path.translate([-boundingBox.width / 2, boundingBox.height / 2]);
-    path.scale(scale, -scale);
+    //path.scale(scale, [0, 0]);
+    path.translate([-boundingBox.width / 2, -boundingBox.height / 2]);
+    path.scale(scale, [0, 0]);
 
     const graphics = new Graphics();
+    if (this.debug) {
+      graphics.lineStyle(1, 0x00ff00);
+      graphics.drawShape(this.calculateBoundingBox(path));
+    }
     graphics.lineStyle(1, 0x0000ff);
-    for (let curve of curves) {
+    for (let curve of path.curves) {
       graphics.moveTo(curve.segment1.point.x, curve.segment1.point.y);
       graphics.bezierCurveTo(
         curve.point1.x,
@@ -43,10 +65,6 @@ class WhoAmI extends Sketch2D {
         curve.segment2.point.x,
         curve.segment2.point.y
       );
-    }
-    if (this.debug) {
-      graphics.lineStyle(1, 0x00ff00);
-      graphics.drawShape(graphics.getBounds());
     }
 
     graphics.position.set(0, 150);
