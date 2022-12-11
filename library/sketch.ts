@@ -29,9 +29,10 @@ export abstract class Sketch2D {
     return graphics;
   }
 
-  abstract setup(): Container;
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  update(_delta: number, _container: Container): void {}
+  protected abstract setup(): Container;
+  protected update(_delta: number, _container: Container): void {
+    //by default do nothing
+  }
 
   draw(): void {
     const container = this.setup();

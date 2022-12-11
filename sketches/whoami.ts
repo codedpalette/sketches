@@ -19,6 +19,7 @@ class WhoAmI extends Sketch2D {
   private secondaryFonts: FontFamily[];
   private mainPaths: paper.CompoundPath[];
   private fallbackUnicodeFonts: Font[];
+  private phraseBlacklist: string[];
 
   constructor(mainFont: Font, secondaryFonts: FontFamily[], fallbackUnicodeFonts: Font[], debug = false) {
     super(debug);
@@ -26,6 +27,7 @@ class WhoAmI extends Sketch2D {
     this.secondaryFonts = secondaryFonts;
     this.fallbackUnicodeFonts = fallbackUnicodeFonts;
     this.mainPaths = [];
+    this.phraseBlacklist = [];
     paper.setup([this.width, this.height]);
   }
 
@@ -60,7 +62,7 @@ class WhoAmI extends Sketch2D {
 
   private drawMainGlyph(x: number, y: number, char: string, lineHeight: number): Graphics {
     const graphics = new Graphics();
-    const path = textToPath(char, this.mainFont)!;
+    const path = textToPath(char, this.mainFont) as paper.CompoundPath;
     const boundingBox = this.calculateGlyphBoundingBox(path);
     const scaleX = lineHeight / boundingBox.width; //TODO: Maybe fix for very wide letters
     const scaleY = lineHeight / boundingBox.height;
@@ -101,14 +103,15 @@ class WhoAmI extends Sketch2D {
   }
 
   private generateSecondaryText(): Graphics {
+    const graphics = new Graphics();
     const text = "Who am i";
-    let textPath = textToPath(text, this.secondaryFonts.random().regular);
-    if (!textPath) {
-      textPath = textToPath(text, this.fallbackUnicodeFonts.random())!; //TODO: if fails with fallback - blacklist the language
-    }
+    const textPath =
+      textToPath(text, this.secondaryFonts.random().regular) ||
+      textToPath(text, this.fallbackUnicodeFonts.random()) ||
+      void this.phraseBlacklist.push(text);
+    if (!textPath) return graphics;
     const points = pathToPoints(textPath);
     const polygonHull = concaveHull(points);
-    const graphics = new Graphics();
     graphics.lineStyle(1, 0x0000ff);
     drawPath(textPath, graphics);
     if (this.debug) {
@@ -119,12 +122,12 @@ class WhoAmI extends Sketch2D {
   }
 
   setup(): Container<DisplayObject> {
-    const lineHeight = 300;
-    const lineMargin = 50;
-    const margin = 10;
+    // const lineHeight = 300;
+    // const lineMargin = 50;
+    // const margin = 10;
 
     const container = new Container();
-    container.addChild(this.generateMainText("ХТО", "Я?", lineHeight, lineMargin, margin));
+    // container.addChild(this.generateMainText("ХТО", "Я?", lineHeight, lineMargin, margin));
     container.addChild(this.generateSecondaryText());
     return container;
   }
