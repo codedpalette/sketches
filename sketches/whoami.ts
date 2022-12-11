@@ -1,29 +1,46 @@
 import { Container, DisplayObject, Graphics, Rectangle } from "pixi.js";
 import { Sketch2D } from "../library/sketch";
-import { glyphToPath, calculateGlyphBoundingBox, textToPath, pathToPoints } from "../library/svg";
+import { textToPath, Font, loadFont } from "../library/text";
+import { pathToPoints } from "../library/geometry";
 import { drawPath, drawLines, LineLike } from "../library/drawing";
-import * as paper from "paper";
-import * as opentype from "opentype.js";
+import "../library/util";
+import paper from "paper";
 import { concaveHull } from "../library/geometry";
 
 type FontFamily = {
-  regular: opentype.Font;
-  bold: opentype.Font;
-  italic: opentype.Font;
-  boldItalic: opentype.Font;
+  regular: Font;
+  bold: Font;
+  italic: Font;
+  boldItalic: Font;
 };
 
 class WhoAmI extends Sketch2D {
-  private mainFont: opentype.Font;
+  private mainFont: Font;
   private secondaryFonts: FontFamily[];
   private mainPaths: paper.CompoundPath[];
+  private fallbackUnicodeFonts: Font[];
 
-  constructor(mainFont: opentype.Font, secondaryFonts: FontFamily[], debug = false) {
+  constructor(mainFont: Font, secondaryFonts: FontFamily[], fallbackUnicodeFonts: Font[], debug = false) {
     super(debug);
     this.mainFont = mainFont;
     this.secondaryFonts = secondaryFonts;
+    this.fallbackUnicodeFonts = fallbackUnicodeFonts;
     this.mainPaths = [];
     paper.setup([this.width, this.height]);
+  }
+
+  private calculateGlyphBoundingBox(path: paper.CompoundPath) {
+    const data = path.data as { yFactor?: number; hFactor?: number };
+    const yFactor = data.yFactor !== undefined ? data.yFactor : (data.yFactor = path.bounds.y / path.bounds.height);
+    const heightFactor = data.hFactor || (data.hFactor = (path.bounds.height + path.bounds.y) / path.bounds.height);
+    path.data = data;
+    const boundingBox = new Rectangle(
+      path.bounds.x,
+      path.bounds.y - path.bounds.height * yFactor,
+      path.bounds.width,
+      path.bounds.height * heightFactor
+    );
+    return boundingBox;
   }
 
   private drawBaselines(lineHeight: number, lineMargin: number, margin: number): Graphics {
@@ -43,8 +60,8 @@ class WhoAmI extends Sketch2D {
 
   private drawMainGlyph(x: number, y: number, char: string, lineHeight: number): Graphics {
     const graphics = new Graphics();
-    const path = glyphToPath(this.mainFont.charToGlyph(char));
-    const boundingBox = calculateGlyphBoundingBox(path);
+    const path = textToPath(char, this.mainFont)!;
+    const boundingBox = this.calculateGlyphBoundingBox(path);
     const scaleX = lineHeight / boundingBox.width; //TODO: Maybe fix for very wide letters
     const scaleY = lineHeight / boundingBox.height;
     path.translate([-boundingBox.width / 2, -boundingBox.height / 2]);
@@ -53,7 +70,7 @@ class WhoAmI extends Sketch2D {
 
     if (this.debug) {
       graphics.lineStyle(1, 0x00ff00);
-      graphics.drawShape(calculateGlyphBoundingBox(path));
+      graphics.drawShape(this.calculateGlyphBoundingBox(path));
     }
     graphics.lineStyle(1, 0x0000ff);
     drawPath(path, graphics);
@@ -84,14 +101,20 @@ class WhoAmI extends Sketch2D {
   }
 
   private generateSecondaryText(): Graphics {
-    const textPath = textToPath("Who am i", this.secondaryFonts[0].regular);
+    const text = "Who am i";
+    let textPath = textToPath(text, this.secondaryFonts.random().regular);
+    if (!textPath) {
+      textPath = textToPath(text, this.fallbackUnicodeFonts.random())!; //TODO: if fails with fallback - blacklist the language
+    }
     const points = pathToPoints(textPath);
     const polygonHull = concaveHull(points);
     const graphics = new Graphics();
     graphics.lineStyle(1, 0x0000ff);
     drawPath(textPath, graphics);
-    graphics.lineStyle(1, 0x00ff00);
-    graphics.drawPolygon(polygonHull);
+    if (this.debug) {
+      graphics.lineStyle(1, 0x00ff00);
+      graphics.drawPolygon(polygonHull);
+    }
     return graphics;
   }
 
@@ -101,20 +124,20 @@ class WhoAmI extends Sketch2D {
     const margin = 10;
 
     const container = new Container();
-    //container.addChild(this.generateMainText("ХТО", "Я?", lineHeight, lineMargin, margin));
+    container.addChild(this.generateMainText("ХТО", "Я?", lineHeight, lineMargin, margin));
     container.addChild(this.generateSecondaryText());
     return container;
   }
 }
 
 async function start() {
-  const mainFont = await opentype.load("whoami/StalinistOne-Regular.ttf");
+  const mainFont = await loadFont("whoami/StalinistOne-Regular.ttf");
   const secondaryFonts = await Promise.all(
     ["Verdana", "Courier New", "Georgia"].map(async (fontName) => {
-      const regular = await opentype.load(`whoami/${fontName}/${fontName}.ttf`);
-      const bold = await opentype.load(`whoami/${fontName}/${fontName} Bold.ttf`);
-      const italic = await opentype.load(`whoami/${fontName}/${fontName} Italic.ttf`);
-      const boldItalic = await opentype.load(`whoami/${fontName}/${fontName} Bold Italic.ttf`);
+      const regular = await loadFont(`whoami/${fontName}/${fontName}.ttf`);
+      const bold = await loadFont(`whoami/${fontName}/${fontName} Bold.ttf`);
+      const italic = await loadFont(`whoami/${fontName}/${fontName} Italic.ttf`);
+      const boldItalic = await loadFont(`whoami/${fontName}/${fontName} Bold Italic.ttf`);
       return {
         regular,
         bold,
@@ -123,6 +146,8 @@ async function start() {
       };
     })
   );
-  new WhoAmI(mainFont, secondaryFonts, true).draw();
+  const fallbackUnicodeFont = await loadFont("whoami/GoNotoCurrent.ttf");
+  const fallbackUnicodeFontSerif = await loadFont("whoami/GoNotoCurrentSerif.ttf");
+  new WhoAmI(mainFont, secondaryFonts, [fallbackUnicodeFont, fallbackUnicodeFontSerif], true).draw();
 }
-start();
+void start();

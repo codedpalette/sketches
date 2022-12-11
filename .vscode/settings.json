@@ -10,5 +10,5 @@
     "node_modules": true,
     "bin": true
   },
-  "cSpell.words": ["opentype", "pixi", "roboto"]
+  "cSpell.words": ["fontkit", "Noto", "opentype", "pixi", "roboto", "unicodes", "Verdana"]
 }

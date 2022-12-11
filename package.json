@@ -19,6 +19,8 @@
     "@typescript-eslint/parser": "^5.45.0",
     "buffer": "^5.5.0",
     "eslint": "^8.28.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-unused-imports": "^2.0.0",
     "parcel": "^2.8.0",
     "parcel-reporter-static-files-copy": "^1.4.0",
     "prettier": "2.8.0",

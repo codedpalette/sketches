@@ -30,7 +30,8 @@ export abstract class Sketch2D {
   }
 
   abstract setup(): Container;
-  update(delta: number, container: Container): void {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  update(_delta: number, _container: Container): void {}
 
   draw(): void {
     const container = this.setup();
@@ -53,6 +54,6 @@ export abstract class Sketch2D {
       antialias: true,
       backgroundColor: bgColor,
     });
-    document.body.appendChild(this.app.view as any as Node);
+    document.body.appendChild(this.app.view as unknown as Node);
   }
 }
