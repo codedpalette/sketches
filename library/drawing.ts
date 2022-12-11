@@ -1,5 +1,5 @@
-import { Graphics } from "pixi.js";
 import paper from "paper";
+import { Graphics } from "pixi.js";
 
 export type LineLike = [number, number, number, number] | { x1: number; y1: number; x2: number; y2: number };
 

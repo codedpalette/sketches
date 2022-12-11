@@ -1,7 +1,7 @@
 import { Container, DisplayObject, Graphics, Rectangle } from "pixi.js";
 import { Sketch2D } from "../library/sketch";
 import { textToPath, Font, loadFont } from "../library/text";
-import { pathToPoints } from "../library/geometry";
+import { pathToPoints, generateTiling } from "../library/geometry";
 import { drawPath, drawLines, LineLike } from "../library/drawing";
 import "../library/util";
 import paper from "paper";
@@ -102,21 +102,29 @@ class WhoAmI extends Sketch2D {
     return mainTextContainer;
   }
 
-  private generateSecondaryText(): Graphics {
+  private generateSecondaryText(): Container {
+    const paths = generateTiling(new Rectangle(-this.width / 2, this.height / 2, this.width, -this.height), () => {
+      const text = "Who am i";
+      let textPath: paper.CompoundPath | undefined;
+      do {
+        textPath =
+          textToPath(text, this.secondaryFonts.random().regular) ||
+          textToPath(text, this.fallbackUnicodeFonts.random()) ||
+          void this.phraseBlacklist.push(text);
+      } while (!textPath);
+      return textPath;
+    });
+
     const graphics = new Graphics();
-    const text = "Who am i";
-    const textPath =
-      textToPath(text, this.secondaryFonts.random().regular) ||
-      textToPath(text, this.fallbackUnicodeFonts.random()) ||
-      void this.phraseBlacklist.push(text);
-    if (!textPath) return graphics;
-    const points = pathToPoints(textPath);
-    const polygonHull = concaveHull(points);
-    graphics.lineStyle(1, 0x0000ff);
-    drawPath(textPath, graphics);
-    if (this.debug) {
-      graphics.lineStyle(1, 0x00ff00);
-      graphics.drawPolygon(polygonHull);
+    for (const path of paths) {
+      graphics.lineStyle(1, 0x0000ff);
+      drawPath(path, graphics);
+      if (this.debug) {
+        const points = pathToPoints(path);
+        const polygonHull = concaveHull(points);
+        graphics.lineStyle(1, 0x00ff00);
+        drawPath(polygonHull, graphics);
+      }
     }
     return graphics;
   }
