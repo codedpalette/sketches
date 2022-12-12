@@ -44,8 +44,9 @@ function tryPlaceTile(
   const pathsToCheck = blacklist ? [blacklist, ...paths] : paths;
   while (true) {
     for (let i = 0; i < nTries; i++) {
-      const [x, y] = [random(minX, maxX), random(minY, maxY)];
+      const [x, y] = [random(minX - tryPath.bounds.width, maxX), random(minY - tryPath.bounds.height, maxY)];
       tryPath.translate([x, y]);
+      //TODO: random rotation and skew
 
       const tryPathPoints = pathToPoints(tryPath, 100);
       const intersects = pathsToCheck.some(

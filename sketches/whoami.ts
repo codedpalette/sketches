@@ -171,7 +171,7 @@ class WhoAmI extends Sketch2D {
       () => {
         let textPath;
         do {
-          const text = Array.from(this.translations.values()).random(); //TODO: random rotation and skew
+          const text = Array.from(this.translations.values()).random();
           textPath =
             textToPath(text, allFontVariants.random()) ||
             textToPath(text, this.sketchParams.fallbackUnicodeFonts.random()) ||
@@ -180,6 +180,7 @@ class WhoAmI extends Sketch2D {
         return textPath;
       },
       blacklistPath
+      //TODO: n=random(500, 1000)
     );
 
     const mask = new Graphics();
