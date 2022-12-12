@@ -20,7 +20,7 @@ function textToPath(text: string, font: Font, removeOffset = false, fontSize = 7
   let penPosition = [0, 0];
   const childPaths = layout.glyphs.map((glyph, i) => {
     const glyphPath = new paper.CompoundPath(glyph.path.toSVG());
-    if (removeOffset) glyphPath.translate([-glyphPath.bounds.x, -glyphPath.bounds.y]);
+    if (removeOffset) glyphPath.translate([-glyphPath.bounds.x, 0]);
     const glyphPosition = layout.positions[i];
     const scale = (1 / (font.unitsPerEm || 1000)) * fontSize;
     glyphPath.translate([penPosition[0] + glyphPosition.xOffset, penPosition[1] + glyphPosition.yOffset]);
