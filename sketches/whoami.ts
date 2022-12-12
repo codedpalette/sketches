@@ -33,7 +33,7 @@ class WhoAmI extends Sketch2D {
   private foreground: DisplayObject;
 
   constructor(sketchParams: SketchParams, debug = false) {
-    super(debug, 1200, 1200);
+    super(debug);
     this.sketchParams = sketchParams;
     this.mainPaths = [];
     this.translations = new Set([...sketchParams.translations]);
@@ -135,7 +135,7 @@ class WhoAmI extends Sketch2D {
       }
       path.strokeColor = new paper.Color("black");
       const scaleCenterX = path.bounds.x + path.bounds.width / 2;
-      const scaleCenterY = path.bounds.y > 0 ? path.bounds.y : path.bounds.y + path.bounds.height;
+      const scaleCenterY = path.bounds.y < 0 ? path.bounds.y : path.bounds.y + path.bounds.height;
       for (let i = 0; i < pathSteps; i++) {
         const pathCopy = path.clone();
         pathCopy.scale(1 - alphaStep * i, [scaleCenterX, scaleCenterY]);
