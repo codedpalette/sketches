@@ -24,6 +24,8 @@ type SketchParams = {
   lineMargin: number;
   margin: number;
   rotation: number;
+  firstLine: string;
+  secondLine: string;
   translations: string[];
 };
 
@@ -201,7 +203,7 @@ class WhoAmI extends Sketch2D {
   }
 
   setup(): Container<DisplayObject> {
-    this.generateMainText("ХТО", "Я?");
+    this.generateMainText(this.sketchParams.firstLine, this.sketchParams.secondLine);
     const container = new Container();
     container.addChild(this.background);
     container.addChild(this.drawMainText());
@@ -210,7 +212,7 @@ class WhoAmI extends Sketch2D {
   }
 }
 
-async function start() {
+async function start(firstLine: string, secondLine: string, rotation: number) {
   const mainFont = await loadFont("whoami/StalinistOne-Regular.ttf");
   const secondaryFonts = await Promise.all(
     ["Verdana", "Courier New", "Georgia"].map(async (fontName) => {
@@ -232,7 +234,6 @@ async function start() {
   const lineHeight = 300;
   const lineMargin = 50;
   const margin = 10;
-  const rotation = random(-45, 45);
   const translations = (await Assets.load<string>("whoami/translated.txt")) as string; //TODO: translate other phrases
   const sketchParams = {
     mainFont,
@@ -242,8 +243,12 @@ async function start() {
     lineMargin,
     margin,
     rotation,
+    firstLine,
+    secondLine,
     translations: translations.split("\n"),
   };
   new WhoAmI(sketchParams).draw();
 }
-void start(); //TODO: Add parameters to easily create variants
+void start("ХТО", "Я?", random(-45, 45));
+//void start("ДЕ", "МИ?", 0);
+//void start("ЩО", "ЦЕ?", 90);
