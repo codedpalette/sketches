@@ -1,4 +1,4 @@
-import { Container, DisplayObject, Graphics, Rectangle } from "pixi.js";
+import { Container, DisplayObject, Graphics, Rectangle, Assets } from "pixi.js";
 import { Sketch2D } from "../library/sketch";
 import { textToPath, Font, loadFont } from "../library/text";
 import { pathToPoints, generateTiling } from "../library/geometry";
@@ -14,20 +14,26 @@ type FontFamily = {
   boldItalic: Font;
 };
 
-class WhoAmI extends Sketch2D {
-  private mainFont: Font;
-  private secondaryFonts: FontFamily[];
-  private mainPaths: paper.CompoundPath[];
-  private fallbackUnicodeFonts: Font[];
-  private phraseBlacklist: string[];
+type SketchParams = {
+  mainFont: Font;
+  secondaryFonts: FontFamily[];
+  fallbackUnicodeFonts: Font[];
+  lineHeight: number;
+  lineMargin: number;
+  margin: number;
+  translations: string[];
+};
 
-  constructor(mainFont: Font, secondaryFonts: FontFamily[], fallbackUnicodeFonts: Font[], debug = false) {
+class WhoAmI extends Sketch2D {
+  private sketchParams: SketchParams;
+  private mainPaths: paper.CompoundPath[];
+  private translations: Set<string>;
+
+  constructor(sketchParams: SketchParams, debug = false) {
     super(debug);
-    this.mainFont = mainFont;
-    this.secondaryFonts = secondaryFonts;
-    this.fallbackUnicodeFonts = fallbackUnicodeFonts;
+    this.sketchParams = sketchParams;
     this.mainPaths = [];
-    this.phraseBlacklist = [];
+    this.translations = new Set([...sketchParams.translations]);
     paper.setup([this.width, this.height]);
   }
 
@@ -45,7 +51,12 @@ class WhoAmI extends Sketch2D {
     return boundingBox;
   }
 
-  private drawBaselines(lineHeight: number, lineMargin: number, margin: number): Graphics {
+  private drawBaselines(): Graphics {
+    const [lineHeight, lineMargin, margin] = [
+      this.sketchParams.lineHeight,
+      this.sketchParams.lineMargin,
+      this.sketchParams.margin,
+    ];
     const graphics = new Graphics();
     graphics.lineStyle(1, 0xff0000);
     const lines: LineLike[] = [
@@ -60,35 +71,23 @@ class WhoAmI extends Sketch2D {
     return graphics;
   }
 
-  private drawMainGlyph(x: number, y: number, char: string, lineHeight: number): Graphics {
-    const graphics = new Graphics();
-    const path = textToPath(char, this.mainFont) as paper.CompoundPath;
+  private generateMainGlyph(x: number, y: number, char: string): void {
+    const path = textToPath(char, this.sketchParams.mainFont) as paper.CompoundPath;
     const boundingBox = this.calculateGlyphBoundingBox(path);
-    const scaleX = lineHeight / boundingBox.width; //TODO: Maybe fix for very wide letters
-    const scaleY = lineHeight / boundingBox.height;
+    const scaleX = this.sketchParams.lineHeight / boundingBox.width; //TODO: Maybe fix for very wide letters
+    const scaleY = this.sketchParams.lineHeight / boundingBox.height;
     path.translate([-boundingBox.width / 2, -boundingBox.height / 2]);
     path.scale(scaleX, scaleY, [0, 0]);
+    path.translate([x, y]);
     this.mainPaths.push(path);
-
-    if (this.debug) {
-      graphics.lineStyle(1, 0x00ff00);
-      graphics.drawShape(this.calculateGlyphBoundingBox(path));
-    }
-    graphics.lineStyle(1, 0x0000ff);
-    drawPath(path, graphics);
-    graphics.position.set(x, y);
-    return graphics;
   }
 
-  private generateMainText(
-    firstLine: string,
-    secondLine: string,
-    lineHeight: number,
-    lineMargin: number,
-    margin: number
-  ): Container {
-    const mainTextContainer = new Container();
-    this.debug && mainTextContainer.addChild(this.drawBaselines(lineHeight, lineMargin, margin));
+  private generateMainText(firstLine: string, secondLine: string): void {
+    const [lineHeight, lineMargin, margin] = [
+      this.sketchParams.lineHeight,
+      this.sketchParams.lineMargin,
+      this.sketchParams.margin,
+    ];
     const xStart = -this.width / 2 + margin;
     [firstLine, secondLine].forEach((line, lineIdx) => {
       const y = lineIdx == 0 ? lineMargin + lineHeight / 2 : -lineMargin - lineHeight / 2;
@@ -96,47 +95,73 @@ class WhoAmI extends Sketch2D {
       const xStep = lineWidth / line.length;
       [...line].forEach((char, charIdx) => {
         const x = xStart + xStep * (charIdx + 0.5);
-        mainTextContainer.addChild(this.drawMainGlyph(x, y, char, lineHeight));
+        this.generateMainGlyph(x, y, char);
       });
     });
-    return mainTextContainer;
+  }
+
+  private drawMainText(): Container {
+    const container = new Container();
+    this.debug && container.addChild(this.drawBaselines());
+    for (const path of this.mainPaths) {
+      const graphics = new Graphics();
+      if (this.debug) {
+        graphics.lineStyle(1, 0x00ff00);
+        graphics.drawShape(this.calculateGlyphBoundingBox(path));
+      }
+      path.strokeColor = new paper.Color("blue");
+      graphics.addChild(drawPath(path));
+      container.addChild(graphics);
+    }
+    return container;
   }
 
   private generateSecondaryText(): Container {
-    const paths = generateTiling(new Rectangle(-this.width / 2, this.height / 2, this.width, -this.height), () => {
-      const text = "Who am i";
-      let textPath: paper.CompoundPath | undefined;
-      do {
-        textPath =
-          textToPath(text, this.secondaryFonts.random().regular) ||
-          textToPath(text, this.fallbackUnicodeFonts.random()) ||
-          void this.phraseBlacklist.push(text);
-      } while (!textPath);
-      return textPath;
-    });
+    const blacklistPath = new paper.CompoundPath(this.mainPaths);
+    const paths = generateTiling(
+      new Rectangle(-this.width / 2, this.height / 2, this.width, -this.height),
+      () => {
+        let textPath;
+        do {
+          const text = Array.from(this.translations.values()).random();
+          textPath =
+            textToPath(text, this.sketchParams.secondaryFonts.random().regular) ||
+            textToPath(text, this.sketchParams.fallbackUnicodeFonts.random()) || //TODO: try more fallback fonts
+            void this.translations.delete(text);
+        } while (!textPath);
+        return textPath;
+      },
+      blacklistPath
+    );
 
     const graphics = new Graphics();
     for (const path of paths) {
-      graphics.lineStyle(1, 0x0000ff);
-      drawPath(path, graphics);
+      path.strokeColor = new paper.Color("blue");
+      path.fillColor = new paper.Color("blue");
+      graphics.addChild(drawPath(path));
       if (this.debug) {
         const points = pathToPoints(path);
         const polygonHull = concaveHull(points);
-        graphics.lineStyle(1, 0x00ff00);
-        drawPath(polygonHull, graphics);
+        polygonHull.strokeColor = new paper.Color("green");
+        graphics.addChild(drawPath(polygonHull));
       }
     }
     return graphics;
   }
 
   setup(): Container<DisplayObject> {
-    // const lineHeight = 300;
-    // const lineMargin = 50;
-    // const margin = 10;
-
+    this.generateMainText("ХТО", "Я?");
     const container = new Container();
-    // container.addChild(this.generateMainText("ХТО", "Я?", lineHeight, lineMargin, margin));
+    //container.addChild(this.drawMainText());
     container.addChild(this.generateSecondaryText());
+    //const graphics = new Graphics();
+    //const path = textToPath("Who am i", this.sketchParams.fallbackUnicodeFonts[0])!;
+    //path.strokeColor = new paper.Color("blue");
+    //path.scale(0.1, [0, 0]);
+    //const graphics = drawPath(path);
+    //graphics.lineStyle(1, 0x0000ff);
+    //graphics.beginFill(0x0000ff);
+    //container.addChild(graphics);
     return container;
   }
 }
@@ -159,6 +184,20 @@ async function start() {
   );
   const fallbackUnicodeFont = await loadFont("whoami/GoNotoCurrent.ttf");
   const fallbackUnicodeFontSerif = await loadFont("whoami/GoNotoCurrentSerif.ttf");
-  new WhoAmI(mainFont, secondaryFonts, [fallbackUnicodeFont, fallbackUnicodeFontSerif], true).draw();
+  const fallbackUnicodeFonts = [fallbackUnicodeFont, fallbackUnicodeFontSerif];
+  const lineHeight = 300;
+  const lineMargin = 50;
+  const margin = 10;
+  const translations = (await Assets.load<string>("whoami/translated.txt")) as string;
+  const sketchParams = {
+    mainFont,
+    secondaryFonts,
+    fallbackUnicodeFonts,
+    lineHeight,
+    lineMargin,
+    margin,
+    translations: translations.split("\n"),
+  };
+  new WhoAmI(sketchParams).draw();
 }
 void start();

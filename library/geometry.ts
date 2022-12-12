@@ -34,16 +34,45 @@ function zeta(z: number): number {
   return 1 + secondTerm * thirdTerm;
 }
 
+function tryPlaceTile(
+  tryPath: paper.CompoundPath,
+  hull: paper.CompoundPath,
+  dims: [number, number, number, number],
+  paths: paper.CompoundPath[],
+  blacklist?: paper.CompoundPath,
+  nTries = 100
+): void {
+  const [minX, minY, maxX, maxY] = dims;
+  while (true) {
+    for (let i = 0; i < nTries; i++) {
+      const [x, y] = [random(minX, maxX), random(minY, maxY)];
+      hull.translate([x, y]);
+
+      const intersectsBlacklist = blacklist ? (blacklist.intersect(hull) as paper.CompoundPath).length != 0 : false;
+      if (!intersectsBlacklist && !paths.some((path) => path.intersects(hull))) {
+        //TODO: try toroidal bounds - http://paulbourke.net/fractals/randomtile/
+        tryPath.translate([x, y]);
+        return;
+      }
+      hull.translate([-x, -y]);
+    }
+    tryPath.scale(0.9, [0, 0]);
+    hull.scale(0.9, [0, 0]);
+  }
+}
+
 function generateTiling(
   rectangle: Rectangle,
   pathFactory: (i?: number) => paper.CompoundPath,
-  _blacklistPath?: paper.CompoundPath
+  blacklistPath?: paper.CompoundPath,
+  n = 500
 ): paper.CompoundPath[] {
+  const t0 = performance.now();
   const paths: paper.CompoundPath[] = [];
-  const c = random(1, 1.3);
+  const c = random(1.2, 1.5);
   const rectArea = Math.abs(rectangle.width * rectangle.height);
-  const initialArea = rectArea / zeta(c);
-  const n = 500;
+  const totalArea = rectArea - (blacklistPath?.area || 0);
+  const initialArea = totalArea / zeta(c);
   const [minX, minY, maxX, maxY] = [
     Math.min(rectangle.left, rectangle.right),
     Math.min(rectangle.top, rectangle.bottom),
@@ -51,26 +80,19 @@ function generateTiling(
     Math.max(rectangle.top, rectangle.bottom),
   ];
   for (let i = 0; i < n; i++) {
+    console.log(i);
     const desiredArea = i == 0 ? initialArea : initialArea * Math.pow(i, -c);
-    const newPath = pathFactory(i);
-    const hullPath = concaveHull(pathToPoints(newPath));
+    const tryPath = pathFactory(i);
+    const hullPath = concaveHull(pathToPoints(tryPath));
     const hullPathArea = hullPath.area;
     const scaleFactor = Math.sqrt(desiredArea / hullPathArea);
-    newPath.scale(scaleFactor, [0, 0]);
+    tryPath.scale(scaleFactor, [0, 0]);
     hullPath.scale(scaleFactor, [0, 0]);
-    while (true) {
-      const [x, y] = [random(minX, maxX), random(minY, maxY)];
-      hullPath.translate([x, y]);
-      //TODO: try toroidal bounds
-      if (/*hullPath.isInside(rectangle) &&*/ !paths.some((path) => path.intersects(hullPath))) {
-        newPath.translate([x, y]);
-        break;
-      }
-      hullPath.translate([-x, -y]);
-    }
-    paths.push(newPath);
+    tryPlaceTile(tryPath, hullPath, [minX, minY, maxX, maxY], paths, blacklistPath);
+    paths.push(tryPath);
   }
-
+  const t1 = performance.now();
+  console.log(`tiling took ${(t1 - t0) / 1000}s`);
   return paths;
 }
 
