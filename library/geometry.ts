@@ -36,7 +36,7 @@ function zeta(z: number): number {
 
 function tryPlaceTile(
   tryPath: paper.CompoundPath,
-  hull: paper.CompoundPath,
+  tryHull: paper.CompoundPath,
   dims: [number, number, number, number],
   paths: paper.CompoundPath[],
   blacklist?: paper.CompoundPath,
@@ -45,19 +45,19 @@ function tryPlaceTile(
   const [minX, minY, maxX, maxY] = dims;
   while (true) {
     for (let i = 0; i < nTries; i++) {
-      const [x, y] = [random(minX, maxX), random(minY, maxY)];
-      hull.translate([x, y]);
+      const [x, y] = [random(minX, maxX - tryPath.bounds.width), random(minY, maxY - tryPath.bounds.height)];
+      tryPath.translate([x, y]);
+      tryHull.translate([x, y]);
 
-      const intersectsBlacklist = blacklist ? (blacklist.intersect(hull) as paper.CompoundPath).length != 0 : false;
-      if (!intersectsBlacklist && !paths.some((path) => path.intersects(hull))) {
-        //TODO: try toroidal bounds - http://paulbourke.net/fractals/randomtile/
-        tryPath.translate([x, y]);
-        return;
-      }
-      hull.translate([-x, -y]);
+      const intersectsPath = paths.some((path) => tryPath.intersects(path));
+      const intersects =
+        intersectsPath || (blacklist ? (tryHull.intersect(blacklist) as paper.CompoundPath).length != 0 : false);
+      if (!intersects) return;
+      tryPath.translate([-x, -y]);
+      tryHull.translate([-x, -y]);
     }
     tryPath.scale(0.9, [0, 0]);
-    hull.scale(0.9, [0, 0]);
+    tryHull.scale(0.9, [0, 0]);
   }
 }
 
@@ -69,7 +69,8 @@ function generateTiling(
 ): paper.CompoundPath[] {
   const t0 = performance.now();
   const paths: paper.CompoundPath[] = [];
-  const c = random(1.2, 1.5);
+  const c = random(1, 1.3); //TODO: lower the c - faster and sparser
+  console.log(c);
   const rectArea = Math.abs(rectangle.width * rectangle.height);
   const totalArea = rectArea - (blacklistPath?.area || 0);
   const initialArea = totalArea / zeta(c);
@@ -83,12 +84,12 @@ function generateTiling(
     console.log(i);
     const desiredArea = i == 0 ? initialArea : initialArea * Math.pow(i, -c);
     const tryPath = pathFactory(i);
-    const hullPath = concaveHull(pathToPoints(tryPath));
-    const hullPathArea = hullPath.area;
-    const scaleFactor = Math.sqrt(desiredArea / hullPathArea);
+    const tryHull = concaveHull(pathToPoints(tryPath));
+    tryHull.simplify();
+    const scaleFactor = Math.sqrt(desiredArea / tryHull.area);
     tryPath.scale(scaleFactor, [0, 0]);
-    hullPath.scale(scaleFactor, [0, 0]);
-    tryPlaceTile(tryPath, hullPath, [minX, minY, maxX, maxY], paths, blacklistPath);
+    tryHull.scale(scaleFactor, [0, 0]);
+    tryPlaceTile(tryPath, tryHull, [minX, minY, maxX, maxY], paths, blacklistPath);
     paths.push(tryPath);
   }
   const t1 = performance.now();

@@ -136,8 +136,8 @@ class WhoAmI extends Sketch2D {
 
     const graphics = new Graphics();
     for (const path of paths) {
-      path.strokeColor = new paper.Color("blue");
-      path.fillColor = new paper.Color("blue");
+      path.strokeColor = new paper.Color("black");
+      path.fillColor = new paper.Color("black");
       graphics.addChild(drawPath(path));
       if (this.debug) {
         const points = pathToPoints(path);
