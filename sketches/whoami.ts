@@ -1,4 +1,4 @@
-import { Container, DisplayObject, Graphics, Rectangle, Assets } from "pixi.js";
+import { Container, DisplayObject, Graphics, Rectangle, Assets, Texture, Sprite } from "pixi.js";
 import { Sketch2D } from "../library/sketch";
 import { textToPath, Font, loadFont } from "../library/text";
 import { pathToPoints, generateTiling } from "../library/geometry";
@@ -149,9 +149,25 @@ class WhoAmI extends Sketch2D {
     return graphics;
   }
 
+  private drawBackground(): DisplayObject {
+    const canvas = new OffscreenCanvas(this.width, this.height);
+    const ctx = canvas.getContext("2d") as OffscreenCanvasRenderingContext2D;
+    const gradient = ctx.createLinearGradient(this.width / 2, 0, this.width / 2, this.height);
+    gradient.addColorStop(1, "#0057b7");
+    gradient.addColorStop(0.5, "white");
+    gradient.addColorStop(0, "#ffd700");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, this.width, this.height);
+    const texture = Texture.from(canvas);
+    const sprite = new Sprite(texture);
+    sprite.anchor.set(0.5);
+    return sprite;
+  }
+
   setup(): Container<DisplayObject> {
     this.generateMainText("ХТО", "Я?");
     const container = new Container();
+    container.addChild(this.drawBackground());
     //container.addChild(this.drawMainText());
     container.addChild(this.generateSecondaryText());
     //const graphics = new Graphics();

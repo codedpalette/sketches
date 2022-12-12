@@ -69,7 +69,7 @@ function generateTiling(
 ): paper.CompoundPath[] {
   const t0 = performance.now();
   const paths: paper.CompoundPath[] = [];
-  const c = random(1, 1.3); //TODO: lower the c - faster and sparser
+  const c = random(1.1, 1.2);
   console.log(c);
   const rectArea = Math.abs(rectangle.width * rectangle.height);
   const totalArea = rectArea - (blacklistPath?.area || 0);

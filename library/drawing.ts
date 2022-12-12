@@ -13,12 +13,16 @@ function drawLines(lines: LineLike[], graphics: Graphics) {
 }
 
 function drawPath(path: paper.CompoundPath): Graphics {
-  const svgPath = path.exportSVG() as SVGElement;
+  const pathCopy = path.clone();
+  pathCopy.scale(100, [0, 0]);
+  const svgPath = pathCopy.exportSVG() as SVGElement;
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 1 1"); // Doesn't work without it
   svg.appendChild(svgPath);
   const scene = new SVGScene(svg);
-  return scene.root.children[0] as Graphics;
+  const graphics = scene.root.children[0] as Graphics;
+  graphics.scale.set(0.01);
+  return graphics;
 }
 
 export { drawLines, drawPath };
