@@ -215,7 +215,7 @@ class WhoAmI extends Sketch2D {
   }
 }
 
-async function start(firstLine: string, secondLine: string, rotation: number) {
+async function start(firstLine: string, secondLine: string, rotation: number, translationsFile: string) {
   const mainFont = await loadFont("whoami/StalinistOne-Regular.ttf");
   const secondaryFonts = await Promise.all(
     ["Verdana", "Courier New", "Georgia"].map(async (fontName) => {
@@ -237,11 +237,11 @@ async function start(firstLine: string, secondLine: string, rotation: number) {
   const lineHeight = 300;
   const lineMargin = 50;
   const margin = 10;
-  const translatedString = ((await Assets.load<string>("whoami/translated.txt")) as string).split("\n");
+  const translated = ((await Assets.load<string>(`whoami/translations/${translationsFile}`)) as string).split("\n");
   const translations = [
-    ...translatedString,
-    ...translatedString.map((s) => s.toLowerCase()),
-    ...translatedString.map((s) => s.toUpperCase()),
+    ...translated,
+    ...translated.map((s) => s.toLowerCase()),
+    ...translated.map((s) => s.toUpperCase()),
   ];
   const sketchParams = {
     mainFont,
@@ -257,6 +257,6 @@ async function start(firstLine: string, secondLine: string, rotation: number) {
   };
   new WhoAmI(sketchParams).draw();
 }
-void start("ХТО", "Я?", random(-45, 45));
-//void start("ДЕ", "МИ?", 0);
-//void start("ЩО", "ЦЕ?", 90);
+void start("ХТО", "Я?", random(-45, 45), "who.txt");
+//void start("ДЕ", "МИ?", 0, "where.txt");
+//void start("ЩО", "ЦЕ?", 90, "what.txt");

@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+cat ./codes.txt | while read code; do ./translate -b :"$code" "$1"; done

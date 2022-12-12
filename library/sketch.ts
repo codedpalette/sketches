@@ -54,6 +54,7 @@ export abstract class Sketch2D {
       height,
       antialias: true,
       backgroundColor: bgColor,
+      preserveDrawingBuffer: true,
     });
     document.body.appendChild(this.app.view as unknown as Node);
   }
