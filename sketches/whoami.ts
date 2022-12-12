@@ -7,6 +7,7 @@ import "../library/util";
 
 import { Container, DisplayObject, Graphics, Rectangle, Assets } from "pixi.js";
 import paper from "paper";
+import { random } from "../library/util";
 
 type FontFamily = {
   regular: Font;
@@ -22,6 +23,7 @@ type SketchParams = {
   lineHeight: number;
   lineMargin: number;
   margin: number;
+  rotation: number;
   translations: string[];
 };
 
@@ -29,33 +31,38 @@ class WhoAmI extends Sketch2D {
   private sketchParams: SketchParams;
   private mainPaths: paper.CompoundPath[];
   private translations: Set<string>;
-  private background: DisplayObject;
-  private foreground: DisplayObject;
+  private background: Graphics;
+  private foreground: Graphics;
 
   constructor(sketchParams: SketchParams, debug = false) {
     super(debug);
     this.sketchParams = sketchParams;
     this.mainPaths = [];
     this.translations = new Set([...sketchParams.translations]);
-    this.background = this.createFlag(true);
-    this.foreground = this.createFlag(false);
+
+    const cpt1: [number, number] = [random(-this.width / 2, 0), random(0, this.height / 2)];
+    const cpt2: [number, number] = [random(0, this.width / 2), random(-this.height / 2, 0)];
+    this.background = this.createFlag(true, this.sketchParams.rotation, [cpt1, cpt2]);
+    this.foreground = this.createFlag(false, this.sketchParams.rotation, [cpt1, cpt2]);
     paper.setup([this.width, this.height]);
   }
 
-  private createFlag(isBack: boolean): DisplayObject {
-    //TODO: add rotation
+  private createFlag(isBack: boolean, rotation: number, controlPoints: [[number, number], [number, number]]): Graphics {
     const blue = 0x0057b7;
     const yellow = 0xffd700;
     const graphics = new Graphics();
     graphics.beginFill(isBack ? blue : yellow);
-    graphics.drawRect(-this.width / 2, -this.height / 2, this.width, this.height);
+    graphics.drawRect(-this.width, -this.height, this.width * 2, this.height * 2);
     graphics.endFill();
     graphics.beginFill(isBack ? yellow : blue);
-    graphics.moveTo(-this.width / 2, -this.height / 2);
-    graphics.lineTo(-this.width / 2, 0);
-    graphics.bezierCurveTo(-this.width / 4, this.height / 4, this.width / 4, -this.height / 4, this.width / 2, 0); //TODO: Randomize control points
-    graphics.lineTo(this.width / 2, -this.height / 2);
+    graphics.moveTo(-this.width, -this.height);
+    graphics.lineTo(-this.width, 0);
+
+    const [cpt1, cpt2] = controlPoints;
+    graphics.bezierCurveTo(cpt1[0], cpt1[1], cpt2[0], cpt2[1], this.width, 0);
+    graphics.lineTo(this.width, -this.height);
     graphics.closePath();
+    graphics.angle = rotation;
     return graphics;
   }
 
@@ -165,13 +172,12 @@ class WhoAmI extends Sketch2D {
           const text = Array.from(this.translations.values()).random(); //TODO: random rotation and skew
           textPath =
             textToPath(text, allFontVariants.random()) ||
-            textToPath(text, this.sketchParams.fallbackUnicodeFonts.random()) || //TODO: Add Ancient font
+            textToPath(text, this.sketchParams.fallbackUnicodeFonts.random()) ||
             void this.translations.delete(text);
         } while (!textPath);
         return textPath;
       },
       blacklistPath
-      //TODO: n = random(500, 1000)
     );
 
     const mask = new Graphics();
@@ -199,7 +205,7 @@ class WhoAmI extends Sketch2D {
     const container = new Container();
     container.addChild(this.background);
     container.addChild(this.drawMainText());
-    container.addChildAt(this.generateSecondaryText(), 2);
+    container.addChild(this.generateSecondaryText());
     return container;
   }
 }
@@ -226,6 +232,7 @@ async function start() {
   const lineHeight = 300;
   const lineMargin = 50;
   const margin = 10;
+  const rotation = random(-45, 45);
   const translations = (await Assets.load<string>("whoami/translated.txt")) as string; //TODO: translate other phrases
   const sketchParams = {
     mainFont,
@@ -234,6 +241,7 @@ async function start() {
     lineHeight,
     lineMargin,
     margin,
+    rotation,
     translations: translations.split("\n"),
   };
   new WhoAmI(sketchParams).draw();
