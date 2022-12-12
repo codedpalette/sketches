@@ -4,7 +4,7 @@ import "regenerator-runtime/runtime";
 
 export type Font = fontkit.Font;
 
-function textToPath(text: string, font: Font, fontSize = 72): paper.CompoundPath | undefined {
+function textToPath(text: string, font: Font, removeOffset = false, fontSize = 72): paper.CompoundPath | undefined {
   for (let j = 0; j < text.length; j++) {
     if (!font.hasGlyphForCodePoint(text.charCodeAt(j))) {
       return undefined;
@@ -20,6 +20,7 @@ function textToPath(text: string, font: Font, fontSize = 72): paper.CompoundPath
   let penPosition = [0, 0];
   const childPaths = layout.glyphs.map((glyph, i) => {
     const glyphPath = new paper.CompoundPath(glyph.path.toSVG());
+    if (removeOffset) glyphPath.translate([-glyphPath.bounds.x, -glyphPath.bounds.y]);
     const glyphPosition = layout.positions[i];
     const scale = (1 / (font.unitsPerEm || 1000)) * fontSize;
     glyphPath.translate([penPosition[0] + glyphPosition.xOffset, penPosition[1] + glyphPosition.yOffset]);

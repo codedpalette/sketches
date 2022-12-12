@@ -1,4 +1,4 @@
-import { Container, DisplayObject, Graphics, Rectangle, Assets, Texture, Sprite } from "pixi.js";
+import { Container, DisplayObject, Graphics, Rectangle, Assets } from "pixi.js";
 import { Sketch2D } from "../library/sketch";
 import { textToPath, Font, loadFont } from "../library/text";
 import { pathToPoints, generateTiling } from "../library/geometry";
@@ -28,13 +28,34 @@ class WhoAmI extends Sketch2D {
   private sketchParams: SketchParams;
   private mainPaths: paper.CompoundPath[];
   private translations: Set<string>;
+  private background: DisplayObject;
+  private foreground: DisplayObject;
 
   constructor(sketchParams: SketchParams, debug = false) {
-    super(debug);
+    super(debug, 1200, 1200);
     this.sketchParams = sketchParams;
     this.mainPaths = [];
     this.translations = new Set([...sketchParams.translations]);
+    this.background = this.createFlag(true);
+    this.foreground = this.createFlag(false);
     paper.setup([this.width, this.height]);
+  }
+
+  private createFlag(isBack: boolean): DisplayObject {
+    //TODO: add rotation
+    const blue = 0x0057b7;
+    const yellow = 0xffd700;
+    const graphics = new Graphics();
+    graphics.beginFill(isBack ? blue : yellow);
+    graphics.drawRect(-this.width / 2, -this.height / 2, this.width, this.height);
+    graphics.endFill();
+    graphics.beginFill(isBack ? yellow : blue);
+    graphics.moveTo(-this.width / 2, -this.height / 2);
+    graphics.lineTo(-this.width / 2, 0);
+    graphics.bezierCurveTo(-this.width / 4, this.height / 4, this.width / 4, -this.height / 4, this.width / 2, 0); //TODO: Randomize control points
+    graphics.lineTo(this.width / 2, -this.height / 2);
+    graphics.closePath();
+    return graphics;
   }
 
   private calculateGlyphBoundingBox(path: paper.CompoundPath) {
@@ -72,9 +93,9 @@ class WhoAmI extends Sketch2D {
   }
 
   private generateMainGlyph(x: number, y: number, char: string): void {
-    const path = textToPath(char, this.sketchParams.mainFont) as paper.CompoundPath;
+    const path = textToPath(char, this.sketchParams.mainFont, true) as paper.CompoundPath;
     const boundingBox = this.calculateGlyphBoundingBox(path);
-    const scaleX = this.sketchParams.lineHeight / boundingBox.width; //TODO: Maybe fix for very wide letters
+    const scaleX = this.sketchParams.lineHeight / boundingBox.width;
     const scaleY = this.sketchParams.lineHeight / boundingBox.height;
     path.translate([-boundingBox.width / 2, -boundingBox.height / 2]);
     path.scale(scaleX, scaleY, [0, 0]);
@@ -103,14 +124,25 @@ class WhoAmI extends Sketch2D {
   private drawMainText(): Container {
     const container = new Container();
     this.debug && container.addChild(this.drawBaselines());
+    const pathSteps = 10;
+    const alphaStep = (1 - 0.5) / pathSteps;
     for (const path of this.mainPaths) {
       const graphics = new Graphics();
       if (this.debug) {
         graphics.lineStyle(1, 0x00ff00);
         graphics.drawShape(this.calculateGlyphBoundingBox(path));
       }
-      path.strokeColor = new paper.Color("blue");
-      graphics.addChild(drawPath(path));
+      path.strokeColor = new paper.Color("black");
+      const scaleCenterX = path.bounds.x + path.bounds.width / 2;
+      const scaleCenterY = path.bounds.y > 0 ? path.bounds.y : path.bounds.y + path.bounds.height;
+      for (let i = 0; i < pathSteps; i++) {
+        const pathCopy = path.clone();
+        pathCopy.scale(1 - alphaStep * i, [scaleCenterX, scaleCenterY]);
+        pathCopy.strokeWidth = 1 - alphaStep * i;
+        const pathGraphics = drawPath(pathCopy);
+        pathGraphics.alpha = 0.5 - alphaStep * i;
+        graphics.addChild(pathGraphics);
+      }
       container.addChild(graphics);
     }
     return container;
@@ -118,66 +150,56 @@ class WhoAmI extends Sketch2D {
 
   private generateSecondaryText(): Container {
     const blacklistPath = new paper.CompoundPath(this.mainPaths);
+    const allFontVariants = this.sketchParams.secondaryFonts.flatMap((ff) => [
+      ff.regular,
+      ff.bold,
+      ff.italic,
+      ff.boldItalic,
+    ]);
     const paths = generateTiling(
       new Rectangle(-this.width / 2, this.height / 2, this.width, -this.height),
       () => {
         let textPath;
         do {
-          const text = Array.from(this.translations.values()).random();
+          const text = Array.from(this.translations.values()).random(); //TODO: random rotation and skew
           textPath =
-            textToPath(text, this.sketchParams.secondaryFonts.random().regular) ||
-            textToPath(text, this.sketchParams.fallbackUnicodeFonts.random()) || //TODO: try more fallback fonts
+            textToPath(text, allFontVariants.random()) ||
+            textToPath(text, this.sketchParams.fallbackUnicodeFonts.random()) ||
             void this.translations.delete(text);
         } while (!textPath);
         return textPath;
       },
       blacklistPath
+      //TODO: n = random(500, 1000)
     );
 
-    const graphics = new Graphics();
+    const mask = new Graphics();
+    const debugGraphics = new Graphics();
     for (const path of paths) {
-      path.strokeColor = new paper.Color("black");
-      path.fillColor = new paper.Color("black");
-      graphics.addChild(drawPath(path));
+      //path.strokeColor = new paper.Color("white");
+      path.fillColor = new paper.Color("white");
+      mask.addChild(drawPath(path));
       if (this.debug) {
         const points = pathToPoints(path);
         const polygonHull = concaveHull(points);
         polygonHull.strokeColor = new paper.Color("green");
-        graphics.addChild(drawPath(polygonHull));
+        debugGraphics.addChild(drawPath(polygonHull));
       }
     }
-    return graphics;
-  }
 
-  private drawBackground(): DisplayObject {
-    const canvas = new OffscreenCanvas(this.width, this.height);
-    const ctx = canvas.getContext("2d") as OffscreenCanvasRenderingContext2D;
-    const gradient = ctx.createLinearGradient(this.width / 2, 0, this.width / 2, this.height);
-    gradient.addColorStop(1, "#0057b7");
-    gradient.addColorStop(0.5, "white");
-    gradient.addColorStop(0, "#ffd700");
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, this.width, this.height);
-    const texture = Texture.from(canvas);
-    const sprite = new Sprite(texture);
-    sprite.anchor.set(0.5);
-    return sprite;
+    const maskContainer = new Container();
+    maskContainer.mask = mask;
+    maskContainer.addChild(mask);
+    maskContainer.addChild(this.foreground);
+    return maskContainer;
   }
 
   setup(): Container<DisplayObject> {
     this.generateMainText("ХТО", "Я?");
     const container = new Container();
-    container.addChild(this.drawBackground());
-    //container.addChild(this.drawMainText());
-    container.addChild(this.generateSecondaryText());
-    //const graphics = new Graphics();
-    //const path = textToPath("Who am i", this.sketchParams.fallbackUnicodeFonts[0])!;
-    //path.strokeColor = new paper.Color("blue");
-    //path.scale(0.1, [0, 0]);
-    //const graphics = drawPath(path);
-    //graphics.lineStyle(1, 0x0000ff);
-    //graphics.beginFill(0x0000ff);
-    //container.addChild(graphics);
+    container.addChild(this.background);
+    container.addChild(this.drawMainText());
+    container.addChildAt(this.generateSecondaryText(), 2);
     return container;
   }
 }
@@ -204,7 +226,7 @@ async function start() {
   const lineHeight = 300;
   const lineMargin = 50;
   const margin = 10;
-  const translations = (await Assets.load<string>("whoami/translated.txt")) as string;
+  const translations = (await Assets.load<string>("whoami/translated.txt")) as string; //TODO: translate other phrases
   const sketchParams = {
     mainFont,
     secondaryFonts,
@@ -216,4 +238,4 @@ async function start() {
   };
   new WhoAmI(sketchParams).draw();
 }
-void start();
+void start(); //TODO: Add parameters to easily create variants

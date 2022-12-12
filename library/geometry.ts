@@ -52,7 +52,7 @@ function tryPlaceTile(
       const intersectsPath = paths.some((path) => tryPath.intersects(path));
       const intersects =
         intersectsPath || (blacklist ? (tryHull.intersect(blacklist) as paper.CompoundPath).length != 0 : false);
-      if (!intersects) return;
+      if (!intersects) return; //TODO: try toroidal bounds
       tryPath.translate([-x, -y]);
       tryHull.translate([-x, -y]);
     }
@@ -70,7 +70,6 @@ function generateTiling(
   const t0 = performance.now();
   const paths: paper.CompoundPath[] = [];
   const c = random(1.1, 1.2);
-  console.log(c);
   const rectArea = Math.abs(rectangle.width * rectangle.height);
   const totalArea = rectArea - (blacklistPath?.area || 0);
   const initialArea = totalArea / zeta(c);

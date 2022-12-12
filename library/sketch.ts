@@ -38,8 +38,8 @@ export abstract class Sketch2D {
     const container = this.setup();
     container.position = { x: this.width / 2, y: this.height / 2 };
     container.scale.set(1, -1);
-    this.debug && container.addChildAt(this.drawAxes(), 0);
     this.app.stage.addChild(container);
+    this.debug && container.addChild(this.drawAxes());
 
     this.app.ticker.add((delta) => {
       this._elapsed += delta;
