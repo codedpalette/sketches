@@ -33,28 +33,49 @@ function zeta(z: number): number {
   return 1 + secondTerm * thirdTerm;
 }
 
+type RandomizationParams = {
+  rotationBounds?: [number, number];
+  skewBounds?: [paper.Point, paper.Point];
+  shearBounds?: [paper.Point, paper.Point];
+};
+
 function tryPlaceTile(
-  tryPath: paper.CompoundPath,
+  path: paper.CompoundPath,
   dims: [number, number, number, number],
   paths: paper.CompoundPath[],
   blacklist?: paper.CompoundPath,
+  randomizeParams?: RandomizationParams,
   nTries = 100
-): void {
+): paper.CompoundPath {
   const [minX, minY, maxX, maxY] = dims;
   const pathsToCheck = blacklist ? [blacklist, ...paths] : paths;
   while (true) {
+    let tryPath!: paper.CompoundPath;
     for (let i = 0; i < nTries; i++) {
+      tryPath = path.clone();
+
       const [x, y] = [random(minX - tryPath.bounds.width, maxX), random(minY - tryPath.bounds.height, maxY)];
       tryPath.translate([x, y]);
-      //TODO: random rotation and skew
+      if (randomizeParams) {
+        randomizeParams.rotationBounds &&
+          tryPath.rotate(random(randomizeParams.rotationBounds[0], randomizeParams.rotationBounds[1]));
+        randomizeParams.skewBounds &&
+          tryPath.skew([
+            random(randomizeParams.skewBounds[0].x, randomizeParams.skewBounds[1].x),
+            random(randomizeParams.skewBounds[0].y, randomizeParams.skewBounds[1].y),
+          ]);
+        randomizeParams.shearBounds &&
+          tryPath.shear([
+            random(randomizeParams.shearBounds[0].x, randomizeParams.shearBounds[1].x),
+            random(randomizeParams.shearBounds[0].y, randomizeParams.shearBounds[1].y),
+          ]);
+      }
 
       const tryPathPoints = pathToPoints(tryPath, 100);
       const intersects = pathsToCheck.some(
         (path) => tryPath.intersects(path) || tryPathPoints.some((point) => path.contains(point))
       );
-
-      if (!intersects) return;
-      tryPath.translate([-x, -y]);
+      if (!intersects) return tryPath;
     }
     tryPath.scale(0.9, [0, 0]);
   }
@@ -64,6 +85,7 @@ function generateTiling(
   rectangle: Rectangle,
   pathFactory: (i?: number) => paper.CompoundPath,
   blacklistPath?: paper.CompoundPath,
+  randomizeParams?: RandomizationParams,
   n = 500
 ): paper.CompoundPath[] {
   const t0 = performance.now();
@@ -85,8 +107,8 @@ function generateTiling(
     const tryHull = concaveHull(pathToPoints(tryPath));
     const scaleFactor = Math.sqrt(desiredArea / tryHull.area);
     tryPath.scale(scaleFactor, [0, 0]);
-    tryPlaceTile(tryPath, [minX, minY, maxX, maxY], paths, blacklistPath);
-    paths.push(tryPath);
+    const newPath = tryPlaceTile(tryPath, [minX, minY, maxX, maxY], paths, blacklistPath, randomizeParams);
+    paths.push(newPath);
   }
   const t1 = performance.now();
   console.log(`tiling took ${(t1 - t0) / 1000}s`);

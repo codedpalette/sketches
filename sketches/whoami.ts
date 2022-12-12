@@ -46,6 +46,7 @@ class WhoAmI extends Sketch2D {
     const cpt2: [number, number] = [random(0, this.width / 2), random(-this.height / 2, 0)];
     this.background = this.createFlag(true, this.sketchParams.rotation, [cpt1, cpt2]);
     this.foreground = this.createFlag(false, this.sketchParams.rotation, [cpt1, cpt2]);
+    Math.random() > 0.5 && ([this.background, this.foreground] = [this.foreground, this.background]);
     paper.setup([this.width, this.height]);
   }
 
@@ -179,7 +180,8 @@ class WhoAmI extends Sketch2D {
         } while (!textPath);
         return textPath;
       },
-      blacklistPath
+      blacklistPath,
+      { rotationBounds: [-20, 20], skewBounds: [new paper.Point(-5, -5), new paper.Point(5, 5)] }
       //TODO: n=random(500, 1000)
     );
 
@@ -235,7 +237,12 @@ async function start(firstLine: string, secondLine: string, rotation: number) {
   const lineHeight = 300;
   const lineMargin = 50;
   const margin = 10;
-  const translations = (await Assets.load<string>("whoami/translated.txt")) as string; //TODO: translate other phrases
+  const translatedString = ((await Assets.load<string>("whoami/translated.txt")) as string).split("\n");
+  const translations = [
+    ...translatedString,
+    ...translatedString.map((s) => s.toLowerCase()),
+    ...translatedString.map((s) => s.toUpperCase()),
+  ];
   const sketchParams = {
     mainFont,
     secondaryFonts,
@@ -246,7 +253,7 @@ async function start(firstLine: string, secondLine: string, rotation: number) {
     rotation,
     firstLine,
     secondLine,
-    translations: translations.split("\n"),
+    translations,
   };
   new WhoAmI(sketchParams).draw();
 }
