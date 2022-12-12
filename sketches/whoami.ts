@@ -1,11 +1,12 @@
-import { Container, DisplayObject, Graphics, Rectangle, Assets } from "pixi.js";
 import { Sketch2D } from "../library/sketch";
 import { textToPath, Font, loadFont } from "../library/text";
 import { pathToPoints, generateTiling } from "../library/geometry";
 import { drawPath, drawLines, LineLike } from "../library/drawing";
-import "../library/util";
-import paper from "paper";
 import { concaveHull } from "../library/geometry";
+import "../library/util";
+
+import { Container, DisplayObject, Graphics, Rectangle, Assets } from "pixi.js";
+import paper from "paper";
 
 type FontFamily = {
   regular: Font;
@@ -164,7 +165,7 @@ class WhoAmI extends Sketch2D {
           const text = Array.from(this.translations.values()).random(); //TODO: random rotation and skew
           textPath =
             textToPath(text, allFontVariants.random()) ||
-            textToPath(text, this.sketchParams.fallbackUnicodeFonts.random()) ||
+            textToPath(text, this.sketchParams.fallbackUnicodeFonts.random()) || //TODO: Add Ancient font
             void this.translations.delete(text);
         } while (!textPath);
         return textPath;
@@ -176,7 +177,6 @@ class WhoAmI extends Sketch2D {
     const mask = new Graphics();
     const debugGraphics = new Graphics();
     for (const path of paths) {
-      //path.strokeColor = new paper.Color("white");
       path.fillColor = new paper.Color("white");
       mask.addChild(drawPath(path));
       if (this.debug) {
