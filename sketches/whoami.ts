@@ -57,7 +57,7 @@ class WhoAmI extends Sketch2D {
   setup(): Container<DisplayObject> {
     const container = new Container();
     this.generateMainText();
-    container.addChild(this.background); //TODO: Don't draw if debug
+    !this.debug && container.addChild(this.background);
     container.addChild(this.drawMainText());
     container.addChild(this.generateSecondaryTexts());
     return container;
@@ -99,7 +99,7 @@ class WhoAmI extends Sketch2D {
 
   private drawMainText(): Container {
     const container = new Container();
-    const pathSteps = 10;
+    const pathSteps = this.debug ? 1 : 10;
     const alphaStep = (1 - 0.5) / pathSteps;
 
     this.debug && container.addChild(this.drawBaselines());
@@ -159,7 +159,6 @@ class WhoAmI extends Sketch2D {
   }
 
   private generateSecondaryTexts(): Container {
-    //TODO: Split into generation and drawing
     const blacklistPath = new CompoundPath(this.mainPaths);
     const allFontVariants = this.sketchParams.secondaryFonts.flatMap((ff) => [
       ff.regular,
@@ -177,7 +176,16 @@ class WhoAmI extends Sketch2D {
       randomizeParams: { rotationBounds: [-20, 20], skewBounds: { minHor: -5, minVer: -5, maxHor: 5, maxVer: 5 } },
     });
 
-    const mask = new Graphics(); //TODO: Don't fill if debug
+    if (this.debug) {
+      const graphics = new Graphics();
+      for (const path of paths) {
+        path.strokeColor = new Color("blue");
+        graphics.addChild(drawPath(path));
+      }
+      return graphics;
+    }
+
+    const mask = new Graphics();
     const debugGraphics = new Graphics();
     for (const path of paths) {
       path.fillColor = new Color("white");
@@ -272,7 +280,7 @@ async function start(firstLine: string, secondLine: string, flagRotation: number
     secondLine,
     translations,
   };
-  new WhoAmI(sketchParams).draw();
+  new WhoAmI(sketchParams, true).draw();
 }
 
 void start("ХТО", "Я?", random(-45, 45), "who.txt");

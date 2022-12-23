@@ -100,6 +100,7 @@ class Packing {
     blacklistShape,
     randomizeParams,
   }: PackingParams): CompoundPath[] {
+    //TODO: Improve performance
     const paths = [];
     const c = random(1.1, 1.2); //TODO: try [1, 1.5]
     const rectArea = Math.abs(boundingRect.width * boundingRect.height);
@@ -110,7 +111,8 @@ class Packing {
       console.log(i);
       const desiredArea = i == 0 ? initialArea : initialArea * Math.pow(i, -c);
       const tryPath = shapeFactory(i).reorient(false, true) as CompoundPath;
-      const scaleFactor = Math.sqrt(desiredArea / concaveHull(tryPath).area); //TODO: Test with convex polygons
+      const tryArea = concaveHull(tryPath).area; //TODO: Test with convex polygons, try to get rid of `concaveHull()`
+      const scaleFactor = Math.sqrt(desiredArea / tryArea);
       tryPath.scale(scaleFactor, [0, 0]);
       const newPath = Packing.tryPlaceTile(tryPath, paths, boundingRect, blacklistShape, randomizeParams);
       paths.push(newPath);
