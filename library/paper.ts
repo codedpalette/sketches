@@ -16,10 +16,12 @@ export class Path extends paper.Path {
   }
 }
 export class CompoundPath extends paper.CompoundPath {
+  get childPaths(): Path[] {
+    return this.children.map((child) => (child instanceof paper.Path ? paperPathToPath(child) : (child as Path)));
+  }
+
   toPoints(step = 1): Point[] {
-    return this.children
-      .map((child) => (child instanceof paper.Path ? paperPathToPath(child) : (child as Path)))
-      .flatMap((path) => path.toPoints(step));
+    return this.childPaths.flatMap((path) => path.toPoints(step));
   }
 }
 export class Color extends paper.Color {}
@@ -28,3 +30,4 @@ export class Rectangle extends paper.Rectangle {
     return new CompoundPath({ children: [new Path.Rectangle(this)] });
   }
 }
+export class Matrix extends paper.Matrix {}

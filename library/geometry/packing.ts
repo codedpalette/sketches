@@ -1,12 +1,28 @@
-import { CompoundPath, Point, Rectangle } from "../paper";
+import { CompoundPath, Matrix, Rectangle } from "../paper";
 import { random } from "../util/random";
 import { sync_timer } from "../util/timing";
 import { concaveHull } from "./hull";
 
+type HorVerBounds = {
+  minHor: number;
+  minVer: number;
+  maxHor: number;
+  maxVer: number;
+};
+
 type RandomizationParams = {
   rotationBounds?: [number, number];
-  skewBounds?: [Point, Point];
-  shearBounds?: [Point, Point];
+  skewBounds?: HorVerBounds;
+  shearBounds?: HorVerBounds;
+};
+
+type PackingParams = {
+  boundingRect: Rectangle;
+  shapeFactory: (i?: number) => CompoundPath;
+  nShapes: number;
+  blacklistShape?: CompoundPath;
+  //whitelistShape?: CompoundPath; - need to implement
+  randomizeParams?: RandomizationParams;
 };
 
 // Using class here to add execution time decorators
@@ -17,91 +33,95 @@ class Packing {
     return 1 + secondTerm * thirdTerm;
   }
 
+  private static tryTransformMatrix(
+    tryPath: CompoundPath,
+    boundingRect: Rectangle,
+    randomizeParams?: RandomizationParams
+  ): Matrix {
+    const matrix = new Matrix();
+    const [minX, minY, maxX, maxY] = [boundingRect.left, boundingRect.bottom, boundingRect.right, boundingRect.top];
+    const [x, y] = [random(minX - tryPath.bounds.width, maxX), random(minY - tryPath.bounds.height, maxY)];
+
+    matrix.translate([x, y]);
+    if (randomizeParams) {
+      if (randomizeParams.rotationBounds) {
+        const rotation = random(randomizeParams.rotationBounds[0], randomizeParams.rotationBounds[1]);
+        matrix.rotate(rotation, tryPath.position);
+      }
+      if (randomizeParams.skewBounds) {
+        const skewHor = random(randomizeParams.skewBounds.minHor, randomizeParams.skewBounds.maxHor);
+        const skewVer = random(randomizeParams.skewBounds.minVer, randomizeParams.skewBounds.maxVer);
+        matrix.skew(skewHor, skewVer);
+      }
+      if (randomizeParams.shearBounds) {
+        const shearHor = random(randomizeParams.shearBounds.minHor, randomizeParams.shearBounds.maxHor);
+        const shearVer = random(randomizeParams.shearBounds.minVer, randomizeParams.shearBounds.maxVer);
+        matrix.shear(shearHor, shearVer);
+      }
+    }
+    return matrix;
+  }
+
+  private static intersectsExistingPaths(tryPath: CompoundPath, pathsToCheck: CompoundPath[]): boolean {
+    const tryPathPoints = tryPath.childPaths.flatMap((path) => [path.getPointAt(0), path.getPointAt(path.length / 2)]);
+    const intersects = pathsToCheck.some(
+      (path) => tryPathPoints.some((point) => path.contains(point)) || tryPath.intersects(path)
+    );
+    return intersects;
+  }
+
   private static tryPlaceTile(
-    path: CompoundPath,
-    dims: [number, number, number, number],
-    paths: CompoundPath[],
-    blacklist?: CompoundPath,
+    tryPath: CompoundPath,
+    existingPaths: CompoundPath[],
+    boundingRect: Rectangle,
+    blacklistShape?: CompoundPath,
     randomizeParams?: RandomizationParams,
     nTries = 100
   ): CompoundPath {
-    const [minX, minY, maxX, maxY] = dims;
-    const pathsToCheck = blacklist ? [blacklist, ...paths] : paths;
+    const pathsToCheck = blacklistShape ? [blacklistShape, ...existingPaths] : existingPaths;
     while (true) {
-      let tryPath!: CompoundPath;
       for (let i = 0; i < nTries; i++) {
-        tryPath = path.clone();
-
-        const [x, y] = [random(minX - tryPath.bounds.width, maxX), random(minY - tryPath.bounds.height, maxY)];
-        tryPath.translate([x, y]);
-        if (randomizeParams) {
-          randomizeParams.rotationBounds &&
-            tryPath.rotate(random(randomizeParams.rotationBounds[0], randomizeParams.rotationBounds[1]));
-          randomizeParams.skewBounds &&
-            tryPath.skew([
-              random(randomizeParams.skewBounds[0].x, randomizeParams.skewBounds[1].x),
-              random(randomizeParams.skewBounds[0].y, randomizeParams.skewBounds[1].y),
-            ]);
-          randomizeParams.shearBounds &&
-            tryPath.shear([
-              random(randomizeParams.shearBounds[0].x, randomizeParams.shearBounds[1].x),
-              random(randomizeParams.shearBounds[0].y, randomizeParams.shearBounds[1].y),
-            ]);
-        }
-
-        const tryPathPoints = tryPath.toPoints(100); //TODO: just use one point from each child path
-        const intersects = pathsToCheck.some(
-          (path) => tryPath.intersects(path) || tryPathPoints.some((point) => path.contains(point))
-        );
-        if (!intersects) return tryPath;
+        const matrix = Packing.tryTransformMatrix(tryPath, boundingRect, randomizeParams);
+        tryPath.transform(matrix);
+        if (!Packing.intersectsExistingPaths(tryPath, pathsToCheck)) return tryPath;
+        tryPath.transform(matrix.invert());
       }
-      console.log("scaling");
+      console.log("scaling down");
       tryPath.scale(0.9, [0, 0]);
     }
   }
 
   // http://paulbourke.net/fractals/randomtile/
   @sync_timer
-  static generateTiling(
-    rectangle: Rectangle,
-    pathFactory: (i?: number) => CompoundPath,
-    blacklistPath?: CompoundPath,
-    randomizeParams?: RandomizationParams,
-    n = 500
-  ): CompoundPath[] {
+  static generatePacking({
+    boundingRect,
+    shapeFactory,
+    nShapes,
+    blacklistShape,
+    randomizeParams,
+  }: PackingParams): CompoundPath[] {
     const paths = [];
-    const c = random(1.1, 1.2);
-    const rectArea = Math.abs(rectangle.width * rectangle.height);
-    const totalArea = rectArea - (blacklistPath?.area || 0);
+    const c = random(1.1, 1.2); //TODO: try [1, 1.5]
+    const rectArea = Math.abs(boundingRect.width * boundingRect.height);
+    const totalArea = rectArea - (blacklistShape?.area || 0);
     const initialArea = totalArea / Packing.zeta(c);
-    const [minX, minY, maxX, maxY] = [
-      Math.min(rectangle.left, rectangle.right),
-      Math.min(rectangle.top, rectangle.bottom),
-      Math.max(rectangle.left, rectangle.right),
-      Math.max(rectangle.top, rectangle.bottom),
-    ];
-    for (let i = 0; i < n; i++) {
+
+    for (let i = 0; i < nShapes; i++) {
       console.log(i);
       const desiredArea = i == 0 ? initialArea : initialArea * Math.pow(i, -c);
-      const tryPath = pathFactory(i);
-      const tryHull = concaveHull(tryPath);
+      const tryPath = shapeFactory(i);
+      const tryHull = concaveHull(tryPath); //TODO: Remove
       const scaleFactor = Math.sqrt(desiredArea / tryHull.area);
       tryPath.scale(scaleFactor, [0, 0]);
-      const newPath = Packing.tryPlaceTile(tryPath, [minX, minY, maxX, maxY], paths, blacklistPath, randomizeParams);
+      const newPath = Packing.tryPlaceTile(tryPath, paths, boundingRect, blacklistShape, randomizeParams);
       paths.push(newPath);
     }
     return paths;
   }
 }
 
-function generateTiling(
-  rectangle: Rectangle,
-  pathFactory: (i?: number) => CompoundPath,
-  blacklistPath?: CompoundPath,
-  randomizeParams?: RandomizationParams,
-  n = 500
-): CompoundPath[] {
-  return Packing.generateTiling(rectangle, pathFactory, blacklistPath, randomizeParams, n);
+function generatePacking(packingParams: PackingParams): CompoundPath[] {
+  return Packing.generatePacking(packingParams);
 }
 
-export { generateTiling };
+export { generatePacking };

@@ -2,8 +2,8 @@ import { Assets, Container, DisplayObject, Graphics } from "pixi.js";
 import { drawLines, drawPath, LineLike } from "../library/drawing/helpers";
 import { Font, loadFont, textToPath } from "../library/drawing/text";
 import { concaveHull } from "../library/geometry/hull";
-import { generateTiling } from "../library/geometry/packing";
-import { Color, CompoundPath, Point, Rectangle } from "../library/paper";
+import { generatePacking } from "../library/geometry/packing";
+import { Color, CompoundPath, Rectangle } from "../library/paper";
 import { Sketch2D } from "../library/sketch";
 import "../library/util/random";
 import { random } from "../library/util/random";
@@ -19,9 +19,6 @@ type SketchParams = {
   mainFont: Font;
   secondaryFonts: FontFamily[];
   fallbackUnicodeFonts: Font[];
-  lineHeight: number;
-  lineSpacing: number;
-  margin: number;
   flagRotation: number;
   firstLine: string;
   secondLine: string;
@@ -29,7 +26,14 @@ type SketchParams = {
 };
 
 class WhoAmI extends Sketch2D {
-  private readonly nTiles = 500;
+  private readonly nTexts = 500;
+  private readonly lineHeight = 300;
+  private readonly lineSpacing = 50;
+  private readonly margin = 10;
+  // private readonly nTexts = 1000; //TODO: Test memory leaks with n=1000
+  // private readonly lineHeight = 600;
+  // private readonly lineSpacing = 100;
+  // private readonly margin = 20;
   private sketchParams: SketchParams;
   private mainPaths: CompoundPath[];
   private translations: Set<string>;
@@ -38,6 +42,7 @@ class WhoAmI extends Sketch2D {
 
   constructor(sketchParams: SketchParams, debug = false) {
     super(debug);
+    //super(debug, 2000, 2000);
     this.sketchParams = sketchParams;
     this.mainPaths = [];
     this.translations = new Set([...sketchParams.translations]);
@@ -55,7 +60,7 @@ class WhoAmI extends Sketch2D {
     this.generateMainText();
     container.addChild(this.background); //TODO: Don't draw if debug
     container.addChild(this.drawMainText());
-    container.addChild(this.generateSecondaryText());
+    container.addChild(this.generateSecondaryTexts());
     return container;
   }
 
@@ -63,9 +68,9 @@ class WhoAmI extends Sketch2D {
     const [firstLine, secondLine, lineHeight, lineSpacing, margin] = [
       this.sketchParams.firstLine,
       this.sketchParams.secondLine,
-      this.sketchParams.lineHeight,
-      this.sketchParams.lineSpacing,
-      this.sketchParams.margin,
+      this.lineHeight,
+      this.lineSpacing,
+      this.margin,
     ];
 
     const xStart = -this.width / 2 + margin;
@@ -84,8 +89,8 @@ class WhoAmI extends Sketch2D {
   private generateMainGlyph(x: number, y: number, char: string): void {
     const path = textToPath(char, this.sketchParams.mainFont, true) as CompoundPath; // Can't be undefined for mainFont
     const boundingBox = calculateGlyphBoundingBox(path);
-    const scaleX = this.sketchParams.lineHeight / boundingBox.width;
-    const scaleY = this.sketchParams.lineHeight / boundingBox.height;
+    const scaleX = this.lineHeight / boundingBox.width;
+    const scaleY = this.lineHeight / boundingBox.height;
 
     path.translate([-boundingBox.width / 2, -boundingBox.height / 2]);
     path.scale(scaleX, scaleY, [0, 0]);
@@ -125,11 +130,7 @@ class WhoAmI extends Sketch2D {
   }
 
   private drawBaselines(): Graphics {
-    const [lineHeight, lineSpacing, margin] = [
-      this.sketchParams.lineHeight,
-      this.sketchParams.lineSpacing,
-      this.sketchParams.margin,
-    ];
+    const [lineHeight, lineSpacing, margin] = [this.lineHeight, this.lineSpacing, this.margin];
 
     const graphics = new Graphics();
     const lines: LineLike[] = [
@@ -146,7 +147,19 @@ class WhoAmI extends Sketch2D {
     return graphics;
   }
 
-  private generateSecondaryText(): Container {
+  private textsFactory(allFontVariants: Font[]): CompoundPath {
+    let textPath;
+    do {
+      const text = Array.from(this.translations.values()).random();
+      textPath =
+        textToPath(text, allFontVariants.random()) ||
+        textToPath(text, this.sketchParams.fallbackUnicodeFonts.random()) ||
+        void this.translations.delete(text);
+    } while (!textPath);
+    return textPath;
+  }
+
+  private generateSecondaryTexts(): Container {
     //TODO: Split into generation and drawing
     const blacklistPath = new CompoundPath(this.mainPaths);
     const allFontVariants = this.sketchParams.secondaryFonts.flatMap((ff) => [
@@ -155,25 +168,17 @@ class WhoAmI extends Sketch2D {
       ff.italic,
       ff.boldItalic,
     ]);
-    const paths = generateTiling(
-      new Rectangle(-this.width / 2, this.height / 2, this.width, -this.height),
-      () => {
-        let textPath;
-        do {
-          const text = Array.from(this.translations.values()).random();
-          textPath =
-            textToPath(text, allFontVariants.random()) ||
-            textToPath(text, this.sketchParams.fallbackUnicodeFonts.random()) ||
-            void this.translations.delete(text);
-        } while (!textPath);
-        return textPath;
+    const paths = generatePacking({
+      boundingRect: new Rectangle(-this.width / 2, this.height / 2, this.width, -this.height),
+      shapeFactory: () => {
+        return this.textsFactory(allFontVariants);
       },
-      blacklistPath,
-      { rotationBounds: [-20, 20], skewBounds: [new Point(-5, -5), new Point(5, 5)] },
-      this.nTiles
-    );
+      nShapes: this.nTexts,
+      blacklistShape: blacklistPath,
+      randomizeParams: { rotationBounds: [-20, 20], skewBounds: { minHor: -5, minVer: -5, maxHor: 5, maxVer: 5 } },
+    });
 
-    const mask = new Graphics();
+    const mask = new Graphics(); //TODO: Don't fill if debug
     const debugGraphics = new Graphics();
     for (const path of paths) {
       path.fillColor = new Color("white");
@@ -253,9 +258,6 @@ async function start(firstLine: string, secondLine: string, flagRotation: number
   const fallbackUnicodeFont = await loadFont("whoami/GoNotoCurrent.ttf");
   const fallbackUnicodeFontSerif = await loadFont("whoami/GoNotoCurrentSerif.ttf");
   const fallbackUnicodeFonts = [fallbackUnicodeFont, fallbackUnicodeFontSerif];
-  const lineHeight = 300;
-  const lineSpacing = 50;
-  const margin = 10;
   const translated = ((await Assets.load<string>(`whoami/translations/${translationsFile}`)) as string).split("\n");
   const translations = [
     ...translated,
@@ -266,9 +268,6 @@ async function start(firstLine: string, secondLine: string, flagRotation: number
     mainFont,
     secondaryFonts,
     fallbackUnicodeFonts,
-    lineHeight,
-    lineSpacing,
-    margin,
     flagRotation,
     firstLine,
     secondLine,
