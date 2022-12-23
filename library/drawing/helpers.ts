@@ -1,8 +1,10 @@
-import paper from "paper";
+import { CompoundPath } from "../paper";
 import { Graphics } from "pixi.js";
 import { SVGScene } from "@pixi-essentials/svg";
 
 export type LineLike = [number, number, number, number] | { x1: number; y1: number; x2: number; y2: number };
+
+//TODO: Encapsulate concrete `Graphics` type
 
 function drawLines(lines: LineLike[], graphics: Graphics) {
   lines.forEach((line) => {
@@ -12,7 +14,7 @@ function drawLines(lines: LineLike[], graphics: Graphics) {
   });
 }
 
-function drawPath(path: paper.CompoundPath): Graphics {
+function drawPath(path: CompoundPath): Graphics {
   const pathCopy = path.clone();
   const svgPath = pathCopy.exportSVG() as SVGElement;
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");

@@ -1,43 +1,18 @@
-import hull from "hull.js";
-import paper from "paper";
 import { Rectangle } from "pixi.js";
-import { random } from "./util";
-
-function concaveHull(points: paper.Point[], concavity = 50): paper.CompoundPath {
-  const pointArrays = [];
-  for (const point of points) {
-    pointArrays.push([point.x, point.y]);
-  }
-  const shape = hull(pointArrays, concavity) as number[][];
-
-  const hullPath = new paper.Path();
-  shape.forEach((point) => hullPath.add(new paper.Point(point[0], point[1])));
-  const hullCompoundPath = new paper.CompoundPath(hullPath);
-  return hullCompoundPath;
-}
-
-function pathToPoints(path: paper.CompoundPath, step = 3): paper.Point[] {
-  const points = [];
-  for (const childPath of path.children as paper.Path[]) {
-    const pathLength = childPath.length;
-    for (let i = 0; i < pathLength; i += step) {
-      points.push(childPath.getPointAt(i));
-    }
-  }
-  return points;
-}
-
-function zeta(z: number): number {
-  const secondTerm = (z + 3) / (z - 1);
-  const thirdTerm = 1 / Math.pow(2, z + 1);
-  return 1 + secondTerm * thirdTerm;
-}
+import { random } from "../util";
+import { concaveHull, pathToPoints } from "./hull";
 
 type RandomizationParams = {
   rotationBounds?: [number, number];
   skewBounds?: [paper.Point, paper.Point];
   shearBounds?: [paper.Point, paper.Point];
 };
+
+function zeta(z: number): number {
+  const secondTerm = (z + 3) / (z - 1);
+  const thirdTerm = 1 / Math.pow(2, z + 1);
+  return 1 + secondTerm * thirdTerm;
+}
 
 function tryPlaceTile(
   path: paper.CompoundPath,
@@ -71,23 +46,24 @@ function tryPlaceTile(
           ]);
       }
 
-      const tryPathPoints = pathToPoints(tryPath, 100);
+      const tryPathPoints = pathToPoints(tryPath, 100); //TODO: just use one point from each child path
       const intersects = pathsToCheck.some(
         (path) => tryPath.intersects(path) || tryPathPoints.some((point) => path.contains(point))
       );
       if (!intersects) return tryPath;
     }
+    console.log("scaling");
     tryPath.scale(0.9, [0, 0]);
   }
 }
 
-function generateTiling(
+function* generateTiling(
   rectangle: Rectangle,
   pathFactory: (i?: number) => paper.CompoundPath,
   blacklistPath?: paper.CompoundPath,
   randomizeParams?: RandomizationParams,
   n = 500
-): paper.CompoundPath[] {
+): Generator<paper.CompoundPath> {
   const t0 = performance.now();
   const paths: paper.CompoundPath[] = [];
   const c = random(1.1, 1.2);
@@ -109,10 +85,10 @@ function generateTiling(
     tryPath.scale(scaleFactor, [0, 0]);
     const newPath = tryPlaceTile(tryPath, [minX, minY, maxX, maxY], paths, blacklistPath, randomizeParams);
     paths.push(newPath);
+    yield newPath;
   }
   const t1 = performance.now();
   console.log(`tiling took ${(t1 - t0) / 1000}s`);
-  return paths;
 }
 
-export { concaveHull, pathToPoints, generateTiling };
+export { generateTiling };

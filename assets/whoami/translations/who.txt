@@ -5,7 +5,6 @@ Wie is ek
 Khitis nayajja
 Mən kiməm
 Мин кем
-Хто я
 Кой съм аз
 हम के हईं
 Ne ye jɔn ye
@@ -128,7 +127,7 @@ Mimi ni nani
 Ман кистам
 ฉันเป็นใคร
 ኣነ መን እየ
-Men kim?
+Men kim
 Sino ako
 be' jI'IQ
 Ko hai au

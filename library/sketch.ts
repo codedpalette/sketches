@@ -1,10 +1,24 @@
+import paper from "paper";
 import { Application, Container, Graphics } from "pixi.js";
-import { drawLines, LineLike } from "./drawing";
+import { drawLines, LineLike } from "./drawing/helpers";
 
 export abstract class Sketch2D {
   protected debug: boolean;
   private app: Application;
   private _elapsed = 0.0;
+
+  constructor(debug: boolean, width = 1080, height = 1080, bgColor: string | number = "white") {
+    this.debug = debug;
+    this.app = new Application({
+      width,
+      height,
+      antialias: true,
+      backgroundColor: bgColor,
+      preserveDrawingBuffer: true,
+    });
+    document.body.appendChild(this.app.view as unknown as Node);
+    paper.setup([this.width, this.height]);
+  }
 
   protected get elapsed() {
     return this._elapsed;
@@ -16,22 +30,6 @@ export abstract class Sketch2D {
 
   protected get height() {
     return this.app.renderer.height;
-  }
-
-  private drawAxes(): Graphics {
-    const graphics = new Graphics();
-    graphics.lineStyle(1, 0xff0000);
-    const lines: LineLike[] = [
-      [-this.width / 2, 0, this.width / 2, 0],
-      [0, this.height / 2, 0, -this.height / 2],
-    ];
-    drawLines(lines, graphics);
-    return graphics;
-  }
-
-  protected abstract setup(): Container;
-  protected update(_delta: number, _container: Container): void {
-    //by default do nothing
   }
 
   draw(): void {
@@ -47,15 +45,20 @@ export abstract class Sketch2D {
     });
   }
 
-  constructor(debug: boolean, width = 1080, height = 1080, bgColor: string | number = "white") {
-    this.debug = debug;
-    this.app = new Application({
-      width,
-      height,
-      antialias: true,
-      backgroundColor: bgColor,
-      preserveDrawingBuffer: true,
-    });
-    document.body.appendChild(this.app.view as unknown as Node);
+  protected update(_delta: number, _container: Container): void {
+    //by default do nothing
   }
+
+  private drawAxes(): Graphics {
+    const graphics = new Graphics();
+    graphics.lineStyle(1, 0xff0000);
+    const lines: LineLike[] = [
+      [-this.width / 2, 0, this.width / 2, 0],
+      [0, this.height / 2, 0, -this.height / 2],
+    ];
+    drawLines(lines, graphics);
+    return graphics;
+  }
+
+  protected abstract setup(): Container; //TODO: Encapsulate concrete `Container` type
 }

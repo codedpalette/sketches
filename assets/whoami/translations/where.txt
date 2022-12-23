@@ -68,7 +68,7 @@ ngendi kita
 ನಾವು ಎಲ್ಲಿದ್ದೇವೆ
 우리를 어디
 usay wi de
-Em li ku ne?
+Em li ku ne
 Биз кайдабыз
 ubi sumus
 wou si mir
@@ -78,14 +78,14 @@ tozali wapi
 Kur mes esame
 khawiah nge kan awm
 Kur mēs esam
-吾属安在?
+吾属安在
 हम कहाँ छी
 Aiza isika izao
 kei hea tatou
 каде сме ние
 നാമെവിടെയാണ്
 Бид хаана байна
-ᠪᠢᠳᠡ ᠬᠠᠮᠢᠭ᠎ᠠ ᠪᠠᠢ᠌ᠬᠤ ᠪᠤᠢ ?
+ᠪᠢᠳᠡ ᠬᠠᠮᠢᠭ᠎ᠠ ᠪᠠᠢ᠌ᠬᠤ ᠪᠤᠢ
 ꯑꯩꯈꯣꯌ ꯀꯗꯥꯌꯗꯥ ꯂꯩꯔꯤ꯫
 आपण कुठे आहोत
 di mana kita
@@ -107,7 +107,7 @@ Onde estamos
 Onde estamos
 maypitaq kachkanchik
 Unde suntem
-turihe?
+turihe
 कुत्र वयं स्मः
 ﻥﻮﻴﻫﺁ ﻲﭥڪ ﻥﺎﺳﺍ
 අප කොහේද
