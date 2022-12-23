@@ -33,6 +33,13 @@ class Packing {
     return 1 + secondTerm * thirdTerm;
   }
 
+  private static concaveHull(shape: Point[] | CompoundPath, concavity = 50): CompoundPath {
+    const pointSet = (shape instanceof CompoundPath ? shape.toPoints() : shape).map((point) => [point.x, point.y]);
+    const hullShape = hull(pointSet, concavity) as number[][];
+    const hullPath = new Path(hullShape.map((point) => new Point(point[0], point[1])));
+    return new CompoundPath(hullPath);
+  }
+
   private static tryTransformMatrix(
     tryPath: CompoundPath,
     boundingRect: Rectangle,
@@ -111,7 +118,7 @@ class Packing {
       console.log(i);
       const desiredArea = i == 0 ? initialArea : initialArea * Math.pow(i, -c);
       const tryPath = shapeFactory(i).reorient(false, true) as CompoundPath;
-      const tryArea = concaveHull(tryPath).area; //TODO: Test with convex polygons, try to get rid of `concaveHull()`
+      const tryArea = Packing.concaveHull(tryPath).area; //TODO: Test with convex polygons, try to get rid of `concaveHull()`
       const scaleFactor = Math.sqrt(desiredArea / tryArea);
       tryPath.scale(scaleFactor, [0, 0]);
       const newPath = Packing.tryPlaceTile(tryPath, paths, boundingRect, blacklistShape, randomizeParams);
@@ -125,11 +132,4 @@ function generatePacking(packingParams: PackingParams): CompoundPath[] {
   return Packing.generatePacking(packingParams);
 }
 
-function concaveHull(shape: Point[] | CompoundPath, concavity = 50): CompoundPath {
-  const pointSet = (shape instanceof CompoundPath ? shape.toPoints() : shape).map((point) => [point.x, point.y]);
-  const hullShape = hull(pointSet, concavity) as number[][];
-  const hullPath = new Path(hullShape.map((point) => new Point(point[0], point[1])));
-  return new CompoundPath(hullPath);
-}
-
-export { generatePacking, concaveHull };
+export { generatePacking };

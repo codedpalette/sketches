@@ -1,7 +1,7 @@
 import { Assets, Container, DisplayObject, Graphics } from "pixi.js";
 import { drawLines, drawPath, LineLike } from "../library/drawing/helpers";
 import { Font, loadFont, textToPath } from "../library/drawing/text";
-import { concaveHull, generatePacking } from "../library/geometry/packing";
+import { generatePacking } from "../library/geometry/packing";
 import { Color, CompoundPath, Rectangle } from "../library/geometry/paper";
 import { Sketch2D } from "../library/sketch";
 import "../library/util/random";
@@ -186,18 +186,11 @@ class WhoAmI extends Sketch2D {
     }
 
     const mask = new Graphics();
-    const debugGraphics = new Graphics();
+    const maskContainer = new Container();
     for (const path of paths) {
       path.fillColor = new Color("white");
       mask.addChild(drawPath(path));
-      if (this.debug) {
-        const polygonHull = concaveHull(path);
-        polygonHull.strokeColor = new Color("green");
-        debugGraphics.addChild(drawPath(polygonHull));
-      }
     }
-
-    const maskContainer = new Container();
     maskContainer.mask = mask;
     maskContainer.addChild(mask);
     maskContainer.addChild(this.foreground);
