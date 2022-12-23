@@ -1,10 +1,10 @@
 import { Assets, Container, DisplayObject, Graphics } from "pixi.js";
+import { spawn, Thread, Transfer } from "threads";
 import { drawLines, drawPath, LineLike } from "../library/drawing/helpers";
 import { Font, loadFont, textToPath } from "../library/drawing/text";
-import { generatePacking } from "../library/geometry/packing";
+import { PackingFunction } from "../library/geometry/packing";
 import { Color, CompoundPath, Rectangle } from "../library/geometry/paper";
 import { Sketch2D } from "../library/sketch";
-import "../library/util/random";
 import { random } from "../library/util/random";
 
 type FontFamily = {
@@ -59,7 +59,10 @@ class WhoAmI extends Sketch2D {
     this.generateMainText();
     !this.debug && container.addChild(this.background);
     container.addChild(this.drawMainText());
-    container.addChild(this.generateSecondaryTexts());
+    this.generateSecondaryTexts().then(
+      (textsContainer) => container.addChild(textsContainer),
+      (rejectReason) => console.error(rejectReason)
+    );
     return container;
   }
 
@@ -158,24 +161,30 @@ class WhoAmI extends Sketch2D {
     return textPath;
   }
 
-  private generateSecondaryTexts(): Container {
-    const blacklistPath = new CompoundPath(this.mainPaths);
+  private async generateSecondaryTexts(): Promise<Container> {
     const allFontVariants = this.sketchParams.secondaryFonts.flatMap((ff) => [
       ff.regular,
       ff.bold,
       ff.italic,
       ff.boldItalic,
     ]);
-    const paths = generatePacking({
-      boundingRect: new Rectangle(-this.width / 2, this.height / 2, this.width, -this.height),
-      shapeFactory: () => {
-        return this.textsFactory(allFontVariants);
+    const textsStream = new ReadableStream<CompoundPath>({
+      pull: (controller) => {
+        controller.enqueue(this.textsFactory(allFontVariants));
       },
-      nShapes: this.nTexts,
-      blacklistShape: blacklistPath,
-      randomizeParams: { rotationBounds: [-20, 20], skewBounds: { minHor: -5, minVer: -5, maxHor: 5, maxVer: 5 } },
     });
 
+    const workerPath = new URL("../library/geometry/packing.ts", import.meta.url);
+    const generatePacking = await spawn<PackingFunction>(new Worker(workerPath, { type: "module" }));
+    const paths = await generatePacking(Transfer(textsStream), {
+      boundingRect: new Rectangle(-this.width / 2, this.height / 2, this.width, -this.height), //TODO: Write custom serializer
+      nShapes: this.nTexts,
+      blacklistShape: new CompoundPath(this.mainPaths),
+      randomizeParams: { rotationBounds: [-20, 20], skewBounds: { minHor: -5, minVer: -5, maxHor: 5, maxVer: 5 } },
+    });
+    await Thread.terminate(generatePacking);
+
+    //TODO: Separate drawing from generating
     if (this.debug) {
       const graphics = new Graphics();
       for (const path of paths) {

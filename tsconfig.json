@@ -4,6 +4,7 @@
     "noEmitOnError": true,
     "isolatedModules": true,
     "target": "ES2019",
+    "module": "ESNext",
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true

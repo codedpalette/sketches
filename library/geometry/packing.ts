@@ -1,6 +1,7 @@
 import hull from "hull.js";
+import { expose, TransferDescriptor } from "threads";
 import { random } from "../util/random";
-import { sync_timer } from "../util/timing";
+import { async_timer } from "../util/timing";
 import { CompoundPath, Matrix, Path, Point, Rectangle } from "./paper";
 
 type HorVerBounds = {
@@ -18,7 +19,6 @@ type RandomizationParams = {
 
 type PackingParams = {
   boundingRect: Rectangle;
-  shapeFactory: (i?: number) => CompoundPath;
   nShapes: number;
   blacklistShape?: CompoundPath;
   //whitelistShape?: CompoundPath; - need to implement
@@ -99,37 +99,42 @@ class Packing {
   }
 
   // http://paulbourke.net/fractals/randomtile/
-  @sync_timer
-  static generatePacking({
-    boundingRect,
-    shapeFactory,
-    nShapes,
-    blacklistShape,
-    randomizeParams,
-  }: PackingParams): CompoundPath[] {
+  @async_timer
+  static async generatePacking(
+    shapeStream: ReadableStream<CompoundPath>,
+    { boundingRect, nShapes, blacklistShape, randomizeParams }: PackingParams
+  ): Promise<CompoundPath[]> {
     //TODO: Improve performance
     const paths = [];
     const c = random(1.1, 1.2); //TODO: try [1, 1.5]
     const rectArea = Math.abs(boundingRect.width * boundingRect.height);
     const totalArea = rectArea - (blacklistShape?.area || 0);
     const initialArea = totalArea / Packing.zeta(c);
+    const reader = shapeStream.getReader();
 
     for (let i = 0; i < nShapes; i++) {
       console.log(i);
       const desiredArea = i == 0 ? initialArea : initialArea * Math.pow(i, -c);
-      const tryPath = shapeFactory(i).reorient(false, true) as CompoundPath;
+      const tryPath = ((await reader.read()).value as CompoundPath).reorient(false, true) as CompoundPath;
       const tryArea = Packing.concaveHull(tryPath).area; //TODO: Test with convex polygons, try to get rid of `concaveHull()`
       const scaleFactor = Math.sqrt(desiredArea / tryArea);
       tryPath.scale(scaleFactor, [0, 0]);
       const newPath = Packing.tryPlaceTile(tryPath, paths, boundingRect, blacklistShape, randomizeParams);
       paths.push(newPath);
     }
-    return paths;
+    return paths; //TODO: Return Observable
   }
 }
 
-function generatePacking(packingParams: PackingParams): CompoundPath[] {
-  return Packing.generatePacking(packingParams);
+async function generatePacking(
+  shapeStream: ReadableStream<CompoundPath>,
+  packingParams: PackingParams
+): Promise<CompoundPath[]> {
+  return await Packing.generatePacking(shapeStream, packingParams);
 }
 
-export { generatePacking };
+export type PackingFunction = (
+  shapeTransfer: TransferDescriptor,
+  packingParams: PackingParams
+) => Promise<CompoundPath[]>;
+expose(generatePacking);
