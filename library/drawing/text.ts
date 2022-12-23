@@ -18,7 +18,6 @@ function textToPath(text: string, font: Font, removeOffset = false, fontSize = 7
     layout = font.layout(text);
   } catch (e) {
     console.error(`Layout failed: text = ${text}, font = ${font.fullName as string}`);
-    console.error(e);
     return undefined;
   }
 

@@ -5,6 +5,7 @@
     "isolatedModules": true,
     "target": "ES2019",
     "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true
   }
 }

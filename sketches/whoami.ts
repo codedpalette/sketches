@@ -1,12 +1,12 @@
-import { Assets, Container, DisplayObject, Graphics, Rectangle } from "pixi.js";
+import { Assets, Container, DisplayObject, Graphics } from "pixi.js";
 import { drawLines, drawPath, LineLike } from "../library/drawing/helpers";
 import { Font, loadFont, textToPath } from "../library/drawing/text";
 import { concaveHull } from "../library/geometry/hull";
 import { generateTiling } from "../library/geometry/packing";
-import { Color, CompoundPath, Point } from "../library/paper";
+import { Color, CompoundPath, Point, Rectangle } from "../library/paper";
 import { Sketch2D } from "../library/sketch";
-import "../library/util";
-import { random } from "../library/util";
+import "../library/util/random";
+import { random } from "../library/util/random";
 
 type FontFamily = {
   regular: Font;
@@ -53,7 +53,7 @@ class WhoAmI extends Sketch2D {
   setup(): Container<DisplayObject> {
     const container = new Container();
     this.generateMainText();
-    container.addChild(this.background);
+    container.addChild(this.background); //TODO: Don't draw if debug
     container.addChild(this.drawMainText());
     container.addChild(this.generateSecondaryText());
     return container;
@@ -102,8 +102,9 @@ class WhoAmI extends Sketch2D {
     for (const path of this.mainPaths) {
       const graphics = new Graphics();
       if (this.debug) {
-        graphics.lineStyle(1, 0x00ff00);
-        graphics.drawShape(calculateGlyphBoundingBox(path));
+        const boundingBox = calculateGlyphBoundingBox(path).toPath();
+        boundingBox.strokeColor = new Color("green");
+        graphics.addChild(drawPath(boundingBox));
       }
       path.strokeColor = new Color("black");
 
