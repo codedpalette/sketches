@@ -1,7 +1,7 @@
-import { CompoundPath, Matrix, Rectangle } from "../paper";
+import hull from "hull.js";
 import { random } from "../util/random";
 import { sync_timer } from "../util/timing";
-import { concaveHull } from "./hull";
+import { CompoundPath, Matrix, Path, Point, Rectangle } from "./paper";
 
 type HorVerBounds = {
   minHor: number;
@@ -109,9 +109,8 @@ class Packing {
     for (let i = 0; i < nShapes; i++) {
       console.log(i);
       const desiredArea = i == 0 ? initialArea : initialArea * Math.pow(i, -c);
-      const tryPath = shapeFactory(i);
-      const tryHull = concaveHull(tryPath); //TODO: Remove
-      const scaleFactor = Math.sqrt(desiredArea / tryHull.area);
+      const tryPath = shapeFactory(i).reorient(false, true) as CompoundPath;
+      const scaleFactor = Math.sqrt(desiredArea / concaveHull(tryPath).area); //TODO: Test with convex polygons
       tryPath.scale(scaleFactor, [0, 0]);
       const newPath = Packing.tryPlaceTile(tryPath, paths, boundingRect, blacklistShape, randomizeParams);
       paths.push(newPath);
@@ -124,4 +123,11 @@ function generatePacking(packingParams: PackingParams): CompoundPath[] {
   return Packing.generatePacking(packingParams);
 }
 
-export { generatePacking };
+function concaveHull(shape: Point[] | CompoundPath, concavity = 50): CompoundPath {
+  const pointSet = (shape instanceof CompoundPath ? shape.toPoints() : shape).map((point) => [point.x, point.y]);
+  const hullShape = hull(pointSet, concavity) as number[][];
+  const hullPath = new Path(hullShape.map((point) => new Point(point[0], point[1])));
+  return new CompoundPath(hullPath);
+}
+
+export { generatePacking, concaveHull };

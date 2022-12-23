@@ -1,9 +1,8 @@
 import { Assets, Container, DisplayObject, Graphics } from "pixi.js";
 import { drawLines, drawPath, LineLike } from "../library/drawing/helpers";
 import { Font, loadFont, textToPath } from "../library/drawing/text";
-import { concaveHull } from "../library/geometry/hull";
-import { generatePacking } from "../library/geometry/packing";
-import { Color, CompoundPath, Rectangle } from "../library/paper";
+import { concaveHull, generatePacking } from "../library/geometry/packing";
+import { Color, CompoundPath, Rectangle } from "../library/geometry/paper";
 import { Sketch2D } from "../library/sketch";
 import "../library/util/random";
 import { random } from "../library/util/random";
