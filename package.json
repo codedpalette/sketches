@@ -1,7 +1,7 @@
 {
   "license": "MIT",
   "scripts": {
-    "start": "parcel serve index.html --dist-dir bin --open Firefox"
+    "start": "DEBUG=threads:* parcel serve index.html --dist-dir bin --open Firefox"
   },
   "staticFiles": {
     "staticPath": "assets"

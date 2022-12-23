@@ -1,7 +1,9 @@
 import hull from "hull.js";
-import { expose, TransferDescriptor } from "threads";
+import paper from "paper";
+import { expose, registerSerializer } from "threads";
 import { random } from "../util/random";
 import { async_timer } from "../util/timing";
+import { CompoundPathSerializer, PackingParamsSerializer } from "../util/workers";
 import { CompoundPath, Matrix, Path, Point, Rectangle } from "./paper";
 
 type HorVerBounds = {
@@ -11,13 +13,13 @@ type HorVerBounds = {
   maxVer: number;
 };
 
-type RandomizationParams = {
+export type RandomizationParams = {
   rotationBounds?: [number, number];
   skewBounds?: HorVerBounds;
   shearBounds?: HorVerBounds;
 };
 
-type PackingParams = {
+export type PackingParams = {
   boundingRect: Rectangle;
   nShapes: number;
   blacklistShape?: CompoundPath;
@@ -101,7 +103,7 @@ class Packing {
   // http://paulbourke.net/fractals/randomtile/
   @async_timer
   static async generatePacking(
-    shapeStream: ReadableStream<CompoundPath>,
+    shapeStream: ReadableStream<string>,
     { boundingRect, nShapes, blacklistShape, randomizeParams }: PackingParams
   ): Promise<CompoundPath[]> {
     //TODO: Improve performance
@@ -115,7 +117,7 @@ class Packing {
     for (let i = 0; i < nShapes; i++) {
       console.log(i);
       const desiredArea = i == 0 ? initialArea : initialArea * Math.pow(i, -c);
-      const tryPath = ((await reader.read()).value as CompoundPath).reorient(false, true) as CompoundPath;
+      const tryPath = new CompoundPath((await reader.read()).value as string).reorient(false, true) as CompoundPath;
       const tryArea = Packing.concaveHull(tryPath).area; //TODO: Test with convex polygons, try to get rid of `concaveHull()`
       const scaleFactor = Math.sqrt(desiredArea / tryArea);
       tryPath.scale(scaleFactor, [0, 0]);
@@ -127,14 +129,17 @@ class Packing {
 }
 
 async function generatePacking(
-  shapeStream: ReadableStream<CompoundPath>,
+  shapesPathDataStream: ReadableStream<string>,
   packingParams: PackingParams
 ): Promise<CompoundPath[]> {
-  return await Packing.generatePacking(shapeStream, packingParams);
+  paper.setup([packingParams.boundingRect.width, packingParams.boundingRect.height]);
+  return await Packing.generatePacking(shapesPathDataStream, packingParams);
 }
 
 export type PackingFunction = (
-  shapeTransfer: TransferDescriptor,
+  shapesPathDataStream: ReadableStream<string>,
   packingParams: PackingParams
 ) => Promise<CompoundPath[]>;
+registerSerializer(PackingParamsSerializer);
+registerSerializer(CompoundPathSerializer);
 expose(generatePacking);

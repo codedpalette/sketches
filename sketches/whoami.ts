@@ -1,11 +1,14 @@
 import { Assets, Container, DisplayObject, Graphics } from "pixi.js";
-import { spawn, Thread, Transfer } from "threads";
+import { registerSerializer, spawn, Thread, Transfer } from "threads";
 import { drawLines, drawPath, LineLike } from "../library/drawing/helpers";
 import { Font, loadFont, textToPath } from "../library/drawing/text";
 import { PackingFunction } from "../library/geometry/packing";
 import { Color, CompoundPath, Rectangle } from "../library/geometry/paper";
 import { Sketch2D } from "../library/sketch";
 import { random } from "../library/util/random";
+import { CompoundPathSerializer, PackingParamsSerializer } from "../library/util/workers";
+registerSerializer(PackingParamsSerializer);
+registerSerializer(CompoundPathSerializer);
 
 type FontFamily = {
   regular: Font;
@@ -168,18 +171,18 @@ class WhoAmI extends Sketch2D {
       ff.italic,
       ff.boldItalic,
     ]);
-    const textsStream = new ReadableStream<CompoundPath>({
+    const textsPathDataStream = new ReadableStream<string>({
       pull: (controller) => {
-        controller.enqueue(this.textsFactory(allFontVariants));
+        controller.enqueue(this.textsFactory(allFontVariants).pathData); //TODO: Use CompoundPath
       },
     });
 
-    const workerPath = new URL("../library/geometry/packing.ts", import.meta.url);
+    const workerPath = new URL("/library/geometry/packing.ts", import.meta.url);
     const generatePacking = await spawn<PackingFunction>(new Worker(workerPath, { type: "module" }));
-    const paths = await generatePacking(Transfer(textsStream), {
-      boundingRect: new Rectangle(-this.width / 2, this.height / 2, this.width, -this.height), //TODO: Write custom serializer
+    const paths = await generatePacking(Transfer(textsPathDataStream), {
+      boundingRect: new Rectangle(-this.width / 2, this.height / 2, this.width, -this.height),
       nShapes: this.nTexts,
-      blacklistShape: new CompoundPath(this.mainPaths),
+      //blacklistShape: new CompoundPath(this.mainPaths), //TODO: Write custom serializer
       randomizeParams: { rotationBounds: [-20, 20], skewBounds: { minHor: -5, minVer: -5, maxHor: 5, maxVer: 5 } },
     });
     await Thread.terminate(generatePacking);
