@@ -1,6 +1,6 @@
 import fontkit from "@pdf-lib/fontkit";
 import "regenerator-runtime/runtime";
-import { CompoundPath } from "../paper";
+import { CompoundPath } from "../geometry/paper";
 
 export type Font = fontkit.Font;
 

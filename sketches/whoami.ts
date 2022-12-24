@@ -1,23 +1,20 @@
 import { Assets, Container, DisplayObject, Graphics } from "pixi.js";
-import { registerSerializer, spawn, Thread, Transfer } from "threads";
+import { Thread, Transfer } from "threads";
 import { drawLines, drawPath, LineLike } from "../library/drawing/helpers";
 import { Font, loadFont, textToPath } from "../library/drawing/text";
-import { CompoundPathSerializer, PackingParamsSerializer } from "../library/packing/serializers";
-import { PackingFunction } from "../library/packing/worker";
-import { Color, CompoundPath, PathData, Rectangle } from "../library/paper";
+import { PackingFunction, PackingParamsSerializer } from "../library/geometry/packing";
+import { Color, CompoundPath, PathData, Rectangle } from "../library/geometry/paper";
 import { Sketch2D } from "../library/sketch";
 import { random } from "../library/util/random";
-registerSerializer(PackingParamsSerializer);
-registerSerializer(CompoundPathSerializer);
-
-type FontFamily = {
+import { spawn } from "../library/util/threads/workers";
+interface FontFamily {
   regular: Font;
   bold: Font;
   italic: Font;
   boldItalic: Font;
-};
+}
 
-type SketchParams = {
+interface SketchParams {
   mainFont: Font;
   secondaryFontFamilies: FontFamily[];
   fallbackUnicodeFonts: Font[];
@@ -25,7 +22,7 @@ type SketchParams = {
   firstLine: string;
   secondLine: string;
   translations: string[];
-};
+}
 
 class WhoAmI extends Sketch2D {
   private readonly nTexts = 500;
@@ -173,8 +170,8 @@ class WhoAmI extends Sketch2D {
     const textsStream = new ReadableStream<PathData>({
       pull: (controller) => controller.enqueue(this.textPathsFactory().pathData),
     });
-    const workerPath = new URL("/library/packing/worker.ts", import.meta.url);
-    const generatePacking = await spawn<PackingFunction>(new Worker(workerPath, { type: "module" }));
+    const workerUrl = new URL("/library/geometry/packing.ts", import.meta.url);
+    const generatePacking = await spawn<PackingFunction>(workerUrl, [PackingParamsSerializer]);
     const paths = await generatePacking(Transfer(textsStream), {
       boundingRect: new Rectangle(-this.width / 2, this.height / 2, this.width, -this.height),
       nShapes: this.nTexts,

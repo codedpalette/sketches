@@ -1,6 +1,6 @@
 import { SVGScene } from "@pixi-essentials/svg";
 import { Graphics } from "pixi.js";
-import { CompoundPath } from "../paper";
+import { CompoundPath } from "../geometry/paper";
 
 export type LineLike = [number, number, number, number] | { x1: number; y1: number; x2: number; y2: number };
 

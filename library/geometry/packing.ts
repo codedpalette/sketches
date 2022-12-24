@@ -1,14 +1,12 @@
 import hull from "hull.js";
 import paper from "paper";
-import { expose, registerSerializer } from "threads";
-import { CompoundPath, Matrix, Path, PathData, Point, Rectangle } from "../paper";
 import { random } from "../util/random";
+import { TypedSerializer } from "../util/threads/serializers";
+import { expose } from "../util/threads/workers";
 import { async_timer } from "../util/timing";
-import { CompoundPathSerializer, PackingParamsSerializer } from "./serializers";
-registerSerializer(PackingParamsSerializer);
-registerSerializer(CompoundPathSerializer);
+import { CompoundPath, Matrix, Path, PathData, Point, Rectangle } from "./paper";
 
-type HorVerBounds = {
+export type HorVerBounds = {
   minHor: number;
   minVer: number;
   maxHor: number;
@@ -27,6 +25,49 @@ export type PackingParams = {
   blacklistShape?: CompoundPath;
   //whitelistShape?: CompoundPath; - need to implement
   randomizeParams?: RandomizationParams;
+};
+
+export type SerializedPackingParams = {
+  nShapes: number;
+  boundingRect: {
+    point: [number, number];
+    size: [number, number];
+  };
+  blacklistPathData?: string;
+  randomizeParams?: RandomizationParams;
+};
+
+export const PackingParamsSerializer: TypedSerializer<SerializedPackingParams, PackingParams> = {
+  type: "PackingParams",
+  canSerialize: function (input: unknown): input is PackingParams {
+    if (!input || typeof input !== "object") return false;
+    const packingParams = input as PackingParams;
+    return (
+      packingParams.boundingRect &&
+      packingParams.boundingRect instanceof Rectangle &&
+      typeof packingParams.nShapes === "number" &&
+      !!packingParams.nShapes
+    );
+  },
+  deserialize: function (message: SerializedPackingParams): PackingParams {
+    return {
+      nShapes: message.nShapes,
+      boundingRect: new Rectangle({ point: message.boundingRect.point, size: message.boundingRect.size }),
+      blacklistShape: !!message.blacklistPathData && new CompoundPath(message.blacklistPathData),
+      randomizeParams: message.randomizeParams,
+    } as PackingParams;
+  },
+  serialize: function (input: PackingParams): SerializedPackingParams {
+    return {
+      nShapes: input.nShapes,
+      boundingRect: {
+        point: [input.boundingRect.point.x, input.boundingRect.point.y],
+        size: [input.boundingRect.size.width, input.boundingRect.size.height],
+      },
+      blacklistPathData: input.blacklistShape?.pathData,
+      randomizeParams: input.randomizeParams,
+    };
+  },
 };
 
 // Using class here to add execution time decorators
@@ -116,7 +157,6 @@ class Packing {
     const initialArea = totalArea / Packing.zeta(c);
     const reader = shapeStream.getReader();
 
-    debugger;
     for (let i = 0; i < nShapes; i++) {
       console.log(i);
       const desiredArea = i == 0 ? initialArea : initialArea * Math.pow(i, -c);
@@ -147,4 +187,4 @@ async function generatePacking(
 }
 
 export type PackingFunction = typeof generatePacking;
-expose(generatePacking);
+expose(generatePacking, [PackingParamsSerializer]);
