@@ -4,8 +4,13 @@
 @typescript-eslint/no-unsafe-member-access, 
 @typescript-eslint/restrict-plus-operands,
 @typescript-eslint/restrict-template-expressions */
+// Code from https://github.com/norbornen/execution-time-decorator
 
-function sync_timer(target: any, propertyKey: string, propertyDescriptor: PropertyDescriptor): PropertyDescriptor {
+export function sync_timer(
+  target: any,
+  propertyKey: string,
+  propertyDescriptor: PropertyDescriptor
+): PropertyDescriptor {
   propertyDescriptor = propertyDescriptor || Object.getOwnPropertyDescriptor(target, propertyKey);
 
   const timerName =
@@ -26,7 +31,11 @@ function sync_timer(target: any, propertyKey: string, propertyDescriptor: Proper
   return propertyDescriptor;
 }
 
-function async_timer(target: any, propertyKey: string, propertyDescriptor: PropertyDescriptor): PropertyDescriptor {
+export function async_timer(
+  target: any,
+  propertyKey: string,
+  propertyDescriptor: PropertyDescriptor
+): PropertyDescriptor {
   propertyDescriptor = propertyDescriptor || Object.getOwnPropertyDescriptor(target, propertyKey);
 
   const timerName =
@@ -46,5 +55,3 @@ function async_timer(target: any, propertyKey: string, propertyDescriptor: Prope
   };
   return propertyDescriptor;
 }
-
-export { sync_timer, async_timer };

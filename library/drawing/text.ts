@@ -1,10 +1,10 @@
 import fontkit from "@pdf-lib/fontkit";
 import "regenerator-runtime/runtime";
-import { CompoundPath } from "../geometry/paper";
+import { CompoundPath } from "../paper";
 
 export type Font = fontkit.Font;
 
-function textToPath(text: string, font: Font, removeOffset = false, fontSize = 72): CompoundPath | undefined {
+export function textToPath(text: string, font: Font, removeOffset = false, fontSize = 72): CompoundPath | undefined {
   // Check if font has glyphs for all characters in text
   for (let j = 0; j < text.length; j++) {
     if (!font.hasGlyphForCodePoint(text.charCodeAt(j))) {
@@ -37,11 +37,9 @@ function textToPath(text: string, font: Font, removeOffset = false, fontSize = 7
   return new CompoundPath(childPaths);
 }
 
-async function loadFont(path: string): Promise<Font> {
+export async function loadFont(path: string): Promise<Font> {
   const arrayBuffer = await (await (await fetch(`http://localhost:1234/${path}`)).blob()).arrayBuffer();
   const buffer = new Uint8Array(arrayBuffer);
   const font = fontkit.create(buffer);
   return font;
 }
-
-export { textToPath, loadFont };

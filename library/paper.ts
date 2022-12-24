@@ -4,6 +4,8 @@ function paperPathToPath(path: paper.Path): Path {
   return new Path(path.segments);
 }
 
+export type PathData = string; //TODO: Type branding
+
 export class Point extends paper.Point {}
 export class Path extends paper.Path {
   toPoints(step = 1): Point[] {

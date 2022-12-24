@@ -1,12 +1,12 @@
 import { SVGScene } from "@pixi-essentials/svg";
 import { Graphics } from "pixi.js";
-import { CompoundPath } from "../geometry/paper";
+import { CompoundPath } from "../paper";
 
 export type LineLike = [number, number, number, number] | { x1: number; y1: number; x2: number; y2: number };
 
 //TODO: Encapsulate concrete `Graphics` type
 
-function drawLines(lines: LineLike[], graphics: Graphics) {
+export function drawLines(lines: LineLike[], graphics: Graphics) {
   lines.forEach((line) => {
     const [x1, y1, x2, y2] = line instanceof Array ? line : [line.x1, line.y1, line.x2, line.y2];
     graphics.moveTo(x1, y1);
@@ -14,7 +14,7 @@ function drawLines(lines: LineLike[], graphics: Graphics) {
   });
 }
 
-function drawPath(path: CompoundPath): Graphics {
+export function drawPath(path: CompoundPath): Graphics {
   const pathCopy = path.clone();
   const svgPath = pathCopy.exportSVG() as SVGElement;
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -24,5 +24,3 @@ function drawPath(path: CompoundPath): Graphics {
   const graphics = scene.root.children[0] as Graphics;
   return graphics;
 }
-
-export { drawLines, drawPath };

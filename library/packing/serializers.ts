@@ -1,6 +1,6 @@
 import { JsonSerializable, SerializerImplementation } from "threads";
-import { PackingParams, RandomizationParams } from "../geometry/packing";
-import { CompoundPath, Rectangle } from "../geometry/paper";
+import { CompoundPath, Rectangle } from "../paper";
+import { PackingParams, RandomizationParams } from "./worker";
 
 const PackingParamsType = "$$PackingParams";
 const CompoundPathType = "$$CompoundPath";
@@ -44,8 +44,8 @@ function isPackingParams(input: unknown): input is PackingParams {
   return (
     packingParams.boundingRect &&
     packingParams.boundingRect instanceof Rectangle &&
-    !!packingParams.nShapes &&
-    typeof packingParams.nShapes === "number"
+    typeof packingParams.nShapes === "number" &&
+    !!packingParams.nShapes
   );
 }
 
@@ -55,7 +55,7 @@ export const CompoundPathSerializer: SerializerImplementation = {
       return message.paths.map((path) => this.deserialize(path, defaultDeserialize) as CompoundPath);
     }
     if (isSerializedCompoundPath(message)) {
-      return new CompoundPath(message.pathData);
+      return new CompoundPath({ insert: false, pathData: message.pathData });
     }
     return defaultDeserialize(message);
   },

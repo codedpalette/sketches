@@ -10,10 +10,8 @@ if (!Array.prototype.random) {
   };
 }
 
-function random(_min?: number, _max?: number): number {
+export function random(_min?: number, _max?: number): number {
   const min = _min || 0;
   const max = _max || 1;
   return Math.random() * (max - min) + min;
 }
-
-export { random };

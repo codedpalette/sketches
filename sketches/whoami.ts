@@ -2,11 +2,11 @@ import { Assets, Container, DisplayObject, Graphics } from "pixi.js";
 import { registerSerializer, spawn, Thread, Transfer } from "threads";
 import { drawLines, drawPath, LineLike } from "../library/drawing/helpers";
 import { Font, loadFont, textToPath } from "../library/drawing/text";
-import { PackingFunction } from "../library/geometry/packing";
-import { Color, CompoundPath, Rectangle } from "../library/geometry/paper";
+import { CompoundPathSerializer, PackingParamsSerializer } from "../library/packing/serializers";
+import { PackingFunction } from "../library/packing/worker";
+import { Color, CompoundPath, PathData, Rectangle } from "../library/paper";
 import { Sketch2D } from "../library/sketch";
 import { random } from "../library/util/random";
-import { CompoundPathSerializer, PackingParamsSerializer } from "../library/util/workers";
 registerSerializer(PackingParamsSerializer);
 registerSerializer(CompoundPathSerializer);
 
@@ -19,7 +19,7 @@ type FontFamily = {
 
 type SketchParams = {
   mainFont: Font;
-  secondaryFonts: FontFamily[];
+  secondaryFontFamilies: FontFamily[];
   fallbackUnicodeFonts: Font[];
   flagRotation: number;
   firstLine: string;
@@ -152,37 +152,33 @@ class WhoAmI extends Sketch2D {
     return graphics;
   }
 
-  private textsFactory(allFontVariants: Font[]): CompoundPath {
-    let textPath;
-    do {
-      const text = Array.from(this.translations.values()).random();
-      textPath =
-        textToPath(text, allFontVariants.random()) ||
-        textToPath(text, this.sketchParams.fallbackUnicodeFonts.random()) ||
-        void this.translations.delete(text);
-    } while (!textPath);
-    return textPath;
-  }
-
-  private async generateSecondaryTexts(): Promise<Container> {
-    const allFontVariants = this.sketchParams.secondaryFonts.flatMap((ff) => [
+  private textPathsFactory(): CompoundPath {
+    const allFontVariants = this.sketchParams.secondaryFontFamilies.flatMap((ff) => [
       ff.regular,
       ff.bold,
       ff.italic,
       ff.boldItalic,
     ]);
-    const textsPathDataStream = new ReadableStream<string>({
-      pull: (controller) => {
-        controller.enqueue(this.textsFactory(allFontVariants).pathData); //TODO: Use CompoundPath
-      },
-    });
+    while (true) {
+      const text = Array.from(this.translations.values()).random();
+      const textPath =
+        textToPath(text, allFontVariants.random()) ||
+        textToPath(text, this.sketchParams.fallbackUnicodeFonts.random()) ||
+        void this.translations.delete(text);
+      if (textPath) return textPath;
+    }
+  }
 
-    const workerPath = new URL("/library/geometry/packing.ts", import.meta.url);
+  private async generateSecondaryTexts(): Promise<Container> {
+    const textsStream = new ReadableStream<PathData>({
+      pull: (controller) => controller.enqueue(this.textPathsFactory().pathData),
+    });
+    const workerPath = new URL("/library/packing/worker.ts", import.meta.url);
     const generatePacking = await spawn<PackingFunction>(new Worker(workerPath, { type: "module" }));
-    const paths = await generatePacking(Transfer(textsPathDataStream), {
+    const paths = await generatePacking(Transfer(textsStream), {
       boundingRect: new Rectangle(-this.width / 2, this.height / 2, this.width, -this.height),
       nShapes: this.nTexts,
-      //blacklistShape: new CompoundPath(this.mainPaths), //TODO: Write custom serializer
+      //blacklistShape: new CompoundPath(this.mainPaths),
       randomizeParams: { rotationBounds: [-20, 20], skewBounds: { minHor: -5, minVer: -5, maxHor: 5, maxVer: 5 } },
     });
     await Thread.terminate(generatePacking);
@@ -253,7 +249,7 @@ function calculateGlyphBoundingBox(path: CompoundPath) {
 
 async function start(firstLine: string, secondLine: string, flagRotation: number, translationsFile: string) {
   const mainFont = await loadFont("whoami/StalinistOne-Regular.ttf");
-  const secondaryFonts = await Promise.all(
+  const secondaryFontFamilies = await Promise.all(
     ["Verdana", "Courier New", "Georgia"].map(async (fontName) => {
       const regular = await loadFont(`whoami/${fontName}/${fontName}.ttf`);
       const bold = await loadFont(`whoami/${fontName}/${fontName} Bold.ttf`);
@@ -278,7 +274,7 @@ async function start(firstLine: string, secondLine: string, flagRotation: number
   ];
   const sketchParams = {
     mainFont,
-    secondaryFonts,
+    secondaryFontFamilies,
     fallbackUnicodeFonts,
     flagRotation,
     firstLine,
