@@ -60,5 +60,5 @@ export abstract class Sketch2D {
     return graphics;
   }
 
-  protected abstract setup(): Container; //TODO: Encapsulate concrete `Container` type
+  protected abstract setup(): Container;
 }

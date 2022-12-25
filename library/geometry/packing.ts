@@ -87,26 +87,29 @@ class Packing {
   ): CompoundPath {
     const pathsToCheck = blacklistShape ? [blacklistShape, ...existingPaths] : existingPaths;
     while (true) {
+      let iteration = 0;
       for (let i = 0; i < nTries; i++) {
         const matrix = Packing.tryTransformMatrix(tryPath, boundingRect, randomizeParams);
         tryPath.transform(matrix);
-        if (!Packing.intersectsExistingPaths(tryPath, pathsToCheck)) return tryPath;
+        if (!Packing.intersectsExistingPaths(tryPath, pathsToCheck)) {
+          console.log(`placed tile after ${iteration * nTries + i} iterations`);
+          return tryPath;
+        }
         tryPath.transform(matrix.invert());
       }
-      console.log("scaling down");
+      iteration++;
       tryPath.scale(0.9, [0, 0]);
     }
   }
 
   // http://paulbourke.net/fractals/randomtile/
   @timed
-  static generatePacking(
+  static generateConcavePacking(
     shapesFactory: (i: number) => CompoundPath,
     { boundingRect, nShapes, blacklistShape, randomizeParams }: PackingParams
   ): Observable<CompoundPath> {
-    //TODO: Improve performance
     const paths: CompoundPath[] = [];
-    const c = random(1.1, 1.2); //TODO: try [1, 1.5]
+    const c = random(1, 1.5);
     const rectArea = Math.abs(boundingRect.width * boundingRect.height);
     const totalArea = rectArea - (blacklistShape?.area || 0);
     const initialArea = totalArea / Packing.zeta(c);
@@ -118,7 +121,7 @@ class Packing {
           (i + 1) % 100 == 0 && console.log(`Packed ${i + 1} shapes out of ${nShapes}`);
           const desiredArea = i == 0 ? initialArea : initialArea * Math.pow(i, -c);
           const tryPath = shapesFactory(i).reorient(false, true) as CompoundPath;
-          const tryArea = Packing.concaveHull(tryPath).area; //TODO: Test with convex polygons, try to get rid of `concaveHull()`
+          const tryArea = Packing.concaveHull(tryPath).area;
           const scaleFactor = Math.sqrt(desiredArea / tryArea);
           tryPath.scale(scaleFactor, [0, 0]);
           const newPath = Packing.tryPlaceTile(tryPath, paths, boundingRect, blacklistShape, randomizeParams);
@@ -133,5 +136,5 @@ export function generatePacking(
   shapesFactory: (i: number) => CompoundPath,
   packingParams: PackingParams
 ): Observable<CompoundPath> {
-  return Packing.generatePacking(shapesFactory, packingParams);
+  return Packing.generateConcavePacking(shapesFactory, packingParams);
 }

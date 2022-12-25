@@ -27,10 +27,6 @@ class WhoAmI extends Sketch2D {
   private readonly lineHeight = 300;
   private readonly lineSpacing = 50;
   private readonly margin = 10;
-  // private readonly nTexts = 1000; //TODO: Test memory leaks with n=1000
-  // private readonly lineHeight = 600;
-  // private readonly lineSpacing = 100;
-  // private readonly margin = 20;
   private sketchParams: SketchParams;
   private mainPaths: CompoundPath[];
   private translations: Set<string>;
@@ -39,7 +35,6 @@ class WhoAmI extends Sketch2D {
 
   constructor(sketchParams: SketchParams, debug = false) {
     super(debug);
-    //super(debug, 2000, 2000);
     this.sketchParams = sketchParams;
     this.mainPaths = [];
     this.translations = new Set([...sketchParams.translations]);

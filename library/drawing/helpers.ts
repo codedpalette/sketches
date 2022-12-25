@@ -4,8 +4,6 @@ import { CompoundPath } from "../geometry/paper";
 
 export type LineLike = [number, number, number, number] | { x1: number; y1: number; x2: number; y2: number };
 
-//TODO: Encapsulate concrete `Graphics` type
-
 export function drawLines(lines: LineLike[], graphics: Graphics) {
   lines.forEach((line) => {
     const [x1, y1, x2, y2] = line instanceof Array ? line : [line.x1, line.y1, line.x2, line.y2];
