@@ -87,17 +87,12 @@ class Packing {
   ): CompoundPath {
     const pathsToCheck = blacklistShape ? [blacklistShape, ...existingPaths] : existingPaths;
     while (true) {
-      let iteration = 0;
       for (let i = 0; i < nTries; i++) {
         const matrix = Packing.tryTransformMatrix(tryPath, boundingRect, randomizeParams);
         tryPath.transform(matrix);
-        if (!Packing.intersectsExistingPaths(tryPath, pathsToCheck)) {
-          console.log(`placed tile after ${iteration * nTries + i} iterations`);
-          return tryPath;
-        }
+        if (!Packing.intersectsExistingPaths(tryPath, pathsToCheck)) return tryPath;
         tryPath.transform(matrix.invert());
       }
-      iteration++;
       tryPath.scale(0.9, [0, 0]);
     }
   }
