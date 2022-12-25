@@ -1,3 +1,4 @@
+import paper from "paper";
 import {
   expose as exposeImpl,
   spawn as spawnImpl,
@@ -34,6 +35,7 @@ export async function spawn<Exposed extends WorkerScope>(workerUrl: URL, seriali
 
 export function expose(exposed: WorkerScope, serializers: BaseSerializer[]): void {
   if (isWorkerRuntime()) {
+    paper.setup("");
     [CompoundPathSerializer, ...serializers].forEach(tryRegisterSerializer);
     exposeImpl(exposed);
   }

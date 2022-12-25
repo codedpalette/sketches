@@ -172,33 +172,38 @@ class WhoAmI extends Sketch2D {
     });
     const workerUrl = new URL("/library/geometry/packing.ts", import.meta.url);
     const generatePacking = await spawn<PackingFunction>(workerUrl, [PackingParamsSerializer]);
-    const paths = await generatePacking(Transfer(textsStream), {
+    const paths = generatePacking(Transfer(textsStream), {
       boundingRect: new Rectangle(-this.width / 2, this.height / 2, this.width, -this.height),
       nShapes: this.nTexts,
-      //blacklistShape: new CompoundPath(this.mainPaths),
+      blacklistShape: new CompoundPath(this.mainPaths),
       randomizeParams: { rotationBounds: [-20, 20], skewBounds: { minHor: -5, minVer: -5, maxHor: 5, maxVer: 5 } },
     });
-    await Thread.terminate(generatePacking);
 
-    //TODO: Separate drawing from generating
-    if (this.debug) {
-      const graphics = new Graphics();
-      for (const path of paths) {
-        path.strokeColor = new Color("blue");
-        graphics.addChild(drawPath(path));
-      }
-      return graphics;
-    }
-
-    const mask = new Graphics();
     const maskContainer = new Container();
-    for (const path of paths) {
-      path.fillColor = new Color("white");
-      mask.addChild(drawPath(path));
-    }
+    const mask = new Graphics();
     maskContainer.mask = mask;
     maskContainer.addChild(mask);
     maskContainer.addChild(this.foreground);
+    paths.subscribe(
+      (path) => {
+        if (this.debug) {
+          const graphics = new Graphics();
+          path.strokeColor = new Color("blue");
+          graphics.addChild(drawPath(path));
+          return graphics; //TODO: Add to container instead of returning
+        }
+
+        path.fillColor = new Color("white");
+        mask.addChild(drawPath(path));
+      },
+      (err) => {
+        throw err;
+      },
+      () => {
+        void Thread.terminate(generatePacking);
+      }
+    );
+
     return maskContainer;
   }
 
@@ -278,7 +283,7 @@ async function start(firstLine: string, secondLine: string, flagRotation: number
     secondLine,
     translations,
   };
-  new WhoAmI(sketchParams, true).draw();
+  new WhoAmI(sketchParams).draw();
 }
 
 void start("ХТО", "Я?", random(-45, 45), "who.txt");

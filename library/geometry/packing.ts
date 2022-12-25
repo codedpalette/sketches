@@ -1,9 +1,9 @@
 import hull from "hull.js";
-import paper from "paper";
+import { map, Observable } from "observable-fns";
 import { random } from "../util/random";
 import { TypedSerializer } from "../util/threads/serializers";
 import { expose } from "../util/threads/workers";
-import { async_timer } from "../util/timing";
+import { sync_timer } from "../util/timing";
 import { CompoundPath, Matrix, Path, PathData, Point, Rectangle } from "./paper";
 
 export type HorVerBounds = {
@@ -144,46 +144,47 @@ class Packing {
   }
 
   // http://paulbourke.net/fractals/randomtile/
-  @async_timer
-  static async generatePacking(
+  @sync_timer //TODO: not working
+  static generatePacking(
     shapeStream: ReadableStream<CompoundPath>,
     { boundingRect, nShapes, blacklistShape, randomizeParams }: PackingParams
-  ): Promise<CompoundPath[]> {
+  ): Observable<CompoundPath> {
     //TODO: Improve performance
-    const paths = [];
+    const paths: CompoundPath[] = [];
     const c = random(1.1, 1.2); //TODO: try [1, 1.5]
     const rectArea = Math.abs(boundingRect.width * boundingRect.height);
     const totalArea = rectArea - (blacklistShape?.area || 0);
     const initialArea = totalArea / Packing.zeta(c);
     const reader = shapeStream.getReader();
 
-    for (let i = 0; i < nShapes; i++) {
-      console.log(i);
-      const desiredArea = i == 0 ? initialArea : initialArea * Math.pow(i, -c);
+    return Observable.from([...Array(nShapes).keys()]).pipe(
+      map(async (i) => {
+        i % 100 == 0 && i > 0 && console.log(`Packed ${i} shapes out of ${nShapes}`);
+        const desiredArea = i == 0 ? initialArea : initialArea * Math.pow(i, -c);
 
-      const readResult = await reader.read();
-      const readValue = readResult.value;
-      const tryPath = readValue?.reorient(false, true) as CompoundPath;
+        const readResult = await reader.read();
+        const readValue = readResult.value;
+        const tryPath = readValue?.reorient(false, true) as CompoundPath;
 
-      const tryArea = Packing.concaveHull(tryPath).area; //TODO: Test with convex polygons, try to get rid of `concaveHull()`
-      const scaleFactor = Math.sqrt(desiredArea / tryArea);
-      tryPath.scale(scaleFactor, [0, 0]);
-      const newPath = Packing.tryPlaceTile(tryPath, paths, boundingRect, blacklistShape, randomizeParams);
-      paths.push(newPath);
-    }
-    return paths; //TODO: Return Observable
+        const tryArea = Packing.concaveHull(tryPath).area; //TODO: Test with convex polygons, try to get rid of `concaveHull()`
+        const scaleFactor = Math.sqrt(desiredArea / tryArea);
+        tryPath.scale(scaleFactor, [0, 0]);
+        const newPath = Packing.tryPlaceTile(tryPath, paths, boundingRect, blacklistShape, randomizeParams);
+        paths.push(newPath);
+        return newPath;
+      })
+    );
   }
 }
 
-async function generatePacking(
+function generatePacking(
   shapesDataStream: ReadableStream<PathData>,
   packingParams: PackingParams
-): Promise<CompoundPath[]> {
-  paper.setup([packingParams.boundingRect.width, packingParams.boundingRect.height]);
+): Observable<CompoundPath> {
   const transformStream = new TransformStream<string, CompoundPath>({
     transform: (chunk, controller) => controller.enqueue(new CompoundPath(chunk)),
   });
-  return await Packing.generatePacking(shapesDataStream.pipeThrough(transformStream), packingParams);
+  return Packing.generatePacking(shapesDataStream.pipeThrough(transformStream), packingParams);
 }
 
 export type PackingFunction = typeof generatePacking;

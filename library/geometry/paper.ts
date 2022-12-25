@@ -35,7 +35,7 @@ export class Rectangle extends paper.Rectangle {
 }
 export class Matrix extends paper.Matrix {}
 
-type SerializedCompoundPath = { pathData: string }; //TODO: Serialize paper scope
+type SerializedCompoundPath = { pathData: string };
 export const CompoundPathSerializer: TypedSerializer<SerializedCompoundPath, CompoundPath> = {
   type: "CompoundPath",
   canSerialize: function (input: unknown): input is CompoundPath {
