@@ -181,26 +181,26 @@ class WhoAmI extends Sketch2D {
 
     const maskContainer = new Container();
     const mask = new Graphics();
-    maskContainer.mask = mask;
-    maskContainer.addChild(mask);
-    maskContainer.addChild(this.foreground);
+    if (!this.debug) {
+      maskContainer.mask = mask;
+      maskContainer.addChild(mask);
+      maskContainer.addChild(this.foreground);
+    }
     paths.subscribe(
       (path) => {
         if (this.debug) {
-          const graphics = new Graphics();
           path.strokeColor = new Color("blue");
-          graphics.addChild(drawPath(path));
-          return graphics; //TODO: Add to container instead of returning
+          maskContainer.addChild(drawPath(path));
+        } else {
+          path.fillColor = new Color("white");
+          mask.addChild(drawPath(path));
         }
-
-        path.fillColor = new Color("white");
-        mask.addChild(drawPath(path));
       },
       (err) => {
-        throw err;
+        throw err; //TODO: Test error handling
       },
       () => {
-        void Thread.terminate(generatePacking);
+        void Thread.terminate(generatePacking); //TODO: Refactor out
       }
     );
 
@@ -283,7 +283,7 @@ async function start(firstLine: string, secondLine: string, flagRotation: number
     secondLine,
     translations,
   };
-  new WhoAmI(sketchParams).draw();
+  new WhoAmI(sketchParams, true).draw();
 }
 
 void start("ХТО", "Я?", random(-45, 45), "who.txt");
