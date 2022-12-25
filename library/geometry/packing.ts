@@ -1,7 +1,7 @@
 import hull from "hull.js";
 import { asyncScheduler, map, Observable, observeOn, range } from "rxjs";
 import { random } from "../util/random";
-import { sync_timer } from "../util/timing";
+import { timed } from "../util/timing";
 import { CompoundPath, Matrix, Path, Point, Rectangle } from "./paper";
 
 export type HorVerBounds = {
@@ -99,7 +99,7 @@ class Packing {
   }
 
   // http://paulbourke.net/fractals/randomtile/
-  @sync_timer //TODO: not working
+  @timed
   static generatePacking(
     shapesFactory: (i: number) => CompoundPath,
     { boundingRect, nShapes, blacklistShape, randomizeParams }: PackingParams

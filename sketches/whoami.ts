@@ -265,7 +265,7 @@ async function start(firstLine: string, secondLine: string, flagRotation: number
     secondLine,
     translations,
   };
-  new WhoAmI(sketchParams, true).draw();
+  new WhoAmI(sketchParams).draw();
 }
 
 void start("ХТО", "Я?", random(-45, 45), "who.txt");
