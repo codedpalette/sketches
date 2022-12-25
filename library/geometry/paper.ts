@@ -1,11 +1,8 @@
 import paper from "paper";
-import { TypedSerializer } from "../util/threads/serializers";
 
 function paperPathToPath(path: paper.Path): Path {
   return new Path(path.segments);
 }
-
-export type PathData = string; //TODO: Type branding
 
 export class Point extends paper.Point {}
 export class Path extends paper.Path {
@@ -34,19 +31,3 @@ export class Rectangle extends paper.Rectangle {
   }
 }
 export class Matrix extends paper.Matrix {}
-
-type SerializedCompoundPath = { pathData: string };
-export const CompoundPathSerializer: TypedSerializer<SerializedCompoundPath, CompoundPath> = {
-  type: "CompoundPath",
-  canSerialize: function (input: unknown): input is CompoundPath {
-    return input instanceof CompoundPath;
-  },
-  deserialize: function (message: SerializedCompoundPath): CompoundPath {
-    return new CompoundPath(message.pathData);
-  },
-  serialize: function (input: CompoundPath): SerializedCompoundPath {
-    return {
-      pathData: input.pathData,
-    };
-  },
-};

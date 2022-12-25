@@ -1,12 +1,10 @@
 import { Assets, Container, DisplayObject, Graphics } from "pixi.js";
-import { Thread, Transfer } from "threads";
 import { drawLines, drawPath, LineLike } from "../library/drawing/helpers";
 import { Font, loadFont, textToPath } from "../library/drawing/text";
-import { PackingFunction, PackingParamsSerializer } from "../library/geometry/packing";
-import { Color, CompoundPath, PathData, Rectangle } from "../library/geometry/paper";
+import { generatePacking } from "../library/geometry/packing";
+import { Color, CompoundPath, Rectangle } from "../library/geometry/paper";
 import { Sketch2D } from "../library/sketch";
 import { random } from "../library/util/random";
-import { spawn } from "../library/util/threads/workers";
 interface FontFamily {
   regular: Font;
   bold: Font;
@@ -59,10 +57,7 @@ class WhoAmI extends Sketch2D {
     this.generateMainText();
     !this.debug && container.addChild(this.background);
     container.addChild(this.drawMainText());
-    this.generateSecondaryTexts().then(
-      (textsContainer) => container.addChild(textsContainer),
-      (rejectReason) => console.error(rejectReason)
-    );
+    container.addChild(this.generateSecondaryTexts());
     return container;
   }
 
@@ -166,13 +161,8 @@ class WhoAmI extends Sketch2D {
     }
   }
 
-  private async generateSecondaryTexts(): Promise<Container> {
-    const textsStream = new ReadableStream<PathData>({
-      pull: (controller) => controller.enqueue(this.textPathsFactory().pathData),
-    });
-    const workerUrl = new URL("/library/geometry/packing.ts", import.meta.url);
-    const generatePacking = await spawn<PackingFunction>(workerUrl, [PackingParamsSerializer]);
-    const paths = generatePacking(Transfer(textsStream), {
+  private generateSecondaryTexts(): Container {
+    const textPathsObservable = generatePacking(() => this.textPathsFactory(), {
       boundingRect: new Rectangle(-this.width / 2, this.height / 2, this.width, -this.height),
       nShapes: this.nTexts,
       blacklistShape: new CompoundPath(this.mainPaths),
@@ -186,24 +176,16 @@ class WhoAmI extends Sketch2D {
       maskContainer.addChild(mask);
       maskContainer.addChild(this.foreground);
     }
-    paths.subscribe(
-      (path) => {
-        if (this.debug) {
-          path.strokeColor = new Color("blue");
-          maskContainer.addChild(drawPath(path));
-        } else {
-          path.fillColor = new Color("white");
-          mask.addChild(drawPath(path));
-        }
-      },
-      (err) => {
-        throw err; //TODO: Test error handling
-      },
-      () => {
-        void Thread.terminate(generatePacking); //TODO: Refactor out
-      }
-    );
 
+    textPathsObservable.subscribe((path) => {
+      if (this.debug) {
+        path.strokeColor = new Color("blue");
+        maskContainer.addChild(drawPath(path));
+      } else {
+        path.fillColor = new Color("white");
+        mask.addChild(drawPath(path));
+      }
+    });
     return maskContainer;
   }
 

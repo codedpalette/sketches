@@ -10,11 +10,10 @@
     "@pdf-lib/fontkit": "^1.1.1",
     "@pixi-essentials/svg": "^1.1.5",
     "hull.js": "^1.0.3",
-    "observable-fns": "^0.6.1",
     "paper": "^0.12.17",
     "pixi.js": "^7.0.5",
     "regenerator-runtime": "^0.13.11",
-    "threads": "^1.7.0"
+    "rxjs": "^7.8.0"
   },
   "devDependencies": {
     "@types/hull.js": "^1.0.2",
