@@ -1,14 +1,17 @@
 import paper from "paper";
 import { Application, Container, Graphics } from "pixi.js";
-import { drawLines, LineLike } from "./drawing/helpers";
+import { MersenneTwister19937, Random } from "random-js";
+import { drawLines, LineLike } from "./helpers";
 
 export abstract class Sketch2D {
   protected debug: boolean;
+  protected random: Random;
   private app: Application;
   private _elapsed = 0.0;
 
   constructor(debug: boolean, width = 1080, height = 1080, bgColor: string | number = "white") {
     this.debug = debug;
+    this.random = new Random(MersenneTwister19937.autoSeed());
     this.app = new Application({
       width,
       height,

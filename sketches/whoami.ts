@@ -1,10 +1,10 @@
 import { Assets, Container, DisplayObject, Graphics } from "pixi.js";
 import { drawLines, drawPath, LineLike } from "../library/drawing/helpers";
-import { Font, loadFont, textToPath } from "../library/drawing/text";
+import { Sketch2D } from "../library/drawing/sketch";
 import { generatePacking } from "../library/geometry/packing";
-import { Color, CompoundPath, Rectangle } from "../library/geometry/paper";
-import { Sketch2D } from "../library/sketch";
-import { random } from "../library/util/random";
+import { Color, CompoundPath, Rectangle } from "../library/paper";
+import { Font, loadFont, textToPath } from "../library/util/font";
+
 interface FontFamily {
   regular: Font;
   bold: Font;
@@ -22,6 +22,8 @@ interface SketchParams {
   translations: string[];
 }
 
+type SketchArgs = Partial<Pick<SketchParams, "flagRotation">> & Omit<SketchParams, "flagRotation">;
+
 class WhoAmI extends Sketch2D {
   private readonly nTexts = 500;
   private readonly lineHeight = 300;
@@ -33,15 +35,15 @@ class WhoAmI extends Sketch2D {
   private background: Graphics;
   private foreground: Graphics;
 
-  constructor(sketchParams: SketchParams, debug = false) {
+  constructor(sketchArgs: SketchArgs, debug = false) {
     super(debug);
-    this.sketchParams = sketchParams;
+    this.sketchParams = { ...sketchArgs, flagRotation: sketchArgs.flagRotation || this.random.integer(-45, 45) };
     this.mainPaths = [];
-    this.translations = new Set([...sketchParams.translations]);
+    this.translations = new Set([...this.sketchParams.translations]);
 
     // Setup control points for a flag curve
-    const cpt1: [number, number] = [random(-this.width / 2, 0), random(0, this.height / 2)];
-    const cpt2: [number, number] = [random(0, this.width / 2), random(-this.height / 2, 0)];
+    const cpt1: [number, number] = [this.random.integer(-this.width / 2, 0), this.random.integer(0, this.height / 2)];
+    const cpt2: [number, number] = [this.random.integer(0, this.width / 2), this.random.integer(-this.height / 2, 0)];
     this.background = this.createFlag(true, this.sketchParams.flagRotation, [cpt1, cpt2]);
     this.foreground = this.createFlag(false, this.sketchParams.flagRotation, [cpt1, cpt2]);
     Math.random() > 0.5 && ([this.background, this.foreground] = [this.foreground, this.background]);
@@ -147,22 +149,26 @@ class WhoAmI extends Sketch2D {
       ff.boldItalic,
     ]);
     while (true) {
-      const text = Array.from(this.translations.values()).random();
+      const text = this.random.pick(Array.from(this.translations.values()));
       const textPath =
-        textToPath(text, allFontVariants.random()) ||
-        textToPath(text, this.sketchParams.fallbackUnicodeFonts.random()) ||
+        textToPath(text, this.random.pick(allFontVariants)) ||
+        textToPath(text, this.random.pick(this.sketchParams.fallbackUnicodeFonts)) ||
         void this.translations.delete(text);
       if (textPath) return textPath;
     }
   }
 
   private generateSecondaryTexts(): Container {
-    const textPathsObservable = generatePacking(() => this.textPathsFactory(), {
-      boundingRect: new Rectangle(-this.width / 2, this.height / 2, this.width, -this.height),
-      nShapes: this.nTexts,
-      blacklistShape: new CompoundPath(this.mainPaths),
-      randomizeParams: { rotationBounds: [-20, 20], skewBounds: { minHor: -5, minVer: -5, maxHor: 5, maxVer: 5 } },
-    });
+    const textPathsObservable = generatePacking(
+      () => this.textPathsFactory(),
+      {
+        boundingRect: new Rectangle(-this.width / 2, this.height / 2, this.width, -this.height),
+        nShapes: this.nTexts,
+        blacklistShape: new CompoundPath(this.mainPaths),
+        randomizeParams: { rotationBounds: [-20, 20], skewBounds: { minHor: -5, minVer: -5, maxHor: 5, maxVer: 5 } },
+      },
+      this.random
+    );
 
     const maskContainer = new Container();
     const mask = new Graphics();
@@ -226,7 +232,7 @@ function calculateGlyphBoundingBox(path: CompoundPath) {
   );
 }
 
-async function start(firstLine: string, secondLine: string, flagRotation: number, translationsFile: string) {
+async function start(firstLine: string, secondLine: string, translationsFile: string, flagRotation?: number) {
   const mainFont = await loadFont("whoami/StalinistOne-Regular.ttf");
   const secondaryFontFamilies = await Promise.all(
     ["Verdana", "Courier New", "Georgia"].map(async (fontName) => {
@@ -263,6 +269,6 @@ async function start(firstLine: string, secondLine: string, flagRotation: number
   new WhoAmI(sketchParams).draw();
 }
 
-void start("ХТО", "Я?", random(-45, 45), "who.txt");
-//void start("ДЕ", "МИ?", 0, "where.txt");
-//void start("ЩО", "ЦЕ?", 90, "what.txt");
+void start("ХТО", "Я?", "who.txt");
+//void start("ДЕ", "МИ?", "where.txt", 0);
+//void start("ЩО", "ЦЕ?", "what.txt", 90);

@@ -1,7 +1,7 @@
 {
   "license": "MIT",
   "scripts": {
-    "start": "parcel serve index.html --dist-dir bin --open Firefox"
+    "start": "parcel serve index.html --dist-dir bin --open"
   },
   "staticFiles": {
     "staticPath": "assets"
@@ -12,23 +12,28 @@
     "hull.js": "^1.0.3",
     "paper": "^0.12.17",
     "pixi.js": "^7.0.5",
+    "random-js": "^2.1.0",
     "regenerator-runtime": "^0.13.11",
     "rxjs": "^7.8.0"
   },
   "devDependencies": {
+    "@tsconfig/recommended": "^1.0.1",
     "@types/hull.js": "^1.0.2",
     "@typescript-eslint/eslint-plugin": "^5.47.0",
     "@typescript-eslint/parser": "^5.47.0",
     "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.0",
     "eslint": "^8.30.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-unused-imports": "^2.0.0",
+    "events": "^3.1.0",
     "parcel": "^2.8.2",
     "parcel-reporter-static-files-copy": "^1.4.0",
     "prettier": "2.8.1",
     "process": "^0.11.10",
     "punycode": "^1.4.1",
     "querystring-es3": "^0.2.1",
+    "stream-browserify": "^3.0.0",
     "typescript": "^4.9.4"
   }
 }

@@ -1,12 +1,13 @@
 {
+  "extends": "@tsconfig/recommended/tsconfig.json",
   "compilerOptions": {
-    "strict": true,
     "noEmitOnError": true,
     "isolatedModules": true,
     "target": "ES2019",
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
+    "baseUrl": "./",
+    //   "module": "ESNext",
+    //   "moduleResolution": "node",
+    //   "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true
   }
 }
