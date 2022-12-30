@@ -4,10 +4,6 @@
     "noEmitOnError": true,
     "isolatedModules": true,
     "target": "ES2019",
-    "baseUrl": "./",
-    //   "module": "ESNext",
-    //   "moduleResolution": "node",
-    //   "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true
   }
 }
