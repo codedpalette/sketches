@@ -13,8 +13,7 @@ export function drawLines(lines: LineLike[], graphics: Graphics) {
 }
 
 export function drawPath(path: CompoundPath): Graphics {
-  const pathCopy = path.clone();
-  const svgPath = pathCopy.exportSVG() as SVGElement;
+  const svgPath = path.exportSVG() as SVGElement;
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 1 1"); // Doesn't work without it
   svg.appendChild(svgPath);
