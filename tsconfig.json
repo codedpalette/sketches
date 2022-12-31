@@ -4,6 +4,11 @@
     "noEmitOnError": true,
     "isolatedModules": true,
     "target": "ES2019",
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "baseUrl": "./library",
+    "paths": {
+      "paper.js": ["../node_modules/paper/dist/paper-core"],
+      "@sindresorhus/is": ["../node_modules/@sindresorhus/is/dist/index"]
+    }
   }
 }

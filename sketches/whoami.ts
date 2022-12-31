@@ -1,9 +1,9 @@
+import { drawLines, drawPath, LineLike } from "drawing/helpers";
+import { Sketch2D } from "drawing/sketch";
+import { generatePacking } from "geometry/packing";
+import { Color, CompoundPath, Rectangle } from "geometry/paper";
 import { Assets, Container, DisplayObject, Graphics } from "pixi.js";
-import { drawLines, drawPath, LineLike } from "../library/drawing/helpers";
-import { Sketch2D } from "../library/drawing/sketch";
-import { generatePacking } from "../library/geometry/packing";
-import { Color, CompoundPath, Rectangle } from "../library/paper";
-import { Font, loadFont, textToPath } from "../library/util/font";
+import { Font, loadFont, textToPath } from "util/font";
 
 interface FontFamily {
   regular: Font;

@@ -1,7 +1,7 @@
+import { drawPath } from "drawing/helpers";
+import { Sketch2D } from "drawing/sketch";
+import { Color, Rectangle } from "geometry/paper";
 import { Container, DisplayObject } from "pixi.js";
-import { drawPath } from "../../library/drawing/helpers";
-import { Sketch2D } from "../../library/drawing/sketch";
-import { Color, Rectangle } from "../../library/paper";
 
 class Stripes extends Sketch2D {
   constructor(debug: boolean) {

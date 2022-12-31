@@ -1,4 +1,4 @@
-import paper from "paper";
+import paper from "paper.js";
 
 function paperPathToPath(path: paper.Path): Path {
   return new Path(path.segments);

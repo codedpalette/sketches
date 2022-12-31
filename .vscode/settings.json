@@ -20,7 +20,9 @@
     "roboto",
     "sindresorhus",
     "transferables",
+    "tspaths",
     "unicodes",
     "Verdana"
-  ]
+  ],
+  "typescript.tsdk": "./node_modules/typescript/lib"
 }

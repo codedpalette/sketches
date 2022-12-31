@@ -1,8 +1,8 @@
 import hull from "hull.js";
 import { Random } from "random-js";
 import { asyncScheduler, map, Observable, observeOn, range } from "rxjs";
-import { CompoundPath, Matrix, Path, Point, Rectangle } from "../paper";
 import { timed } from "../util/timing";
+import { CompoundPath, Matrix, Path, Point, Rectangle } from "./paper";
 
 export type HorVerBounds = {
   minHor: number;
@@ -17,7 +17,7 @@ export type RandomizationParams = {
   shearBounds?: HorVerBounds;
 };
 
-export type PackingParams = {  
+export type PackingParams = {
   boundingRect: Rectangle;
   nShapes: number;
   blacklistShape?: CompoundPath;
