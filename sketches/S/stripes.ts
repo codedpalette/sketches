@@ -1,6 +1,8 @@
 import { drawPath } from "drawing/helpers";
 import { Sketch2D } from "drawing/sketch";
 import { Color, CompoundPath, Line, Path, Point, Rectangle } from "geometry/paper";
+import { deg } from "math/angles";
+import { multiply, sin, subtract, tan } from "mathjs";
 import { Container, DisplayObject } from "pixi.js";
 
 class Stripes extends Sketch2D {
@@ -34,16 +36,18 @@ class Stripes extends Sketch2D {
   private generateStripes(): { lines: CompoundPath; segments: CompoundPath } {
     const lines = [],
       segments = [];
-    const slope = Math.pow(5, this.random.realZeroToOneInclusive()) * (this.random.bool() ? 1 : -1);
+    const slopeDeg = deg(this.random.real(20, 70));
+    const slope = tan(slopeDeg) * (this.random.bool() ? 1 : -1);
     const root = Math.sqrt(1 + slope * slope);
 
     const lineDist = this.random.integer(100, 150);
     const halfLineWidth = lineDist * 0.5 * this.random.real(0.6, 0.8);
-    const [lineWidthX, lineWidthY] = [(halfLineWidth * slope) / root, halfLineWidth / root];
-    const interceptStep = lineDist * root; //TODO: Make corners always visible (with offset?)
+    const interceptStep = lineDist / sin(subtract(deg(90), slopeDeg)); //TODO: Make corners always visible (with offset?)
+    const [lineWidthX, lineWidthY] = [(halfLineWidth * slope) / root, halfLineWidth / root]; //TODO: Convert using fromPolar
+    //const { x: lineWidthX, y: lineWidthY } = fromPolar(halfLineWidth, (90 - slopeDeg) as Degrees);
 
-    const [fromX, toX] = [-this.width, this.width];
-    const [minIntercept, maxIntercept] = slope > 0 ? [-toX * slope, -fromX * slope] : [-fromX * slope, -toX * slope];
+    const [fromX, toX] = [-this.width, this.width]; 
+    const [minIntercept, maxIntercept] = multiply(slope > 0 ? [toX, fromX] : [fromX, toX], -slope) as [number, number];
 
     for (let intercept = minIntercept; intercept < maxIntercept; intercept += interceptStep) {
       const from = new Point(fromX, slope * fromX + intercept);
@@ -51,6 +55,7 @@ class Stripes extends Sketch2D {
       const line = new Line(from, to);
       lines.push(line);
 
+      //TODO: use vectors
       const segmentPoints = [
         new Point(from.x - lineWidthX, from.y + lineWidthY),
         new Point(to.x - lineWidthX, to.y + lineWidthY),

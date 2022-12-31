@@ -11,6 +11,7 @@
     "@pixi-essentials/svg": "^1.1.5",
     "@sindresorhus/is": "^5.3.0",
     "hull.js": "^1.0.3",
+    "mathjs": "^11.5.0",
     "paper": "^0.12.17",
     "pixi.js": "^7.0.5",
     "random-js": "^2.1.0",
