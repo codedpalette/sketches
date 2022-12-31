@@ -30,4 +30,5 @@ export class Rectangle extends paper.Rectangle {
     return new CompoundPath({ children: [new Path.Rectangle(this)] });
   }
 }
+export class Line extends paper.Path.Line {}
 export class Matrix extends paper.Matrix {}
