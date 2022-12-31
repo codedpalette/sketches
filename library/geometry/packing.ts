@@ -1,7 +1,7 @@
 import hull from "hull.js";
 import { Random } from "random-js";
 import { asyncScheduler, map, Observable, observeOn, range } from "rxjs";
-import { timed } from "../util/timing";
+import { timed } from "util/timing";
 import { CompoundPath, Matrix, Path, Point, Rectangle } from "./paper";
 
 export type HorVerBounds = {
@@ -78,7 +78,7 @@ class Packing {
 
   private tryPlaceTile(tryPath: CompoundPath, existingPaths: CompoundPath[], nTries = 100): CompoundPath {
     const pathsToCheck = this.blacklistShape ? [this.blacklistShape, ...existingPaths] : existingPaths;
-    while (true) {
+    for (;;) {
       for (let i = 0; i < nTries; i++) {
         const matrix = this.tryTransformMatrix(tryPath);
         tryPath.transform(matrix);

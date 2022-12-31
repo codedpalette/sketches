@@ -148,7 +148,7 @@ class WhoAmI extends Sketch2D {
       ff.italic,
       ff.boldItalic,
     ]);
-    while (true) {
+    for (;;) {
       const text = this.random.pick(Array.from(this.translations.values()));
       const textPath =
         textToPath(text, this.random.pick(allFontVariants)) ||

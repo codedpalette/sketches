@@ -1,4 +1,4 @@
-import paper from "paper.js";
+import paper from "paper";
 import { Application, Container, Graphics } from "pixi.js";
 import { MersenneTwister19937, Random } from "random-js";
 import { drawLines, LineLike } from "./helpers";

@@ -7,6 +7,7 @@ module.exports = {
   },
   plugins: ["@typescript-eslint", "import", "unused-imports"],
   extends: [
+    "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "plugin:import/recommended",
@@ -15,7 +16,7 @@ module.exports = {
   ],
   settings: {
     "import/resolver": {
-      typescript: {},
+      typescript: true,
     },
   },
   rules: {
@@ -26,6 +27,5 @@ module.exports = {
       "warn",
       { vars: "all", varsIgnorePattern: "^_", args: "after-used", argsIgnorePattern: "^_" },
     ],
-    "import/no-unresolved": "error",
   },
 };
