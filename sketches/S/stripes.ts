@@ -1,8 +1,8 @@
 import { drawPath } from "drawing/helpers";
 import { Sketch2D } from "drawing/sketch";
 import { Color, CompoundPath, Line, Path, Point, Rectangle } from "geometry/paper";
-import { deg } from "math/angles";
-import { multiply, sin, subtract, tan } from "mathjs";
+import { deg, fromPolar } from "math/angles";
+import { max, min, multiply, sign, sin, tan } from "mathjs";
 import { Container, DisplayObject } from "pixi.js";
 
 class Stripes extends Sketch2D {
@@ -28,43 +28,38 @@ class Stripes extends Sketch2D {
   }
 
   private generateRect(): Rectangle {
-    const halfDim = Math.min(this.width, this.height) / 2;
-    const corner = new Point(-halfDim * this.random.real(0.5, 0.9), halfDim * this.random.real(0.5, 0.9));
+    const halfDim = min(this.width, this.height) / 2;
+    const corner = new Point(multiply(halfDim, [-this.random.real(0.5, 0.9), this.random.real(0.5, 0.9)]));
     return new Rectangle(corner, [-corner.x * 2, -corner.y * 2]);
   }
 
   private generateStripes(): { lines: CompoundPath; segments: CompoundPath } {
+    //TODO: Make corners always visible (with offset?)
     const lines = [],
       segments = [];
-    const slopeDeg = deg(this.random.real(20, 70));
-    const slope = tan(slopeDeg) * (this.random.bool() ? 1 : -1);
-    const root = Math.sqrt(1 + slope * slope);
+    const slopeDeg = this.random.real(20, 70);
+    const slope = tan(deg(slopeDeg)) * (this.random.bool() ? 1 : -1);
 
     const lineDist = this.random.integer(100, 150);
+    const interceptStep = lineDist / sin(deg(90 - slopeDeg));
     const halfLineWidth = lineDist * 0.5 * this.random.real(0.6, 0.8);
-    const interceptStep = lineDist / sin(subtract(deg(90), slopeDeg)); //TODO: Make corners always visible (with offset?)
-    const [lineWidthX, lineWidthY] = [(halfLineWidth * slope) / root, halfLineWidth / root]; //TODO: Convert using fromPolar
-    //const { x: lineWidthX, y: lineWidthY } = fromPolar(halfLineWidth, (90 - slopeDeg) as Degrees);
+    const lineWidthOffset = fromPolar(halfLineWidth, deg(90 + slopeDeg * sign(slope)));
 
-    const [fromX, toX] = [-this.width, this.width]; 
-    const [minIntercept, maxIntercept] = multiply(slope > 0 ? [toX, fromX] : [fromX, toX], -slope) as [number, number];
-
-    for (let intercept = minIntercept; intercept < maxIntercept; intercept += interceptStep) {
+    const [fromX, toX] = multiply(this.width, [-2, 2]);
+    const interceptBounds = multiply([fromX, toX], -slope);
+    for (let intercept = min(interceptBounds); intercept < max(interceptBounds); intercept += interceptStep) {
       const from = new Point(fromX, slope * fromX + intercept);
       const to = new Point(toX, slope * toX + intercept);
-      const line = new Line(from, to);
-      lines.push(line);
+      lines.push(new Line(from, to));
 
-      //TODO: use vectors
       const segmentPoints = [
-        new Point(from.x - lineWidthX, from.y + lineWidthY),
-        new Point(to.x - lineWidthX, to.y + lineWidthY),
-        new Point(to.x + lineWidthX, to.y - lineWidthY),
-        new Point(from.x + lineWidthX, from.y - lineWidthY),
+        from.add(lineWidthOffset),
+        to.add(lineWidthOffset),
+        to.subtract(lineWidthOffset),
+        from.subtract(lineWidthOffset),
       ];
       segments.push(new Path({ segments: segmentPoints, closed: true }));
     }
-
     return { lines: new CompoundPath({ children: lines }), segments: new CompoundPath({ children: segments }) };
   }
 }
