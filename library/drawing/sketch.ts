@@ -7,7 +7,7 @@ export abstract class Sketch2D {
   protected debug: boolean;
   protected random: Random;
   private app: Application;
-  private _elapsed = 0.0;
+  private _elapsed = 0;
 
   constructor(debug: boolean, width = 1080, height = 1080, bgColor: string | number = "white") {
     this.debug = debug;
@@ -42,14 +42,15 @@ export abstract class Sketch2D {
     this.app.stage.addChild(container);
     this.debug && container.addChild(this.drawAxes());
 
-    this.app.ticker.add((delta) => {
+    this.app.ticker.add(() => {
+      const delta = this.app.ticker.deltaMS / 1000;
       this._elapsed += delta;
-      this.update(delta, container);
+      this.update(delta);
     });
   }
 
   // eslint-disable-next-line unused-imports/no-unused-vars
-  protected update(deltaTime: number, container?: Container): void {
+  protected update(deltaTime: number): void {
     //by default do nothing
   }
 

@@ -1,6 +1,8 @@
+import { drawPath } from "drawing/helpers";
 import { Sketch2D } from "drawing/sketch";
-import { Ellipse, Point } from "geometry/paper";
+import { Ellipse, Point, Rectangle } from "geometry/paper";
 import { cos, cube, multiply, pi, sin, sqrt, square, subtract, unaryMinus } from "mathjs";
+import { Color } from "paper/dist/paper-core";
 import { Attractor, Mover, TwoBodySystem, Vector2 } from "physics/forces";
 import { Container, DisplayObject, Graphics } from "pixi.js";
 import { Random } from "random-js";
@@ -93,29 +95,50 @@ class PlanetarySystem extends TwoBodySystem {
     return multiply(vector, scalar); //TODO: Add random sign
   }
 
-  draw(): Graphics {
+  draw(debug: boolean): Graphics {
     const graphics = new Graphics();
     graphics.position = this.orbit.position;
     graphics.rotation = this.orbit.rotationAngle;
 
-    const corner = this.satellite.position.subtract(this.sun.position);
-    graphics.drawRect(this.sun.position.x, this.sun.position.y, corner.x, corner.y);
+    const rect = new Rectangle(this.sun.position, this.satellite.position);
+    graphics.beginFill(0x0000ff, 0.5).drawRect(rect.topLeft.x, rect.topLeft.y, rect.width, rect.height);
+    if (debug) {
+      this.orbit.shape.strokeColor = new Color("red");
+      graphics.addChild(this.sun.draw()).addChild(this.satellite.draw()).addChild(drawPath(this.orbit.shape));
+    }
     return graphics;
   }
 }
 
 class Satellites extends Sketch2D {
+  private system: PlanetarySystem;
+  private container: Container;
+
   constructor(debug = false) {
     super(debug);
+    this.system = PlanetarySystem.fromOrbit(
+      {
+        position: new Point(0, 0),
+        semiMajor: 300,
+        semiMinor: 150,
+        rotationAngle: 0,
+        periodSeconds: 5,
+      },
+      this.random
+    );
+    this.container = new Container();
   }
 
   protected setup(): Container<DisplayObject> {
-    const container = new Container();
-    return container;
+    this.container.addChild(this.system.draw(this.debug));
+    return this.container;
   }
 
-  protected update(_deltaTime: number): void {
-    //Stub
+  protected update(deltaTime: number): void {
+    //TODO: Performance, maybe switch browser?
+    this.system.update(deltaTime);
+    this.container.removeChildren();
+    this.container.addChild(this.system.draw(this.debug));
   }
 }
 

@@ -1,5 +1,4 @@
 import { SVGScene } from "@pixi-essentials/svg";
-import { CompoundPath } from "geometry/paper";
 import { Graphics } from "pixi.js";
 
 export type LineLike = [number, number, number, number] | { x1: number; y1: number; x2: number; y2: number };
@@ -12,7 +11,7 @@ export function drawLines(lines: LineLike[], graphics: Graphics) {
   });
 }
 
-export function drawPath(path: CompoundPath): Graphics {
+export function drawPath(path: paper.Path | paper.CompoundPath): Graphics {
   const svgPath = path.exportSVG() as SVGElement;
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 1 1"); // Doesn't work without it
