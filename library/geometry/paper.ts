@@ -31,4 +31,5 @@ export class Rectangle extends paper.Rectangle {
   }
 }
 export class Line extends paper.Path.Line {}
+export class Ellipse extends paper.Path.Ellipse {}
 export class Matrix extends paper.Matrix {}

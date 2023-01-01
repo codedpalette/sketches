@@ -48,7 +48,8 @@ export abstract class Sketch2D {
     });
   }
 
-  protected update(_delta: number, _container: Container): void {
+  // eslint-disable-next-line unused-imports/no-unused-vars
+  protected update(deltaTime: number, container?: Container): void {
     //by default do nothing
   }
 
