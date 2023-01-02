@@ -1,5 +1,5 @@
 import paper from "paper";
-import { Application, Container, Graphics } from "pixi.js";
+import { Application, Container, Graphics, Text } from "pixi.js";
 import { MersenneTwister19937, Random } from "random-js";
 import { drawLines, LineLike } from "./helpers";
 
@@ -7,6 +7,7 @@ export abstract class Sketch2D {
   protected debug: boolean;
   protected random: Random;
   private app: Application;
+  private fpsContainer?: Container;
   private _elapsed = 0;
 
   constructor(debug: boolean, width = 1080, height = 1080, bgColor: string | number = "white") {
@@ -36,13 +37,16 @@ export abstract class Sketch2D {
   }
 
   draw(): void {
+    const mainContainer = new Container();
+    mainContainer.position = { x: this.width / 2, y: this.height / 2 };
+    mainContainer.scale.set(1, -1);
     const container = this.setup();
-    container.position = { x: this.width / 2, y: this.height / 2 };
-    container.scale.set(1, -1);
-    this.app.stage.addChild(container);
-    this.debug && container.addChild(this.drawAxes());
+    this.debug && this.drawDebug(mainContainer);
+    mainContainer.addChild(container);
 
+    this.app.stage.addChild(mainContainer);
     this.app.ticker.add(() => {
+      this.debug && this.drawFPS(); //TODO: Need to average
       const delta = this.app.ticker.deltaMS / 1000;
       this._elapsed += delta;
       this.update(delta);
@@ -52,6 +56,31 @@ export abstract class Sketch2D {
   // eslint-disable-next-line unused-imports/no-unused-vars
   protected update(deltaTime: number): void {
     //by default do nothing
+  }
+
+  private drawDebug(mainContainer: Container) {
+    mainContainer.addChild(this.drawAxes());
+    mainContainer.addChild(this.drawFPS());
+  }
+
+  private drawFPS(): Container {
+    const margin = 10;
+    if (!this.fpsContainer) {
+      this.fpsContainer = new Container();
+      this.fpsContainer.position = { x: -this.width / 2 + margin, y: this.height / 2 - margin };
+      this.fpsContainer.scale.set(1, -1);
+
+      const fpsBackground = new Graphics()
+        .beginFill(0x777777, 0.5)
+        .drawRect(-margin / 2, -margin / 2, 66 + margin, 30 + margin);
+      this.fpsContainer.addChild(fpsBackground);
+    } else {
+      this.fpsContainer.removeChildAt(1);
+    }
+
+    const fpsText = new Text(this.app.ticker.FPS.toFixed(2));
+    this.fpsContainer.addChild(fpsText);
+    return this.fpsContainer;
   }
 
   private drawAxes(): Graphics {

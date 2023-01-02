@@ -135,7 +135,6 @@ class Satellites extends Sketch2D {
   }
 
   protected update(deltaTime: number): void {
-    //TODO: Performance, maybe switch browser?
     this.system.update(deltaTime);
     this.container.removeChildren();
     this.container.addChild(this.system.draw(this.debug));
