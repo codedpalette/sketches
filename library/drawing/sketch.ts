@@ -46,7 +46,7 @@ export abstract class Sketch2D {
 
     this.app.stage.addChild(mainContainer);
     this.app.ticker.add(() => {
-      this.debug && this.drawFPS(); //TODO: Need to average
+      this.debug && this.drawFPS();
       const delta = this.app.ticker.deltaMS / 1000;
       this._elapsed += delta;
       this.update(delta);
@@ -65,14 +65,16 @@ export abstract class Sketch2D {
 
   private drawFPS(): Container {
     const margin = 10;
+    const width = 66;
+    const height = 30;
     if (!this.fpsContainer) {
       this.fpsContainer = new Container();
-      this.fpsContainer.position = { x: -this.width / 2 + margin, y: this.height / 2 - margin };
+      this.fpsContainer.position = { x: this.width / 2 - width - margin, y: this.height / 2 - margin };
       this.fpsContainer.scale.set(1, -1);
 
       const fpsBackground = new Graphics()
         .beginFill(0x777777, 0.5)
-        .drawRect(-margin / 2, -margin / 2, 66 + margin, 30 + margin);
+        .drawRect(-margin / 2, -margin / 2, width + margin, height + margin);
       this.fpsContainer.addChild(fpsBackground);
     } else {
       this.fpsContainer.removeChildAt(1);

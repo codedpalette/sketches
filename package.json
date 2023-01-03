@@ -1,7 +1,7 @@
 {
   "license": "MIT",
   "scripts": {
-    "start": "parcel serve index.html --dist-dir bin --open"
+    "start": "parcel serve index.html --dist-dir bin"
   },
   "staticFiles": {
     "staticPath": "assets"
