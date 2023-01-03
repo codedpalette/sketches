@@ -1,4 +1,4 @@
-import paper from "paper";
+import { paperSetup } from "geometry/paper";
 import { Application, Container, Graphics, Text } from "pixi.js";
 import { MersenneTwister19937, Random } from "random-js";
 import { drawLines, LineLike } from "./helpers";
@@ -22,7 +22,7 @@ export abstract class Sketch2D {
     });
     this.fpsContainer = new Container();
     document.body.appendChild(this.app.view as unknown as Node);
-    paper.setup([this.width, this.height]);
+    paperSetup([this.width, this.height]);
   }
 
   protected get elapsed() {

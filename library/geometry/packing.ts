@@ -90,7 +90,9 @@ class Packing {
   }
 
   private intersectsExistingPaths(tryPath: CompoundPath, pathsToCheck: CompoundPath[]): boolean {
-    const tryPathPoints = tryPath.childPaths.flatMap((path) => [path.getPointAt(0), path.getPointAt(path.length / 2)]);
+    const tryPathPoints = tryPath
+      .childPaths()
+      .flatMap((path) => [path.getPointAt(0), path.getPointAt(path.length / 2)]);
     const intersects = pathsToCheck.some(
       (path) => tryPathPoints.some((point) => path.contains(point)) || tryPath.intersects(path)
     );

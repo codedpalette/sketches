@@ -119,9 +119,7 @@ class PlanetarySystem extends TwoBodySystem {
 
   update(deltaTime: number): void {
     super.update(deltaTime);
-    const satellitePosition = [this.satellite.position.x, this.satellite.position.y];
-    const sunPosition = [this.sun.position.x, this.sun.position.y];
-    const heliocentricVector = subtract(satellitePosition, sunPosition);
+    const heliocentricVector = subtract(this.satellite.position.toVec(), this.sun.position.toVec());
     this.rectGraphics.scale.set(heliocentricVector[0] / this.rect.width, heliocentricVector[1] / this.rect.height);
   }
 

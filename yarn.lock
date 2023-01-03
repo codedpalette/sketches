@@ -2321,6 +2321,11 @@ hull.js@^1.0.3:
   resolved "https://registry.yarnpkg.com/hull.js/-/hull.js-1.0.3.tgz#cb734fc8034e98e9f24c5893bfd97d0d48a99975"
   integrity sha512-CM6zaH0+3mdmjmvJnpxfmJ6K7juoF0GnmjE1g+m5JRj+ynP23VwSoUtIuVUePF9icr1J1/1zybhscCltyftAaw==
 
+husky@^8.0.3:
+  version "8.0.3"
+  resolved "https://registry.yarnpkg.com/husky/-/husky-8.0.3.tgz#4936d7212e46d1dea28fef29bb3a108872cd9184"
+  integrity sha512-+dQSyqPh4x1hlO1swXBiNb2HzTDN1I2IGLQx1GrBuiqFJfoMrnZWwVmatvSiO+Iz8fBUnf+lekwNo4c2LlXItg==
+
 ieee754@^1.1.13:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/ieee754/-/ieee754-1.2.1.tgz#8eb7a10a63fff25d15a57b001586d177d1b0d352"
