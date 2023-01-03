@@ -3,19 +3,30 @@ import { Sketch2D } from "drawing/sketch";
 import { Ellipse, Point, Rectangle } from "geometry/paper";
 import { cos, cube, multiply, pi, sin, sqrt, square, subtract, unaryMinus } from "mathjs";
 import { Color } from "paper/dist/paper-core";
-import { Attractor, Mover, TwoBodySystem, Vector2 } from "physics/forces";
+import { Attractor, Mover, TwoBodySystem, Vector2, Vector2Like } from "physics/forces";
 import { Container, DisplayObject, Graphics } from "pixi.js";
 import { Random } from "random-js";
 
 class Sun extends Attractor {
-  draw(): Graphics {
-    return new Graphics().beginFill(0x000000).drawCircle(this.position.x, this.position.y, 10);
+  readonly graphics: Graphics;
+
+  constructor(position: Vector2Like, mass: number) {
+    super(position, mass);
+    this.graphics = new Graphics().beginFill(0x000000).drawCircle(this.position.x, this.position.y, 10);
   }
 }
 
 class Satellite extends Mover {
-  draw(): Graphics {
-    return new Graphics().beginFill(0xff0000).lineStyle(0).drawCircle(this.position.x, this.position.y, 3);
+  readonly graphics: Graphics;
+
+  constructor(position: Vector2Like, velocity: Vector2Like) {
+    super(position, velocity);
+    this.graphics = new Graphics().beginFill(0xff0000).lineStyle(0).drawCircle(0, 0, 3);
+  }
+
+  update(deltaTime: number): void {
+    super.update(deltaTime);
+    this.graphics.position = this.position;
   }
 }
 
@@ -56,12 +67,23 @@ class PlanetarySystem extends TwoBodySystem {
   private sun: Sun;
   private satellite: Satellite;
   private orbit: Orbit;
+  private container: Container;
+  private rect: Rectangle;
+  private rectGraphics: Graphics;
 
   private constructor(sun: Sun, satellite: Satellite, orbit: Orbit) {
     super(sun, satellite);
     this.sun = sun;
     this.satellite = satellite;
     this.orbit = orbit;
+
+    this.container = new Container();
+    this.container.position = this.orbit.position;
+    this.container.angle = this.orbit.rotationAngle;
+
+    this.rect = new Rectangle(this.sun.position, this.satellite.position);
+    this.rectGraphics = new Graphics().beginFill(0x0000ff, 0.5).drawRect(0, 0, this.rect.width, this.rect.height);
+    this.rectGraphics.position = this.sun.position;
   }
 
   static fromOrbit(orbitParams: OrbitParams, random: Random): PlanetarySystem {
@@ -95,18 +117,23 @@ class PlanetarySystem extends TwoBodySystem {
     return multiply(vector, scalar); //TODO: Add random sign
   }
 
-  draw(debug: boolean): Graphics {
-    const graphics = new Graphics();
-    graphics.position = this.orbit.position;
-    graphics.rotation = this.orbit.rotationAngle;
+  update(deltaTime: number): void {
+    super.update(deltaTime);
+    const satellitePosition = [this.satellite.position.x, this.satellite.position.y];
+    const sunPosition = [this.sun.position.x, this.sun.position.y];
+    const heliocentricVector = subtract(satellitePosition, sunPosition);
+    this.rectGraphics.scale.set(heliocentricVector[0] / this.rect.width, heliocentricVector[1] / this.rect.height);
+  }
 
-    const rect = new Rectangle(this.sun.position, this.satellite.position);
-    graphics.beginFill(0x0000ff, 0.5).drawRect(rect.topLeft.x, rect.topLeft.y, rect.width, rect.height);
+  draw(debug: boolean): Container {
+    this.container.addChild(this.rectGraphics);
     if (debug) {
       this.orbit.shape.strokeColor = new Color("red");
-      graphics.addChild(this.sun.draw()).addChild(this.satellite.draw()).addChild(drawPath(this.orbit.shape));
+      this.container.addChild(this.sun.graphics);
+      this.container.addChild(this.satellite.graphics);
+      this.container.addChild(drawPath(this.orbit.shape));
     }
-    return graphics;
+    return this.container;
   }
 }
 
@@ -119,7 +146,7 @@ class Satellites extends Sketch2D {
     this.system = PlanetarySystem.fromOrbit(
       {
         position: new Point(0, 0),
-        semiMajor: 300,
+        semiMajor: 200,
         semiMinor: 150,
         rotationAngle: 0,
         periodSeconds: 5,
@@ -136,8 +163,6 @@ class Satellites extends Sketch2D {
 
   protected update(deltaTime: number): void {
     this.system.update(deltaTime);
-    this.container.removeChildren();
-    this.container.addChild(this.system.draw(this.debug));
   }
 }
 
