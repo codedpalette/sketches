@@ -2,7 +2,7 @@ import hull from "hull.js";
 import { Random } from "random-js";
 import { asyncScheduler, map, Observable, observeOn, range } from "rxjs";
 import { timed } from "util/timing";
-import { CompoundPath, Matrix, Path, Point, Rectangle } from "./paper";
+import { CompoundPath, Matrix, Path, Point, Rectangle } from "../paper";
 
 export type HorVerBounds = {
   minHor: number;
@@ -25,7 +25,7 @@ export type PackingParams = {
   randomizeParams?: RandomizationParams;
 };
 
-export function generatePacking(
+export function concavePacking(
   shapesFactory: (i: number) => CompoundPath,
   packingParams: PackingParams,
   random: Random

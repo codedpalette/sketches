@@ -1,6 +1,6 @@
 import { drawLines, drawPath, LineLike } from "drawing/helpers";
 import { Sketch2D } from "drawing/sketch";
-import { generatePacking } from "geometry/packing";
+import { concavePacking } from "geometry/packing/concave";
 import { Color, CompoundPath, Rectangle } from "geometry/paper";
 import { Assets, Container, DisplayObject, Graphics } from "pixi.js";
 import { Font, loadFont, textToPath } from "util/font";
@@ -159,7 +159,7 @@ class WhoAmI extends Sketch2D {
   }
 
   private generateSecondaryTexts(): Container {
-    const textPathsObservable = generatePacking(
+    const textPathsObservable = concavePacking(
       () => this.textPathsFactory(),
       {
         boundingRect: new Rectangle(-this.width / 2, this.height / 2, this.width, -this.height),
