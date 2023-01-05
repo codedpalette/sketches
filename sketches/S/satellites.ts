@@ -1,7 +1,7 @@
 import { drawPath } from "drawing/helpers";
 import { Sketch2D } from "drawing/sketch";
 import { cos, cube, multiply, pi, sin, sqrt, square, subtract, unaryMinus } from "mathjs";
-import { Ellipse, Point, Rectangle, Color } from "paper";
+import { Color, Path, Point, Rectangle } from "paper";
 import { Attractor, Mover, TwoBodySystem, Vector2, Vector2Like } from "physics/forces";
 import { Container, DisplayObject, Graphics } from "pixi.js";
 import { Random } from "random-js";
@@ -45,7 +45,7 @@ class Orbit implements OrbitParams {
   readonly rotationAngle: number;
   readonly eccentricity: number;
   readonly foci: Vector2[];
-  readonly shape: Ellipse;
+  readonly shape: Path;
 
   constructor(orbitParams: OrbitParams) {
     ({
@@ -58,7 +58,7 @@ class Orbit implements OrbitParams {
     this.eccentricity = sqrt(1 - square(this.semiMinor) / square(this.semiMajor)) as number;
     const focus = [sqrt(square(this.semiMajor) - square(this.semiMinor)) as number, 0] as Vector2;
     this.foci = [focus, unaryMinus(focus) as Vector2];
-    this.shape = new Ellipse({ center: [0, 0], radius: [this.semiMajor, this.semiMinor] });
+    this.shape = new Path.Ellipse({ center: [0, 0], radius: [this.semiMajor, this.semiMinor] });
   }
 }
 

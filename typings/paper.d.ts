@@ -21,13 +21,11 @@ declare module "paper" {
   const paperCore: Pick<paper.PaperScope, Exclude<keyof paper.PaperScope, "PaperScript">>;
   export default paperCore;
 
+  export type PointLike = paper.PointLike;
+  export type SizeLike = paper.SizeLike;
+
   export type Point = paper.Point;
   export const Point = paperCore.Point;
-  export type Line = paper.Path.Line;
-  export const Line = paperCore.Path.Line;
-
-  export type Ellipse = paper.Path.Ellipse;
-  export const Ellipse = paperCore.Path.Ellipse;
   export type Rectangle = paper.Rectangle;
   export const Rectangle = paperCore.Rectangle;
 

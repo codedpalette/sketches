@@ -1,7 +1,7 @@
-import { create as createFont, Font as FontkitFont } from "@pdf-lib/fontkit";
+import fontkit from "@pdf-lib/fontkit";
 import { CompoundPath } from "paper";
 
-export type Font = FontkitFont;
+export type Font = fontkit.Font;
 
 export function textToPath(text: string, font: Font, removeOffset = false, fontSize = 72): CompoundPath | undefined {
   // Check if font has glyphs for all characters in text
@@ -39,6 +39,7 @@ export function textToPath(text: string, font: Font, removeOffset = false, fontS
 export async function loadFont(path: string): Promise<Font> {
   const arrayBuffer = await (await (await fetch(`http://localhost:1234/${path}`)).blob()).arrayBuffer();
   const buffer = new Uint8Array(arrayBuffer);
-  const font = createFont(buffer);
+  // eslint-disable-next-line import/no-named-as-default-member
+  const font = fontkit.create(buffer);
   return font;
 }

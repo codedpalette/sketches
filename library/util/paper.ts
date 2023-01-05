@@ -1,4 +1,8 @@
-import { Rectangle, Point, Path, CompoundPath } from "paper";
+import paper, { CompoundPath, Path, Point, Rectangle, SizeLike } from "paper";
+
+export function paperSetup(size: SizeLike) {
+  return paper.setup(size);
+}
 
 Point.prototype.toVec = function () {
   return [this.x, this.y];
