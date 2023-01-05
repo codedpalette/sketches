@@ -33,7 +33,7 @@ class Day01 extends Sketch2D {
   private generateInfinitePacking(): Container<Graphics> {
     const graphics = new Graphics();
     graphics.lineStyle(1, 0x000000);
-    const rects = rectanglePacking(new Rectangle(0, 0, this.width, this.height), 20, this.random);
+    const rects = rectanglePacking(new Rectangle(0, 0, this.width, this.height), 20);
     for (const rect of rects) {
       graphics.drawRect(rect.x, rect.y, rect.width, rect.height);
     }

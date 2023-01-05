@@ -1,7 +1,7 @@
 import { CompoundPath, Matrix, Path, Point, Rectangle } from "geometry";
 import hull from "hull.js";
-import { Random } from "random-js";
 import { asyncScheduler, map, Observable, observeOn, range } from "rxjs";
+import { random } from "util/random";
 import { timed } from "util/timing";
 
 export type Bounds2D = {
@@ -25,10 +25,9 @@ export type PackingParams = {
 
 export function concavePacking(
   shapesFactory: (i: number) => CompoundPath,
-  packingParams: PackingParams,
-  random: Random
+  packingParams: PackingParams
 ): Observable<CompoundPath> {
-  return new Packing(shapesFactory, packingParams, random).generateConcavePacking();
+  return new Packing(shapesFactory, packingParams).generateConcavePacking();
 }
 
 // Using class here to add execution time decorators
@@ -37,11 +36,7 @@ class Packing {
   private nShapes: number;
   private blacklistShape?: CompoundPath;
   private randomizeParams?: RandomizationParams;
-  constructor(
-    private shapesFactory: (i: number) => CompoundPath,
-    packingParams: PackingParams,
-    private random: Random
-  ) {
+  constructor(private shapesFactory: (i: number) => CompoundPath, packingParams: PackingParams) {
     ({
       boundingRect: this.boundingRect,
       nShapes: this.nShapes,
@@ -54,7 +49,7 @@ class Packing {
   @timed
   generateConcavePacking(): Observable<CompoundPath> {
     const paths: CompoundPath[] = [];
-    const c = this.random.real(1, 1.5);
+    const c = random.real(1, 1.5);
     const rectArea = Math.abs(this.boundingRect.width * this.boundingRect.height);
     const totalArea = rectArea - (this.blacklistShape?.area || 0);
     const initialArea = totalArea / this.zeta(c);
@@ -104,25 +99,25 @@ class Packing {
     const [boundingRect, randomizeParams] = [this.boundingRect, this.randomizeParams];
     const [minX, minY, maxX, maxY] = [boundingRect.left, boundingRect.bottom, boundingRect.right, boundingRect.top];
     const [x, y] = [
-      this.random.integer(minX - tryPath.bounds.width, maxX),
-      this.random.integer(minY - tryPath.bounds.height, maxY),
+      random.integer(minX - tryPath.bounds.width, maxX),
+      random.integer(minY - tryPath.bounds.height, maxY),
     ];
 
     matrix.translate([x, y]);
     if (randomizeParams) {
       const { rotationBounds, skewBounds, shearBounds } = randomizeParams;
       if (rotationBounds) {
-        const rotation = this.random.integer(rotationBounds[0], rotationBounds[1]);
+        const rotation = random.integer(rotationBounds[0], rotationBounds[1]);
         matrix.rotate(rotation, tryPath.position);
       }
       if (skewBounds) {
-        const skewHor = this.random.integer(...skewBounds.horizontal);
-        const skewVer = this.random.integer(...skewBounds.vertical);
+        const skewHor = random.integer(...skewBounds.horizontal);
+        const skewVer = random.integer(...skewBounds.vertical);
         matrix.skew(skewHor, skewVer);
       }
       if (shearBounds) {
-        const shearHor = this.random.integer(...shearBounds.horizontal);
-        const shearVer = this.random.integer(...shearBounds.vertical);
+        const shearHor = random.integer(...shearBounds.horizontal);
+        const shearVer = random.integer(...shearBounds.vertical);
         matrix.shear(shearHor, shearVer);
       }
     }

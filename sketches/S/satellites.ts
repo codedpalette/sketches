@@ -4,7 +4,7 @@ import { Color, Ellipse, Path, Point, Rectangle } from "geometry";
 import { cos, cube, multiply, pi, sin, sqrt, square, subtract, unaryMinus } from "mathjs";
 import { Attractor, Mover, TwoBodySystem, Vector2, Vector2Like } from "physics/forces";
 import { Container, DisplayObject, Graphics } from "pixi.js";
-import { Random } from "random-js";
+import { random } from "util/random";
 
 class Sun extends Attractor {
   readonly graphics: Graphics;
@@ -85,7 +85,7 @@ class PlanetarySystem extends TwoBodySystem {
     this.rectGraphics.position = this.sun.position;
   }
 
-  static fromOrbit(orbitParams: OrbitParams, random: Random): PlanetarySystem {
+  static fromOrbit(orbitParams: OrbitParams): PlanetarySystem {
     const orbit = new Orbit(orbitParams);
     const mu = (4 * square(pi) * cube(orbit.semiMajor)) / square(orbit.periodSeconds);
     const sunPosition = random.pick(orbit.foci);
@@ -113,7 +113,7 @@ class PlanetarySystem extends TwoBodySystem {
 
     const scalar = (sqrt(mu * a) as number) / r;
     const vector = [-sin(theta), (sqrt(1 - square(e)) as number) * cos(theta)] as Vector2;
-    return multiply(vector, scalar); //TODO: Add random sign
+    return multiply(vector, scalar * random.sign());
   }
 
   update(deltaTime: number): void {
@@ -140,16 +140,13 @@ class Satellites extends Sketch2D {
 
   constructor(debug = false) {
     super(debug);
-    this.system = PlanetarySystem.fromOrbit(
-      {
-        position: new Point(0, 0),
-        semiMajor: 200,
-        semiMinor: 150,
-        rotationAngle: 0,
-        periodSeconds: 5,
-      },
-      this.random
-    );
+    this.system = PlanetarySystem.fromOrbit({
+      position: new Point(0, 0),
+      semiMajor: 200,
+      semiMinor: 150,
+      rotationAngle: 0,
+      periodSeconds: 5,
+    });
     this.container = new Container();
   }
 

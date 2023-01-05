@@ -4,6 +4,7 @@ import { Color, CompoundPath, Line, Path, Point, Rectangle } from "geometry";
 import { deg, fromPolar } from "math/angles";
 import { max, min, multiply, sign, sin, tan } from "mathjs";
 import { Container, DisplayObject } from "pixi.js";
+import { random } from "util/random";
 
 class Stripes extends Sketch2D {
   constructor(debug = false) {
@@ -29,7 +30,8 @@ class Stripes extends Sketch2D {
 
   private generateRect(): Rectangle {
     const halfDim = min(this.width, this.height) / 2;
-    const corner = new Point(multiply(halfDim, [-this.random.real(0.5, 0.9), this.random.real(0.5, 0.9)]));
+    const randomBounds = [0.5, 0.9] as const;
+    const corner = new Point(multiply(halfDim, [-random.real(...randomBounds), random.real(...randomBounds)]));
     return new Rectangle(corner, [-corner.x * 2, -corner.y * 2]);
   }
 
@@ -37,12 +39,12 @@ class Stripes extends Sketch2D {
     //TODO: Make corners always visible (with offset?)
     const lines = [],
       segments = [];
-    const slopeDeg = this.random.real(20, 70);
-    const slope = tan(deg(slopeDeg)) * (this.random.bool() ? 1 : -1);
+    const slopeDeg = random.real(20, 70);
+    const slope = tan(deg(slopeDeg)) * random.sign();
 
-    const lineDist = this.random.integer(100, 150);
+    const lineDist = random.integer(100, 150);
     const interceptStep = lineDist / sin(deg(90 - slopeDeg));
-    const halfLineWidth = lineDist * 0.5 * this.random.real(0.6, 0.8);
+    const halfLineWidth = lineDist * 0.5 * random.real(0.6, 0.8);
     const lineWidthOffset = fromPolar(halfLineWidth, deg(90 + slopeDeg * sign(slope)));
 
     const [fromX, toX] = multiply(this.width, [-2, 2]);

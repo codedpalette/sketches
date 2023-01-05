@@ -1,18 +1,15 @@
 import { setup } from "geometry";
 import { Application, Container, Graphics, Text } from "pixi.js";
-import { MersenneTwister19937, Random } from "random-js";
 import { drawLines, LineLike } from "./helpers";
 
 export abstract class Sketch2D {
   protected debug: boolean;
-  protected random: Random;
   private app: Application;
   private fpsContainer: Container;
   private _elapsed = 0;
 
   constructor(debug: boolean, width = 1080, height = 1080, bgColor: string | number = "white") {
     this.debug = debug;
-    this.random = new Random(MersenneTwister19937.autoSeed());
     this.app = new Application({
       width,
       height,
