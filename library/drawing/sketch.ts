@@ -2,6 +2,7 @@ import { setup } from "geometry";
 import { Application, Container, Graphics, Text } from "pixi.js";
 import { drawLines, LineLike } from "./helpers";
 
+//TODO: Refactor to functional interface
 export abstract class Sketch2D {
   protected debug: boolean;
   private app: Application;

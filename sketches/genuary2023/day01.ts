@@ -11,7 +11,7 @@ class Day01 extends Sketch2D {
   constructor(debug = false) {
     super(debug);
     this.sideContainer = this.generateInfinitePacking();
-    this.sideContainer.position = { x: -this.width / 2, y: -this.height / 2 };
+    this.sideContainer.position = { x: -this.width / 2, y: -this.height / 2 }; //TODO: Try PIXI.Mesh for perspective mapping
   }
 
   protected setup(): Container<DisplayObject> {
@@ -41,8 +41,8 @@ class Day01 extends Sketch2D {
     const backupGraphics = graphics.clone();
     backupGraphics.position = { x: 0, y: this.height };
     const container = new Container<Graphics>();
-    container.addChild(graphics);
     container.addChild(backupGraphics);
+    container.addChild(graphics);
     return container;
   }
 }
