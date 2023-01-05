@@ -1,8 +1,8 @@
 import hull from "hull.js";
+import { CompoundPath, Matrix, Path, Point, Rectangle } from "paper";
 import { Random } from "random-js";
 import { asyncScheduler, map, Observable, observeOn, range } from "rxjs";
 import { timed } from "util/timing";
-import { CompoundPath, Matrix, Path, Point, Rectangle } from "../paper";
 
 export type HorVerBounds = {
   minHor: number;

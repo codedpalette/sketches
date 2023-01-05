@@ -1,6 +1,6 @@
 import is from "@sindresorhus/is";
-import { Point } from "geometry/paper";
 import { add, divide, min, multiply, square } from "mathjs";
+import { Point } from "paper";
 
 export type Vector2 = [number, number];
 export type Vector2Like = Vector2 | { x: number; y: number };
@@ -72,13 +72,7 @@ export abstract class Mover extends Body {
 }
 
 export abstract class TwoBodySystem {
-  private attractor: Attractor;
-  private mover: Mover;
-
-  constructor(attractor: Attractor, mover: Mover) {
-    this.attractor = attractor;
-    this.mover = mover;
-  }
+  constructor(private attractor: Attractor, private mover: Mover) {}
 
   update(deltaTime: number) {
     let time = deltaTime;

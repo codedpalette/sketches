@@ -7,7 +7,8 @@
     "experimentalDecorators": true,
     "baseUrl": "./library",
     "paths": {
-      "@sindresorhus/is": ["../node_modules/@sindresorhus/is/dist/index"]
+      "@sindresorhus/is": ["../node_modules/@sindresorhus/is/dist/index"],
+      "paper": ["../node_modules/paper/dist/paper-core"]
     }
   }
 }

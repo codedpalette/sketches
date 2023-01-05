@@ -1,7 +1,7 @@
 import { drawPath } from "drawing/helpers";
 import { Sketch2D } from "drawing/sketch";
-import { Ellipse, Point, Rectangle } from "geometry/paper";
 import { cos, cube, multiply, pi, sin, sqrt, square, subtract, unaryMinus } from "mathjs";
+import { Ellipse, Point, Rectangle } from "paper";
 import { Color } from "paper/dist/paper-core";
 import { Attractor, Mover, TwoBodySystem, Vector2, Vector2Like } from "physics/forces";
 import { Container, DisplayObject, Graphics } from "pixi.js";

@@ -1,7 +1,7 @@
 import { Sketch2D } from "drawing/sketch";
-import { rectanglePacking } from "geometry/packing/rectangle";
-import { Rectangle } from "geometry/paper";
 import { round } from "mathjs";
+import { rectanglePacking } from "packing/rectangle";
+import { Rectangle } from "paper";
 import { Container, DisplayObject, Graphics } from "pixi.js";
 
 class Day01 extends Sketch2D {
@@ -22,7 +22,6 @@ class Day01 extends Sketch2D {
 
   protected update(deltaTime: number): void {
     const offSetPixels = round((deltaTime * this.height) / this.loopDurationSeconds);
-    console.log(offSetPixels);
     for (const childGraphic of this.sideContainer.children) {
       childGraphic.position.y -= offSetPixels;
       if (childGraphic.position.y <= -this.height) {

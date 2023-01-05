@@ -1,8 +1,8 @@
 import { drawPath } from "drawing/helpers";
 import { Sketch2D } from "drawing/sketch";
-import { Color, CompoundPath, Line, Path, Point, Rectangle } from "geometry/paper";
 import { deg, fromPolar } from "math/angles";
 import { max, min, multiply, sign, sin, tan } from "mathjs";
+import { Color, CompoundPath, Line, Path, Point, Rectangle } from "paper";
 import { Container, DisplayObject } from "pixi.js";
 
 class Stripes extends Sketch2D {

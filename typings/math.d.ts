@@ -1,6 +1,4 @@
-import { MathNumericType } from "mathjs";
-
-declare module "mathjs" {
+declare namespace math {
   export interface MathJsStatic {
     multiply<T extends MathNumericType[]>(x: T, y: MathNumericType): T;
     multiply<T extends MathNumericType[]>(x: MathNumericType, y: T): T;

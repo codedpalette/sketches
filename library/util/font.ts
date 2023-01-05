@@ -1,5 +1,5 @@
 import { create as createFont, Font as FontkitFont } from "@pdf-lib/fontkit";
-import { CompoundPath } from "geometry/paper";
+import { CompoundPath } from "paper";
 
 export type Font = FontkitFont;
 
