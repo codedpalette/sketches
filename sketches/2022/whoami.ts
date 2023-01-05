@@ -165,7 +165,7 @@ class WhoAmI extends Sketch2D {
         boundingRect: new Rectangle(-this.width / 2, this.height / 2, this.width, -this.height),
         nShapes: this.nTexts,
         blacklistShape: new CompoundPath(this.mainPaths),
-        randomizeParams: { rotationBounds: [-20, 20], skewBounds: { minHor: -5, minVer: -5, maxHor: 5, maxVer: 5 } },
+        randomizeParams: { rotationBounds: [-20, 20], skewBounds: { horizontal: [-5, 5], vertical: [-5, 5] } },
       },
       this.random
     );

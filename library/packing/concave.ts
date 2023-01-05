@@ -4,17 +4,15 @@ import { Random } from "random-js";
 import { asyncScheduler, map, Observable, observeOn, range } from "rxjs";
 import { timed } from "util/timing";
 
-export type HorVerBounds = {
-  minHor: number;
-  minVer: number;
-  maxHor: number;
-  maxVer: number;
+export type Bounds2D = {
+  horizontal: [number, number];
+  vertical: [number, number];
 };
 
 export type RandomizationParams = {
   rotationBounds?: [number, number];
-  skewBounds?: HorVerBounds;
-  shearBounds?: HorVerBounds;
+  skewBounds?: Bounds2D;
+  shearBounds?: Bounds2D;
 };
 
 export type PackingParams = {
@@ -35,19 +33,21 @@ export function concavePacking(
 
 // Using class here to add execution time decorators
 class Packing {
-  private random: Random;
-  private shapesFactory: (i: number) => CompoundPath;
   private boundingRect: Rectangle;
   private nShapes: number;
   private blacklistShape?: CompoundPath;
   private randomizeParams?: RandomizationParams;
-  constructor(shapesFactory: (i: number) => CompoundPath, packingParams: PackingParams, random: Random) {
-    this.random = random;
-    this.shapesFactory = shapesFactory;
-    this.boundingRect = packingParams.boundingRect;
-    this.nShapes = packingParams.nShapes;
-    this.blacklistShape = packingParams.blacklistShape;
-    this.randomizeParams = packingParams.randomizeParams;
+  constructor(
+    private shapesFactory: (i: number) => CompoundPath,
+    packingParams: PackingParams,
+    private random: Random
+  ) {
+    ({
+      boundingRect: this.boundingRect,
+      nShapes: this.nShapes,
+      blacklistShape: this.blacklistShape,
+      randomizeParams: this.randomizeParams,
+    } = packingParams);
   }
 
   // http://paulbourke.net/fractals/randomtile/
@@ -110,18 +110,19 @@ class Packing {
 
     matrix.translate([x, y]);
     if (randomizeParams) {
-      if (randomizeParams.rotationBounds) {
-        const rotation = this.random.integer(randomizeParams.rotationBounds[0], randomizeParams.rotationBounds[1]);
+      const { rotationBounds, skewBounds, shearBounds } = randomizeParams;
+      if (rotationBounds) {
+        const rotation = this.random.integer(rotationBounds[0], rotationBounds[1]);
         matrix.rotate(rotation, tryPath.position);
       }
-      if (randomizeParams.skewBounds) {
-        const skewHor = this.random.integer(randomizeParams.skewBounds.minHor, randomizeParams.skewBounds.maxHor);
-        const skewVer = this.random.integer(randomizeParams.skewBounds.minVer, randomizeParams.skewBounds.maxVer);
+      if (skewBounds) {
+        const skewHor = this.random.integer(...skewBounds.horizontal);
+        const skewVer = this.random.integer(...skewBounds.vertical);
         matrix.skew(skewHor, skewVer);
       }
-      if (randomizeParams.shearBounds) {
-        const shearHor = this.random.integer(randomizeParams.shearBounds.minHor, randomizeParams.shearBounds.maxHor);
-        const shearVer = this.random.integer(randomizeParams.shearBounds.minVer, randomizeParams.shearBounds.maxVer);
+      if (shearBounds) {
+        const shearHor = this.random.integer(...shearBounds.horizontal);
+        const shearVer = this.random.integer(...shearBounds.vertical);
         matrix.shear(shearHor, shearVer);
       }
     }

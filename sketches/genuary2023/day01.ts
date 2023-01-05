@@ -41,8 +41,8 @@ class Day01 extends Sketch2D {
     const backupGraphics = graphics.clone();
     backupGraphics.position = { x: 0, y: this.height };
     const container = new Container<Graphics>();
-    container.addChild(backupGraphics);
     container.addChild(graphics);
+    container.addChild(backupGraphics);
     return container;
   }
 }
