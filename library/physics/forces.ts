@@ -1,6 +1,6 @@
 import is from "@sindresorhus/is";
+import { Point } from "geometry";
 import { add, divide, min, multiply, square } from "mathjs";
-import { Point } from "paper";
 
 export type Vector2 = [number, number];
 export type Vector2Like = Vector2 | { x: number; y: number };

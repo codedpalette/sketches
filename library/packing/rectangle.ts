@@ -1,5 +1,5 @@
+import { Rectangle } from "geometry";
 import { min } from "mathjs";
-import { Rectangle } from "paper";
 import { Random } from "random-js";
 
 export function rectanglePacking(boundsRect: Rectangle, gridStep: number, random: Random): Rectangle[] {

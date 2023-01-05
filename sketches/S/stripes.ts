@@ -1,8 +1,8 @@
 import { drawPath } from "drawing/helpers";
 import { Sketch2D } from "drawing/sketch";
+import { Color, CompoundPath, Line, Path, Point, Rectangle } from "geometry";
 import { deg, fromPolar } from "math/angles";
 import { max, min, multiply, sign, sin, tan } from "mathjs";
-import { Color, CompoundPath, Path, Point, Rectangle } from "paper";
 import { Container, DisplayObject } from "pixi.js";
 
 class Stripes extends Sketch2D {
@@ -50,7 +50,7 @@ class Stripes extends Sketch2D {
     for (let intercept = min(interceptBounds); intercept < max(interceptBounds); intercept += interceptStep) {
       const from = new Point(fromX, slope * fromX + intercept);
       const to = new Point(toX, slope * toX + intercept);
-      lines.push(new Path.Line(from, to));
+      lines.push(new Line(from, to));
 
       const segmentPoints = [
         from.add(lineWidthOffset),

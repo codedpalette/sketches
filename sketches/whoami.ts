@@ -1,7 +1,7 @@
 import { drawLines, drawPath, LineLike } from "drawing/helpers";
 import { Sketch2D } from "drawing/sketch";
+import { Color, CompoundPath, Rectangle } from "geometry";
 import { concavePacking } from "packing/concave";
-import { Color, CompoundPath, Rectangle } from "paper";
 import { Assets, Container, DisplayObject, Graphics } from "pixi.js";
 import { Font, loadFont, textToPath } from "util/font";
 
