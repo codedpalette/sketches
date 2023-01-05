@@ -21,7 +21,7 @@ class Day01 extends Sketch2D {
   }
 
   protected update(deltaTime: number): void {
-    const offSetPixels = round((deltaTime * this.height) / this.loopDurationSeconds);
+    const offSetPixels = round((deltaTime * this.height) / this.loopDurationSeconds); //TODO: Google how to do offsets
     for (const childGraphic of this.sideContainer.children) {
       childGraphic.position.y -= offSetPixels;
       if (childGraphic.position.y <= -this.height) {
