@@ -15,28 +15,14 @@ interface BodyLike {
 }
 
 abstract class Body implements BodyLike {
-  private _position: Point;
-  private _mass: number;
+  readonly position: Point;
 
-  constructor(position: Vector2Like, mass: number) {
-    this._position = new Point(position);
-    this._mass = mass;
-  }
-
-  get position() {
-    return this._position;
-  }
-
-  get mass() {
-    return this._mass;
+  constructor(positionVec: Vector2Like, readonly mass: number) {
+    this.position = new Point(positionVec);
   }
 }
 
 export abstract class Attractor extends Body {
-  constructor(position: Vector2Like, mass: number) {
-    super(position, mass);
-  }
-
   attract(body: BodyLike): Vector2 {
     const forceVector = this.position.subtract(body.position);
     const strength = (this.mass * body.mass) / square(forceVector.length);
@@ -46,18 +32,12 @@ export abstract class Attractor extends Body {
 }
 
 export abstract class Mover extends Body {
-  private location: Point;
   private velocity: Vector2;
   private acceleration: Vector2 = [0, 0];
 
-  constructor(position: Vector2Like, velocity: Vector2Like, mass = 1.0) {
-    super(position, mass);
-    this.location = new Point(position);
-    this.velocity = toVector(velocity);
-  }
-
-  get position() {
-    return this.location;
+  constructor(positionVec: Vector2Like, velocityVec: Vector2Like, mass = 1.0) {
+    super(positionVec, mass);
+    this.velocity = toVector(velocityVec);
   }
 
   applyForce(force: Vector2Like) {
@@ -66,7 +46,7 @@ export abstract class Mover extends Body {
 
   update(deltaTime: number) {
     this.velocity = add(this.velocity, multiply(this.acceleration, deltaTime));
-    this.location = this.location.add(multiply(this.velocity, deltaTime));
+    this.position.set(this.position.add(multiply(this.velocity, deltaTime)));
     this.acceleration = [0, 0];
   }
 }
