@@ -1,6 +1,5 @@
 import { Rectangle, Point, Path, CompoundPath } from "paper";
 
-
 Point.prototype.toVec = function () {
   return [this.x, this.y];
 };
