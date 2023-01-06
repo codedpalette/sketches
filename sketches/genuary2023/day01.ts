@@ -2,7 +2,7 @@ import { Sketch2D } from "drawing/sketch";
 import { multiply, round } from "mathjs";
 import { rectanglePacking } from "packing/rectangle";
 import { Rectangle } from "paper";
-import { Container, DisplayObject, Graphics, Rectangle as Rect, RenderTexture, SimplePlane } from "pixi.js";
+import { Container, DisplayObject, Graphics, RenderTexture, SimplePlane } from "pixi.js";
 
 class Day01 extends Sketch2D {
   private renderTexture: RenderTexture;
@@ -10,9 +10,7 @@ class Day01 extends Sketch2D {
 
   constructor(debug = false) {
     super(debug);
-    this.renderTexture = this.renderer.generateTexture(this.generateInfinitePacking(), {
-      region: new Rect(0, 0, this.width, this.height * 2),
-    });
+    this.renderTexture = this.renderer.generateTexture(this.generateInfinitePacking());
   }
 
   protected setup(): Container<DisplayObject> {
