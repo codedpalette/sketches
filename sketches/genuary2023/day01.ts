@@ -4,6 +4,7 @@ import { rectanglePacking } from "packing/rectangle";
 import { Rectangle } from "paper";
 import { Container, DisplayObject, Graphics, SimplePlane } from "pixi.js";
 
+//TODO: Try three.js
 class Day01 extends Sketch2D {
   private renderTexture = this.app.renderer.generateTexture(this.generateInfinitePacking());
   private loopDurationSeconds = 10;

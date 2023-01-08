@@ -18,5 +18,5 @@ export function drawPath(path: paper.Path | paper.CompoundPath): Graphics {
   svg.appendChild(svgPath);
   const scene = new SVGScene(svg);
   const graphics = scene.root.children[0] as Graphics;
-  return graphics; //TODO: Copy geometry instead of returning
+  return graphics;
 }
