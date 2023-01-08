@@ -55,7 +55,7 @@ export abstract class Sketch2D {
   private drawFPS(): Container {
     const margin = 10;
     const fpsText = new Text(this.app.ticker.FPS.toFixed(1));
-    
+
     const fpsContainer = new Container();
     fpsContainer.position = { x: this.width / 2 - fpsText.width - margin, y: this.height / 2 - margin };
     fpsContainer.scale.set(1, -1);
