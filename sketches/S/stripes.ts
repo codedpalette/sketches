@@ -7,10 +7,6 @@ import { Container, DisplayObject } from "pixi.js";
 import { random } from "util/random";
 
 class Stripes extends Sketch2D {
-  constructor(debug = false) {
-    super(debug);
-  }
-
   protected setup(): Container<DisplayObject> {
     const container = new Container();
     const rect = this.generateRect().toPath();
@@ -36,7 +32,6 @@ class Stripes extends Sketch2D {
   }
 
   private generateStripes(): { lines: CompoundPath; segments: CompoundPath } {
-    //TODO: Make corners always visible (with offset?)
     const lines = [],
       segments = [];
     const slopeDeg = random.real(20, 70);
@@ -66,4 +61,4 @@ class Stripes extends Sketch2D {
   }
 }
 
-new Stripes(true).draw();
+new Stripes({ debug: true }).run();

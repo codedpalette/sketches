@@ -135,24 +135,18 @@ class PlanetarySystem extends TwoBodySystem {
 }
 
 class Satellites extends Sketch2D {
-  private system: PlanetarySystem;
-  private container: Container;
-
-  constructor(debug = false) {
-    super(debug);
-    this.system = PlanetarySystem.fromOrbit({
-      position: new Point(0, 0),
-      semiMajor: 200,
-      semiMinor: 150,
-      rotationAngle: 0,
-      periodSeconds: 5,
-    });
-    this.container = new Container();
-  }
+  private system = PlanetarySystem.fromOrbit({
+    position: new Point(0, 0),
+    semiMajor: 200,
+    semiMinor: 150,
+    rotationAngle: 0,
+    periodSeconds: 5,
+  });
 
   protected setup(): Container<DisplayObject> {
-    this.container.addChild(this.system.draw(this.debug));
-    return this.container;
+    const container = new Container();
+    container.addChild(this.system.draw(this.debug));
+    return container;
   }
 
   protected update(deltaTime: number): void {
@@ -160,4 +154,4 @@ class Satellites extends Sketch2D {
   }
 }
 
-new Satellites(true).draw();
+new Satellites({ debug: true }).run();

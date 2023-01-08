@@ -33,16 +33,19 @@ class WhoAmI extends Sketch2D {
   private background: Graphics;
   private foreground: Graphics;
 
-  constructor(private sketchParams: SketchParams, debug = false) {
-    super(debug);
+  constructor(private sketchParams: SketchParams) {
+    super();
     this.translations = new Set([...this.sketchParams.translations]);
 
     // Setup control points for a flag curve
-    const cpt1: [number, number] = [random.integer(-this.width / 2, 0), random.integer(0, this.height / 2)];
-    const cpt2: [number, number] = [random.integer(0, this.width / 2), random.integer(-this.height / 2, 0)];
-    this.background = this.createFlag(true, this.sketchParams.flagRotation, [cpt1, cpt2]);
-    this.foreground = this.createFlag(false, this.sketchParams.flagRotation, [cpt1, cpt2]);
-    Math.random() > 0.5 && ([this.background, this.foreground] = [this.foreground, this.background]);
+    const controlPoints: [[number, number], [number, number]] = [
+      [random.integer(-this.width / 2, 0), random.integer(0, this.height / 2)],
+      [random.integer(0, this.width / 2), random.integer(-this.height / 2, 0)],
+    ];
+    const flipColors = random.bool();
+    [this.background, this.foreground] = [flipColors, !flipColors].map((isBackground) =>
+      this.createFlag(isBackground, this.sketchParams.flagRotation, controlPoints)
+    );
   }
 
   setup(): Container<DisplayObject> {
@@ -121,8 +124,7 @@ class WhoAmI extends Sketch2D {
 
   private drawBaselines(): Graphics {
     const [lineHeight, lineSpacing, margin] = [this.lineHeight, this.lineSpacing, this.margin];
-
-    const graphics = new Graphics();
+    const graphics = new Graphics().lineStyle(1, 0xff0000);
     const lines: LineLike[] = [
       [-this.width / 2, lineSpacing, this.width / 2, lineSpacing],
       [-this.width / 2, lineSpacing + lineHeight, this.width / 2, lineSpacing + lineHeight],
@@ -132,7 +134,6 @@ class WhoAmI extends Sketch2D {
       [this.width / 2 - margin, this.height / 2, this.width / 2 - margin, -this.height / 2],
     ];
 
-    graphics.lineStyle(1, 0xff0000);
     drawLines(lines, graphics);
     return graphics;
   }
@@ -189,22 +190,18 @@ class WhoAmI extends Sketch2D {
   ): Graphics {
     const blue = 0x0057b7;
     const yellow = 0xffd700;
-    const graphics = new Graphics();
     const [cpt1, cpt2] = controlPoints;
 
-    // Fill background
-    graphics.beginFill(isBackground ? blue : yellow);
-    graphics.drawRect(-this.width, -this.height, this.width * 2, this.height * 2);
-    graphics.endFill();
-
-    // Fill area under the curve
-    graphics.beginFill(isBackground ? yellow : blue);
-    graphics.moveTo(-this.width, -this.height);
-    graphics.lineTo(-this.width, 0);
-    graphics.bezierCurveTo(cpt1[0], cpt1[1], cpt2[0], cpt2[1], this.width, 0);
-    graphics.lineTo(this.width, -this.height);
-    graphics.closePath();
-
+    const graphics = new Graphics()
+      .beginFill(isBackground ? blue : yellow) // Fill background
+      .drawRect(-this.width, -this.height, this.width * 2, this.height * 2)
+      .endFill()
+      .beginFill(isBackground ? yellow : blue) // Fill area under the curve
+      .moveTo(-this.width, -this.height)
+      .lineTo(-this.width, 0)
+      .bezierCurveTo(cpt1[0], cpt1[1], cpt2[0], cpt2[1], this.width, 0)
+      .lineTo(this.width, -this.height)
+      .closePath();
     graphics.angle = flagRotation;
     return graphics;
   }
@@ -258,7 +255,7 @@ async function start(firstLine: string, secondLine: string, translationsFile: st
     secondLine,
     translations,
   };
-  new WhoAmI(sketchParams).draw();
+  new WhoAmI(sketchParams).run();
 }
 
 void start("ХТО", "Я?", "who.txt", random.integer(-45, 45));

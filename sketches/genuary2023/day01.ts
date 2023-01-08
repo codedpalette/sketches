@@ -2,16 +2,11 @@ import { Sketch2D } from "drawing/sketch";
 import { multiply, round } from "mathjs";
 import { rectanglePacking } from "packing/rectangle";
 import { Rectangle } from "paper";
-import { Container, DisplayObject, Graphics, RenderTexture, SimplePlane } from "pixi.js";
+import { Container, DisplayObject, Graphics, SimplePlane } from "pixi.js";
 
 class Day01 extends Sketch2D {
-  private renderTexture: RenderTexture;
+  private renderTexture = this.app.renderer.generateTexture(this.generateInfinitePacking());
   private loopDurationSeconds = 10;
-
-  constructor(debug = false) {
-    super(debug);
-    this.renderTexture = this.renderer.generateTexture(this.generateInfinitePacking());
-  }
 
   protected setup(): Container<DisplayObject> {
     const container = new Container();
@@ -64,4 +59,4 @@ class Day01 extends Sketch2D {
   }
 }
 
-new Day01(true).draw();
+new Day01({ debug: true }).run();
