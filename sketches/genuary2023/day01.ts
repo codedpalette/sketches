@@ -1,10 +1,66 @@
 import { Sketch2D } from "drawing/sketch";
-import { multiply, round } from "mathjs";
+import { multiply, pi, round } from "mathjs";
 import { rectanglePacking } from "packing/rectangle";
 import { Rectangle } from "paper";
 import { Container, DisplayObject, Graphics, SimplePlane } from "pixi.js";
+import {
+  AxesHelper,
+  DirectionalLight,
+  GridHelper,
+  Mesh,
+  MeshPhongMaterial,
+  PerspectiveCamera,
+  PlaneGeometry,
+  Scene,
+  WebGLRenderer,
+} from "three";
+import { getWebGL2ErrorMessage, isWebGL2Available } from "util/webgl";
 
-//TODO: Try three.js
+const fov = 75;
+const farClip = 5;
+const width = 1080;
+const height = 1080;
+const scene = new Scene();
+const camera = new PerspectiveCamera(fov, width / height, 0.1, farClip);
+
+const renderer = new WebGLRenderer({ antialias: true });
+renderer.setSize(width, height, false);
+document.body.appendChild(renderer.domElement);
+
+const light = new DirectionalLight(0xffffff, 2);
+light.position.set(-1, 2, 4);
+scene.add(light);
+
+const geometry = new PlaneGeometry(2, 2);
+const material = new MeshPhongMaterial({ color: 0x00ff00 });
+const plane = new Mesh(geometry, material);
+plane.position.set(0, -1, -2.3);
+plane.rotateX(-pi / 2);
+scene.add(plane);
+
+const axesHelper = new AxesHelper();
+axesHelper.position.copy(plane.position);
+scene.add(axesHelper);
+const gridHelper = new GridHelper(1);
+gridHelper.position.copy(plane.position);
+scene.add(gridHelper);
+
+function animate() {
+  requestAnimationFrame(animate);
+  //cube.rotation.x += 0.01;
+  //cube.rotation.y += 0.01;
+  //plane.position.z += 0.01;
+  if (plane.position.z >= 2) {
+    plane.position.setZ(plane.position.z - 2);
+  }
+  renderer.render(scene, camera);
+}
+if (isWebGL2Available()) {
+  animate();
+} else {
+  document.body.appendChild(getWebGL2ErrorMessage());
+}
+
 class Day01 extends Sketch2D {
   private renderTexture = this.app.renderer.generateTexture(this.generateInfinitePacking());
   private loopDurationSeconds = 10;
@@ -60,4 +116,4 @@ class Day01 extends Sketch2D {
   }
 }
 
-new Day01({ debug: true }).run();
+//new Day01({ debug: true }).run();

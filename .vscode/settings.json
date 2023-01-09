@@ -18,6 +18,7 @@
     "Mersenne",
     "Noto",
     "opentype",
+    "Phong",
     "pixi",
     "precommit",
     "roboto",
@@ -25,7 +26,8 @@
     "transferables",
     "tspaths",
     "unicodes",
-    "Verdana"
+    "Verdana",
+    "webglmessage"
   ],
   "typescript.tsdk": "./node_modules/typescript/lib"
 }
