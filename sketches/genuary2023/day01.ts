@@ -1,57 +1,65 @@
 import { Sketch2D } from "drawing/sketch";
-import { multiply, pi, round } from "mathjs";
+import { atan, multiply, pi, round } from "mathjs";
 import { rectanglePacking } from "packing/rectangle";
 import { Rectangle } from "paper";
 import { Container, DisplayObject, Graphics, SimplePlane } from "pixi.js";
 import {
   AxesHelper,
-  DirectionalLight,
   GridHelper,
   Mesh,
-  MeshPhongMaterial,
+  MeshBasicMaterial,
   PerspectiveCamera,
   PlaneGeometry,
   Scene,
   WebGLRenderer,
 } from "three";
+import { radToDeg } from "three/src/math/MathUtils";
 import { getWebGL2ErrorMessage, isWebGL2Available } from "util/webgl";
 
-const fov = 75;
-const farClip = 5;
 const width = 1080;
 const height = 1080;
 const scene = new Scene();
-const camera = new PerspectiveCamera(fov, width / height, 0.1, farClip);
+
+//Calculate camera position
+const holeScale = 0.4; //Relation between central hole and screen dimensions
+const k = (1 - holeScale) / (2 * holeScale);
+const fov = radToDeg(atan(k)) * 2;
+
+const z = 1 / k + 1;
+const camera = new PerspectiveCamera(fov, width / height, 0.1, z + 2);
+camera.position.setZ(z);
+camera.lookAt(0, 0, 0);
 
 const renderer = new WebGLRenderer({ antialias: true });
 renderer.setSize(width, height, false);
 document.body.appendChild(renderer.domElement);
 
-const light = new DirectionalLight(0xffffff, 2);
-light.position.set(-1, 2, 4);
-scene.add(light);
-
+//TODO: Construct geometry from generateInfinitePacking()
 const geometry = new PlaneGeometry(2, 2);
-const material = new MeshPhongMaterial({ color: 0x00ff00 });
-const plane = new Mesh(geometry, material);
-plane.position.set(0, -1, -2.3);
-plane.rotateX(-pi / 2);
-scene.add(plane);
+const materials = [new MeshBasicMaterial({ color: 0x00ff00 }), new MeshBasicMaterial({ color: 0x0000ff })];
+const planes: Mesh[] = [];
+for (let i = 0; i < 4; i++) {
+  for (let j = 0; j < 2; j++) {
+    const plane = new Mesh(geometry, materials[j])
+      .rotateX(-pi / 2)
+      .rotateY((pi * i) / 2)
+      .translateZ(-1);
+    if (j) plane.position.z -= 2;
+    planes.push(plane);
+    scene.add(plane);
+  }
+}
 
-const axesHelper = new AxesHelper();
-axesHelper.position.copy(plane.position);
-scene.add(axesHelper);
-const gridHelper = new GridHelper(1);
-gridHelper.position.copy(plane.position);
-scene.add(gridHelper);
+scene.add(new AxesHelper());
+scene.add(new GridHelper(1));
 
 function animate() {
   requestAnimationFrame(animate);
-  //cube.rotation.x += 0.01;
-  //cube.rotation.y += 0.01;
-  //plane.position.z += 0.01;
-  if (plane.position.z >= 2) {
-    plane.position.setZ(plane.position.z - 2);
+  for (const plane of planes) {
+    plane.position.z += 0.01;
+    if (plane.position.z >= 2) {
+      plane.position.z -= 4;
+    }
   }
   renderer.render(scene, camera);
 }
@@ -61,7 +69,7 @@ if (isWebGL2Available()) {
   document.body.appendChild(getWebGL2ErrorMessage());
 }
 
-class Day01 extends Sketch2D {
+class _Day01 extends Sketch2D {
   private renderTexture = this.app.renderer.generateTexture(this.generateInfinitePacking());
   private loopDurationSeconds = 10;
 
