@@ -2,6 +2,7 @@ import { atan, pi } from "mathjs";
 import { rectanglePacking } from "packing/rectangle";
 import { Rectangle } from "paper";
 import {
+  BufferGeometry,
   EdgesGeometry,
   Group,
   LineBasicMaterial,
@@ -13,6 +14,7 @@ import {
   Scene,
   WebGLRenderer,
 } from "three";
+import { mergeBufferGeometries } from "three/examples/jsm/utils/BufferGeometryUtils";
 import { radToDeg } from "three/src/math/MathUtils";
 import { getWebGL2ErrorMessage, isWebGL2Available } from "util/webgl";
 
@@ -29,19 +31,9 @@ const fov = radToDeg(atan(k)) * 2;
 const z = 1 / k + 1;
 const camera = new PerspectiveCamera(fov, width / height, 0.1, z + 1);
 camera.position.setZ(z);
-camera.lookAt(0, 0, 0);
 
-const renderer = new WebGLRenderer({
-  antialias: true,
-  logarithmicDepthBuffer: true, //TODO: animation appear jagged
-  preserveDrawingBuffer: true,
-});
-renderer.setSize(width, height, false);
-renderer.setClearColor("white");
-document.body.appendChild(renderer.domElement);
-
-const material = new MeshBasicMaterial({ color: "lightgreen" });
-const lineMaterial = new LineBasicMaterial({ color: "darkgreen" }); //TODO: lines appear dashed
+const material = new MeshBasicMaterial({ color: "lightgreen", depthWrite: false });
+const lineMaterial = new LineBasicMaterial({ color: "darkgreen" }); //TODO: Lines appear dashed - look at examples
 const geometry = new PlaneGeometry(1, 1);
 const planes: Group[] = [];
 
@@ -50,16 +42,22 @@ const planeHeight = 2;
 for (let i = 0; i < 4; i++) {
   const packing = rectanglePacking(new Rectangle(0, 0, planeWidth, planeHeight), 20);
   for (let j = 0; j < 2; j++) {
+    const edgeGeometries: BufferGeometry[] = [];
     const group = new Group();
     for (const rect of packing) {
       const rectMesh = new Mesh(geometry, material);
-      rectMesh.scale.setX(rect.width);
-      rectMesh.scale.setY(rect.height);
+      rectMesh.scale.set(rect.width, rect.height, 1);
       rectMesh.position.set(rect.center.x - planeWidth / 2, rect.center.y - planeHeight / 2, 0);
-      rectMesh.add(new LineSegments(new EdgesGeometry(rectMesh.geometry), lineMaterial));
+
+      edgeGeometries.push(
+        new EdgesGeometry(rectMesh.geometry)
+          .scale(rectMesh.scale.x, rectMesh.scale.y, 1)
+          .translate(rectMesh.position.x, rectMesh.position.y, 0)
+      );
       group.add(rectMesh);
     }
-    group.position.set(0, 0, 0);
+
+    group.add(new LineSegments(mergeBufferGeometries(edgeGeometries), lineMaterial));
     group
       .rotateX(-pi / 2)
       .rotateY((pi * i) / 2)
@@ -69,6 +67,11 @@ for (let i = 0; i < 4; i++) {
     scene.add(group);
   }
 }
+
+const renderer = new WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(width, height);
+renderer.setClearColor("white");
+document.body.appendChild(renderer.domElement);
 
 const loopDurationSeconds = 5;
 function animate() {
