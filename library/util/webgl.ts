@@ -16,15 +16,15 @@ export function isWebGL2Available() {
   }
 }
 
-export function getWebGLErrorMessage() {
-  return getErrorMessage(1);
+export function getWebGLErrorMessage(canvasWidth: number) {
+  return getErrorMessage(1, canvasWidth);
 }
 
-export function getWebGL2ErrorMessage() {
-  return getErrorMessage(2);
+export function getWebGL2ErrorMessage(canvasWidth: number) {
+  return getErrorMessage(2, canvasWidth);
 }
 
-function getErrorMessage(version: 1 | 2) {
+function getErrorMessage(version: 1 | 2, canvasWidth: number) {
   const names = {
     1: "WebGL",
     2: "WebGL 2",
@@ -41,14 +41,13 @@ function getErrorMessage(version: 1 | 2) {
   const element = document.createElement("div");
   element.id = "webglmessage";
   element.style.fontFamily = "monospace";
-  element.style.fontSize = "13px";
+  element.style.fontSize = "18px";
   element.style.fontWeight = "normal";
   element.style.textAlign = "center";
   element.style.background = "#fff";
   element.style.color = "#000";
-  element.style.padding = "1.5em";
-  element.style.width = "400px";
-  element.style.margin = "5em auto 0";
+  element.style.paddingTop = "1.5em";
+  element.style.width = `${canvasWidth}px`;
 
   if (contexts[version]) {
     message = message.replace("$0", "graphics card");

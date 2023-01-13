@@ -4,6 +4,7 @@ import { rectanglePacking } from "packing/rectangle";
 import { Rectangle } from "paper";
 import {
   EdgesGeometry,
+  Fog,
   Group,
   Mesh,
   MeshBasicMaterial,
@@ -24,23 +25,25 @@ const scene = new Scene();
 //scene.add(new AxesHelper());
 //scene.add(new GridHelper(1));
 
+const planeWidth = 10;
+const planeHeight = 10;
+
 //Calculate camera position
-const holeScale = 0.3; //Relation between central hole and screen dimensions
+const holeScale = 0.25; //Relation between central hole and screen dimensions
 const k = (1 - holeScale) / (2 * holeScale);
 const fov = radToDeg(atan(k)) * 2;
-const z = 1 / k + 1;
-const camera = new PerspectiveCamera(fov, width / height, 0.1, z + 1);
+const z = (planeWidth * 0.5) / k + planeWidth * 0.5;
+const camera = new PerspectiveCamera(fov, width / height, 0.1, z + planeHeight / 2);
 camera.position.setZ(z);
+scene.fog = new Fog(0x000000, 0, z + planeHeight);
 
 const material = new MeshBasicMaterial({ color: "lightgreen", depthWrite: false });
-const lineMaterial = new LineMaterial({ color: 0x006400, linewidth: 0.0025 });
+const lineMaterial = new LineMaterial({ color: 0x006400, linewidth: 0.0025 }); //TODO: Affect by light
 
 const geometry = new PlaneGeometry(1, 1);
 const edgesGeometry = new LineSegmentsGeometry().fromEdgesGeometry(new EdgesGeometry(geometry));
 const planes: Group[] = [];
 
-const planeWidth = 2;
-const planeHeight = 2;
 const sides = 4; //TODO: recalculate formulas for dynamic number of slices
 for (let i = 0; i < sides; i++) {
   const packing = rectanglePacking(new Rectangle(0, 0, planeWidth, planeHeight), 20);
@@ -95,4 +98,4 @@ function animate() {
 }
 
 if (isWebGL2Available()) animate();
-else document.body.appendChild(getWebGL2ErrorMessage());
+else document.body.appendChild(getWebGL2ErrorMessage(width));
