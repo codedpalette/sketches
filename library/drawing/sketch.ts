@@ -1,5 +1,7 @@
 import { Application, Container } from "pixi.js";
+import { AxesHelper, Camera, Clock, GridHelper, Scene, WebGLRenderer } from "three";
 import { drawAxes } from "./pixi";
+import { getWebGL2ErrorMessage, isWebGL2Available } from "./webgl";
 
 export interface SketchParams {
   debug: boolean;
@@ -23,8 +25,21 @@ export interface PixiSketch {
   update?: (deltaTime: number, elapsedTotal: number) => void;
 }
 
-export function run(sketch: PixiSketch, params: SketchParams) {
-  runPixi(sketch, params);
+export interface ThreeSketch {
+  scene: Scene;
+  camera: Camera;
+  update?: (deltaTime: number, elapsedTotal: number) => void;
+}
+
+type Sketch = PixiSketch | ThreeSketch;
+
+function isPixiSketch(sketch: Sketch): sketch is PixiSketch {
+  return (<PixiSketch>sketch).container !== undefined;
+}
+
+export function run(sketch: PixiSketch | ThreeSketch, params: SketchParams) {
+  if (isPixiSketch(sketch)) runPixi(sketch, params);
+  else runThree(sketch, params);
 }
 
 function runPixi(sketch: PixiSketch, params: SketchParams) {
@@ -53,4 +68,26 @@ function runPixi(sketch: PixiSketch, params: SketchParams) {
       update(deltaSeconds, totalElapsed);
     });
   }
+}
+
+function runThree(sketch: ThreeSketch, params: SketchParams) {
+  if (params.debug) {
+    sketch.scene.add(new AxesHelper(), new GridHelper());
+  }
+
+  const renderer = new WebGLRenderer({ antialias: true, preserveDrawingBuffer: false });
+  renderer.setSize(params.width, params.height);
+  document.body.appendChild(renderer.domElement);
+
+  const clock = new Clock(true);
+  const render = () => {
+    if (sketch.update) {
+      requestAnimationFrame(render);
+      sketch.update(clock.getDelta(), clock.elapsedTime);
+    }
+    renderer.render(sketch.scene, sketch.camera);
+  };
+
+  if (isWebGL2Available()) render();
+  else document.body.appendChild(getWebGL2ErrorMessage(params.width));
 }
