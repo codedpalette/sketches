@@ -11,6 +11,16 @@ export function drawLines(lines: LineLike[], graphics: Graphics) {
   });
 }
 
+export function drawAxes({ width, height }: { width: number; height: number }): Graphics {
+  const graphics = new Graphics().lineStyle(1, 0xff0000);
+  const lines: LineLike[] = [
+    [-width / 2, 0, width / 2, 0],
+    [0, height / 2, 0, -height / 2],
+  ];
+  drawLines(lines, graphics);
+  return graphics;
+}
+
 export function drawPath(path: paper.Path | paper.CompoundPath): Graphics {
   const svgPath = path.exportSVG() as SVGElement;
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");

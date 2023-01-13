@@ -1,10 +1,10 @@
-import { drawPath } from "drawing/helpers";
-import { Sketch2D } from "drawing/sketch";
+import { drawPath } from "drawing/pixi";
 import { Color, Ellipse, Path, Point, Rectangle } from "geometry";
-import { cos, cube, multiply, pi, sin, sqrt, square, subtract, unaryMinus } from "mathjs";
+import { cos, cube, multiply, norm, pi, sin, sqrt, square, subtract, unaryMinus } from "mathjs";
 import { Attractor, Mover, TwoBodySystem, Vector2, Vector2Like } from "physics/forces";
-import { Container, DisplayObject, Graphics } from "pixi.js";
+import { Container, Graphics } from "pixi.js";
 import { random } from "util/random";
+import { init, run } from "drawing/sketch";
 
 class Sun extends Attractor {
   readonly graphics: Graphics;
@@ -30,87 +30,64 @@ class Satellite extends Mover {
 }
 
 interface OrbitParams {
-  position: Point;
-  semiMajor: number;
-  semiMinor: number;
-  periodSeconds: number;
-  rotationAngle: number;
-}
-
-class Orbit implements OrbitParams {
   readonly position: Point;
   readonly semiMajor: number;
   readonly semiMinor: number;
   readonly periodSeconds: number;
   readonly rotationAngle: number;
+}
+
+class Orbit implements OrbitParams {
   readonly eccentricity: number;
   readonly foci: Vector2[];
   readonly shape: Path;
 
-  constructor(orbitParams: OrbitParams) {
-    ({
-      position: this.position,
-      semiMajor: this.semiMajor,
-      semiMinor: this.semiMinor,
-      periodSeconds: this.periodSeconds,
-      rotationAngle: this.rotationAngle,
-    } = orbitParams);
-    this.eccentricity = sqrt(1 - square(this.semiMinor) / square(this.semiMajor)) as number;
+  private constructor(
+    readonly position: Point,
+    readonly semiMajor: number,
+    readonly semiMinor: number,
+    readonly periodSeconds: number,
+    readonly rotationAngle: number
+  ) {
     const focus = [sqrt(square(this.semiMajor) - square(this.semiMinor)) as number, 0] as Vector2;
+    this.eccentricity = sqrt(1 - square(this.semiMinor) / square(this.semiMajor)) as number;
     this.foci = [focus, unaryMinus(focus) as Vector2];
     this.shape = new Ellipse({ center: [0, 0], radius: [this.semiMajor, this.semiMinor] });
+  }
+
+  static fromParams(params: OrbitParams): Orbit {
+    return new Orbit(params.position, params.semiMajor, params.semiMinor, params.periodSeconds, params.rotationAngle);
   }
 }
 
 class PlanetarySystem extends TwoBodySystem {
-  private sun: Sun;
-  private satellite: Satellite;
-  private orbit: Orbit;
-  private container: Container;
-  private rect: Rectangle;
+  private initialSize: Rectangle;
   private rectGraphics: Graphics;
 
-  private constructor(sun: Sun, satellite: Satellite, orbit: Orbit) {
+  private constructor(private sun: Sun, private satellite: Satellite, private orbit: Orbit) {
     super(sun, satellite);
-    this.sun = sun;
-    this.satellite = satellite;
-    this.orbit = orbit;
 
-    this.container = new Container();
-    this.container.position = this.orbit.position;
-    this.container.angle = this.orbit.rotationAngle;
-
-    this.rect = new Rectangle(this.sun.position, this.satellite.position);
-    this.rectGraphics = new Graphics().beginFill(0x0000ff, 0.5).drawRect(0, 0, this.rect.width, this.rect.height);
+    this.initialSize = new Rectangle(this.sun.position, this.satellite.position);
+    this.rectGraphics = new Graphics()
+      .beginFill(0x0000ff, 0.5)
+      .drawRect(0, 0, this.initialSize.width, this.initialSize.height);
     this.rectGraphics.position = this.sun.position;
   }
 
   static fromOrbit(orbitParams: OrbitParams): PlanetarySystem {
-    const orbit = new Orbit(orbitParams);
+    const orbit = Orbit.fromParams(orbitParams);
     const mu = (4 * square(pi) * cube(orbit.semiMajor)) / square(orbit.periodSeconds);
-    const sunPosition = random.pick(orbit.foci);
-    const sun = new Sun(sunPosition, mu);
-
     const theta = random.real(0, pi * 2);
-    const satellitePosition = [orbit.semiMajor * cos(theta), orbit.semiMinor * sin(theta)] as Vector2;
-    const satelliteVelocity = this.calculateInitialVelocity(orbit, sunPosition, satellitePosition, theta, mu);
-    const satellite = new Satellite(satellitePosition, satelliteVelocity);
 
-    return new PlanetarySystem(sun, satellite, orbit);
+    const sunPosition = random.pick(orbit.foci);
+    const satellitePosition = [orbit.semiMajor * cos(theta), orbit.semiMinor * sin(theta)] as Vector2;
+    const satelliteVelocity = this.initialVelocity(orbit, subtract(satellitePosition, sunPosition), theta, mu);
+    return new PlanetarySystem(new Sun(sunPosition, mu), new Satellite(satellitePosition, satelliteVelocity), orbit);
   }
 
-  private static calculateInitialVelocity(
-    orbit: Orbit,
-    sunPosition: Vector2,
-    satellitePosition: Vector2,
-    theta: number,
-    mu: number
-  ): Vector2 {
-    const heliocentricVector = subtract(satellitePosition, sunPosition);
-    const r = new Point(heliocentricVector).length;
-    const a = orbit.semiMajor;
-    const e = orbit.eccentricity;
-
+  // https://en.wikipedia.org/wiki/Kepler%27s_laws_of_planetary_motion#Position_as_a_function_of_time
+  private static initialVelocity(orbit: Orbit, heliocentricVector: Vector2, theta: number, mu: number): Vector2 {
+    const [r, a, e] = [norm(heliocentricVector) as number, orbit.semiMajor, orbit.eccentricity];
     const scalar = (sqrt(mu * a) as number) / r;
     const vector = [-sin(theta), (sqrt(1 - square(e)) as number) * cos(theta)] as Vector2;
     return multiply(vector, scalar * random.sign());
@@ -118,40 +95,38 @@ class PlanetarySystem extends TwoBodySystem {
 
   update(deltaTime: number): void {
     super.update(deltaTime);
-    const heliocentricVector = subtract(this.satellite.position.toVec(), this.sun.position.toVec());
-    this.rectGraphics.scale.set(heliocentricVector[0] / this.rect.width, heliocentricVector[1] / this.rect.height);
+    const scaleVector = this.satellite.position
+      .subtract(this.sun.position)
+      .divide([this.initialSize.width, this.initialSize.height]);
+    this.rectGraphics.scale.set(scaleVector.x, scaleVector.y);
   }
 
   draw(debug: boolean): Container {
-    this.container.addChild(this.rectGraphics);
+    const container = new Container();
+    container.position = this.orbit.position;
+    container.angle = this.orbit.rotationAngle;
+
+    container.addChild(this.rectGraphics);
     if (debug) {
       this.orbit.shape.strokeColor = new Color("red");
-      this.container.addChild(this.sun.graphics);
-      this.container.addChild(this.satellite.graphics);
-      this.container.addChild(drawPath(this.orbit.shape));
+      container.addChild(this.sun.graphics);
+      container.addChild(this.satellite.graphics);
+      container.addChild(drawPath(this.orbit.shape));
     }
-    return this.container;
-  }
-}
-
-class Satellites extends Sketch2D {
-  private system = PlanetarySystem.fromOrbit({
-    position: new Point(0, 0),
-    semiMajor: 200,
-    semiMinor: 150,
-    rotationAngle: 0,
-    periodSeconds: 5,
-  });
-
-  protected setup(): Container<DisplayObject> {
-    const container = new Container();
-    container.addChild(this.system.draw(this.debug));
     return container;
   }
-
-  protected update(deltaTime: number): void {
-    this.system.update(deltaTime);
-  }
 }
 
-new Satellites({ debug: true }).run();
+const params = init({ debug: true });
+const system = PlanetarySystem.fromOrbit({
+  position: new Point(0, 0),
+  semiMajor: 200,
+  semiMinor: 150,
+  rotationAngle: 0,
+  periodSeconds: 5,
+});
+
+const container = new Container();
+container.addChild(system.draw(params.debug));
+const update = (deltaTime: number) => system.update(deltaTime);
+run({ container, update }, params);

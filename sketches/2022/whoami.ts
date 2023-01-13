@@ -1,8 +1,8 @@
-import { drawLines, drawPath, LineLike } from "drawing/helpers";
-import { Sketch2D } from "drawing/sketch";
-import { Color, CompoundPath, Rectangle } from "geometry";
+import { drawLines, drawPath, LineLike } from "drawing/pixi";
+import { init, run } from "drawing/sketch";
+import { Color, CompoundPath, Point, Rectangle } from "geometry";
 import { concavePacking } from "packing/concave";
-import { Assets, Container, DisplayObject, Graphics } from "pixi.js";
+import { Assets, Container, Graphics } from "pixi.js";
 import { Font, loadFont, textToPath } from "util/font";
 import { random } from "util/random";
 
@@ -13,198 +13,168 @@ interface FontFamily {
   boldItalic: Font;
 }
 
-interface SketchParams {
+interface TextParams {
   mainFont: Font;
   secondaryFontFamilies: FontFamily[];
   fallbackUnicodeFonts: Font[];
-  flagRotation: number;
-  firstLine: string;
-  secondLine: string;
-  translations: string[];
+  translations: Set<string>;
 }
 
-class WhoAmI extends Sketch2D {
-  private readonly nTexts = 500;
-  private readonly lineHeight = 300;
-  private readonly lineSpacing = 50;
-  private readonly margin = 10;
-  private mainPaths: CompoundPath[] = [];
-  private translations: Set<string>;
-  private background: Graphics;
-  private foreground: Graphics;
+const nTexts = 500;
+const lineHeight = 300;
+const lineSpacing = 50;
+const margin = 10;
+const [firstLine, secondLine, translationsFile, flagRotation] = ["ХТО", "Я?", "who.txt", random.integer(-45, 45)];
+//const [firstLine, secondLine, translationsFile, flagRotation] = ["ДЕ", "МИ?", "where.txt", 0];
+//const [firstLine, secondLine, translationsFile, flagRotation] = ["ЩО", "ЦЕ?", "what.txt", 90];
+const params = init();
+const { background, foreground } = createFlag();
 
-  constructor(private sketchParams: SketchParams) {
-    super();
-    this.translations = new Set([...this.sketchParams.translations]);
+void loadTextParams(translationsFile).then((textParams) => {
+  const container = new Container();
+  const mainPaths = generateMainText(textParams.mainFont);
+  !params.debug && container.addChild(background);
+  container.addChild(drawMainText(mainPaths));
+  container.addChild(generateSecondaryTexts(mainPaths, textParams));
+  run({ container }, params);
+});
 
-    // Setup control points for a flag curve
-    const controlPoints: [[number, number], [number, number]] = [
-      [random.integer(-this.width / 2, 0), random.integer(0, this.height / 2)],
-      [random.integer(0, this.width / 2), random.integer(-this.height / 2, 0)],
-    ];
-    const flipColors = random.bool();
-    [this.background, this.foreground] = [flipColors, !flipColors].map((isBackground) =>
-      this.createFlag(isBackground, this.sketchParams.flagRotation, controlPoints)
-    );
-  }
+function generateMainText(mainFont: Font): CompoundPath[] {
+  const xStart = -params.width / 2 + margin;
+  return [firstLine, secondLine].flatMap((line, lineIdx) => {
+    const y = lineIdx == 0 ? lineSpacing + lineHeight / 2 : -lineSpacing - lineHeight / 2;
+    const lineWidth = params.width - 2 * margin;
+    const xStep = lineWidth / line.length;
 
-  setup(): Container<DisplayObject> {
-    const container = new Container();
-    this.generateMainText();
-    !this.debug && container.addChild(this.background);
-    container.addChild(this.drawMainText());
-    container.addChild(this.generateSecondaryTexts());
-    return container;
-  }
-
-  private generateMainText(): void {
-    const [firstLine, secondLine, lineHeight, lineSpacing, margin] = [
-      this.sketchParams.firstLine,
-      this.sketchParams.secondLine,
-      this.lineHeight,
-      this.lineSpacing,
-      this.margin,
-    ];
-
-    const xStart = -this.width / 2 + margin;
-    [firstLine, secondLine].forEach((line, lineIdx) => {
-      const y = lineIdx == 0 ? lineSpacing + lineHeight / 2 : -lineSpacing - lineHeight / 2;
-      const lineWidth = this.width - 2 * margin;
-      const xStep = lineWidth / line.length;
-
-      [...line].forEach((char, charIdx) => {
-        const x = xStart + xStep * (charIdx + 0.5);
-        this.generateMainGlyph(x, y, char);
-      });
+    return [...line].map((char, charIdx) => {
+      const x = xStart + xStep * (charIdx + 0.5);
+      return generateMainGlyph(mainFont, x, y, char);
     });
-  }
+  });
+}
 
-  private generateMainGlyph(x: number, y: number, char: string): void {
-    const path = textToPath(char, this.sketchParams.mainFont, true) as CompoundPath; // Can't be undefined for mainFont
-    const boundingBox = calculateGlyphBoundingBox(path);
-    const scaleX = this.lineHeight / boundingBox.width;
-    const scaleY = this.lineHeight / boundingBox.height;
+function generateMainGlyph(mainFont: Font, x: number, y: number, char: string): CompoundPath {
+  const path = textToPath(char, mainFont, true) as CompoundPath; // Can't be undefined for mainFont
+  const boundingBox = calculateGlyphBoundingBox(path);
+  const scaleX = lineHeight / boundingBox.width;
+  const scaleY = lineHeight / boundingBox.height;
 
-    path.translate([-boundingBox.width / 2, -boundingBox.height / 2]);
-    path.scale(scaleX, scaleY, [0, 0]);
-    path.translate([x, y]);
-    this.mainPaths.push(path);
-  }
+  path.translate([-boundingBox.width / 2, -boundingBox.height / 2]);
+  path.scale(scaleX, scaleY, [0, 0]);
+  path.translate([x, y]);
+  return path;
+}
 
-  private drawMainText(): Container {
-    const container = new Container();
-    const pathSteps = this.debug ? 1 : 10;
-    const alphaStep = (1 - 0.5) / pathSteps;
+function drawMainText(mainPaths: CompoundPath[]): Container {
+  const container = new Container();
+  const pathSteps = params.debug ? 1 : 10;
+  const alphaStep = (1 - 0.5) / pathSteps;
 
-    this.debug && container.addChild(this.drawBaselines());
-    for (const path of this.mainPaths) {
-      const graphics = new Graphics();
-      if (this.debug) {
-        const boundingBox = calculateGlyphBoundingBox(path).toPath();
-        boundingBox.strokeColor = new Color("green");
-        graphics.addChild(drawPath(boundingBox));
-      }
-      path.strokeColor = new Color("black");
-
-      // Draw letters with decrementing scale and alpha value
-      const scaleCenterX = path.bounds.x + path.bounds.width / 2;
-      const scaleCenterY = path.bounds.y < 0 ? path.bounds.y + path.bounds.height : path.bounds.y;
-      for (let i = 0; i < pathSteps; i++) {
-        const pathCopy = path.clone();
-        pathCopy.scale(1 - alphaStep * i, [scaleCenterX, scaleCenterY]);
-        pathCopy.strokeWidth = 1 - alphaStep * i;
-        const pathGraphics = drawPath(pathCopy);
-        pathGraphics.alpha = 0.5 - alphaStep * i;
-        graphics.addChild(pathGraphics);
-      }
-      container.addChild(graphics);
+  params.debug && container.addChild(drawBaselines());
+  for (const path of mainPaths) {
+    const graphics = new Graphics();
+    if (params.debug) {
+      const boundingBox = calculateGlyphBoundingBox(path).toPath();
+      boundingBox.strokeColor = new Color("green");
+      graphics.addChild(drawPath(boundingBox));
     }
-    return container;
-  }
+    path.strokeColor = new Color("black");
 
-  private drawBaselines(): Graphics {
-    const [lineHeight, lineSpacing, margin] = [this.lineHeight, this.lineSpacing, this.margin];
-    const graphics = new Graphics().lineStyle(1, 0xff0000);
-    const lines: LineLike[] = [
-      [-this.width / 2, lineSpacing, this.width / 2, lineSpacing],
-      [-this.width / 2, lineSpacing + lineHeight, this.width / 2, lineSpacing + lineHeight],
-      [-this.width / 2, -lineSpacing, this.width / 2, -lineSpacing],
-      [-this.width / 2, -lineSpacing - lineHeight, this.width / 2, -lineSpacing - lineHeight],
-      [-this.width / 2 + margin, this.height / 2, -this.width / 2 + margin, -this.height / 2],
-      [this.width / 2 - margin, this.height / 2, this.width / 2 - margin, -this.height / 2],
-    ];
-
-    drawLines(lines, graphics);
-    return graphics;
-  }
-
-  private textPathsFactory(): CompoundPath {
-    const allFontVariants = this.sketchParams.secondaryFontFamilies.flatMap((ff) => [
-      ff.regular,
-      ff.bold,
-      ff.italic,
-      ff.boldItalic,
-    ]);
-    for (;;) {
-      const text = random.pick(Array.from(this.translations.values()));
-      const textPath =
-        textToPath(text, random.pick(allFontVariants)) ||
-        textToPath(text, random.pick(this.sketchParams.fallbackUnicodeFonts)) ||
-        void this.translations.delete(text);
-      if (textPath) return textPath;
+    // Draw letters with decrementing scale and alpha value
+    const scaleCenterX = path.bounds.x + path.bounds.width / 2;
+    const scaleCenterY = path.bounds.y < 0 ? path.bounds.y + path.bounds.height : path.bounds.y;
+    for (let i = 0; i < pathSteps; i++) {
+      const pathCopy = path.clone();
+      pathCopy.scale(1 - alphaStep * i, [scaleCenterX, scaleCenterY]);
+      pathCopy.strokeWidth = 1 - alphaStep * i;
+      const pathGraphics = drawPath(pathCopy);
+      pathGraphics.alpha = 0.5 - alphaStep * i;
+      graphics.addChild(pathGraphics);
     }
+    container.addChild(graphics);
+  }
+  return container;
+}
+
+function drawBaselines(): Graphics {
+  const graphics = new Graphics().lineStyle(1, 0xff0000);
+  const lines: LineLike[] = [
+    [-params.width / 2, lineSpacing, params.width / 2, lineSpacing],
+    [-params.width / 2, lineSpacing + lineHeight, params.width / 2, lineSpacing + lineHeight],
+    [-params.width / 2, -lineSpacing, params.width / 2, -lineSpacing],
+    [-params.width / 2, -lineSpacing - lineHeight, params.width / 2, -lineSpacing - lineHeight],
+    [-params.width / 2 + margin, params.height / 2, -params.width / 2 + margin, -params.height / 2],
+    [params.width / 2 - margin, params.height / 2, params.width / 2 - margin, -params.height / 2],
+  ];
+  drawLines(lines, graphics);
+  return graphics;
+}
+
+function textPathsFactory(params: TextParams): CompoundPath {
+  const allFontVariants = params.secondaryFontFamilies.flatMap((ff) => [ff.regular, ff.bold, ff.italic, ff.boldItalic]);
+  for (;;) {
+    const text = random.pick(Array.from(params.translations.values()));
+    const textPath =
+      textToPath(text, random.pick(allFontVariants)) ||
+      textToPath(text, random.pick(params.fallbackUnicodeFonts)) ||
+      void params.translations.delete(text);
+    if (textPath) return textPath;
+  }
+}
+
+function generateSecondaryTexts(mainPaths: CompoundPath[], textParams: TextParams): Container {
+  const textPathsObservable = concavePacking(() => textPathsFactory(textParams), {
+    boundingRect: new Rectangle(-params.width / 2, params.height / 2, params.width, -params.height),
+    nShapes: nTexts,
+    blacklistShape: new CompoundPath(mainPaths),
+    randomizeParams: { rotationBounds: [-20, 20], skewBounds: { horizontal: [-5, 5], vertical: [-5, 5] } },
+  });
+
+  const maskContainer = new Container();
+  const mask = new Graphics();
+  if (!params.debug) {
+    maskContainer.mask = mask;
+    maskContainer.addChild(mask);
+    maskContainer.addChild(foreground);
   }
 
-  private generateSecondaryTexts(): Container {
-    const textPathsObservable = concavePacking(() => this.textPathsFactory(), {
-      boundingRect: new Rectangle(-this.width / 2, this.height / 2, this.width, -this.height),
-      nShapes: this.nTexts,
-      blacklistShape: new CompoundPath(this.mainPaths),
-      randomizeParams: { rotationBounds: [-20, 20], skewBounds: { horizontal: [-5, 5], vertical: [-5, 5] } },
-    });
-
-    const maskContainer = new Container();
-    const mask = new Graphics();
-    if (!this.debug) {
-      maskContainer.mask = mask;
-      maskContainer.addChild(mask);
-      maskContainer.addChild(this.foreground);
+  textPathsObservable.subscribe((path) => {
+    if (params.debug) {
+      path.strokeColor = new Color("blue");
+      maskContainer.addChild(drawPath(path));
+    } else {
+      path.fillColor = new Color("white");
+      mask.addChild(drawPath(path));
     }
+  });
+  return maskContainer;
+}
 
-    textPathsObservable.subscribe((path) => {
-      if (this.debug) {
-        path.strokeColor = new Color("blue");
-        maskContainer.addChild(drawPath(path));
-      } else {
-        path.fillColor = new Color("white");
-        mask.addChild(drawPath(path));
-      }
-    });
-    return maskContainer;
-  }
+function createFlag(): { background: Graphics; foreground: Graphics } {
+  const blue = 0x0057b7;
+  const yellow = 0xffd700;
+  // Setup control points for a flag curve
+  const [cpt1, cpt2] = [
+    new Point([random.integer(-params.width / 2, 0), random.integer(0, params.height / 2)]),
+    new Point([random.integer(0, params.width / 2), random.integer(-params.height / 2, 0)]),
+  ];
 
-  private createFlag(
-    isBackground: boolean,
-    flagRotation: number,
-    controlPoints: [[number, number], [number, number]]
-  ): Graphics {
-    const blue = 0x0057b7;
-    const yellow = 0xffd700;
-    const [cpt1, cpt2] = controlPoints;
-
+  const flipColors = random.bool();
+  const [background, foreground] = [flipColors, !flipColors].map((isBackground) => {
     const graphics = new Graphics()
       .beginFill(isBackground ? blue : yellow) // Fill background
-      .drawRect(-this.width, -this.height, this.width * 2, this.height * 2)
+      .drawRect(-params.width, -params.height, params.width * 2, params.height * 2)
       .endFill()
       .beginFill(isBackground ? yellow : blue) // Fill area under the curve
-      .moveTo(-this.width, -this.height)
-      .lineTo(-this.width, 0)
-      .bezierCurveTo(cpt1[0], cpt1[1], cpt2[0], cpt2[1], this.width, 0)
-      .lineTo(this.width, -this.height)
+      .moveTo(-params.width, -params.height)
+      .lineTo(-params.width, 0)
+      .bezierCurveTo(cpt1.x, cpt1.y, cpt2.x, cpt2.y, params.width, 0)
+      .lineTo(params.width, -params.height)
       .closePath();
     graphics.angle = flagRotation;
     return graphics;
-  }
+  });
+  return { background, foreground };
 }
 
 function calculateGlyphBoundingBox(path: CompoundPath) {
@@ -221,7 +191,7 @@ function calculateGlyphBoundingBox(path: CompoundPath) {
   );
 }
 
-async function start(firstLine: string, secondLine: string, translationsFile: string, flagRotation: number) {
+async function loadTextParams(translationsFile: string): Promise<TextParams> {
   const mainFont = await loadFont("whoami/StalinistOne-Regular.ttf");
   const secondaryFontFamilies = await Promise.all(
     ["Verdana", "Courier New", "Georgia"].map(async (fontName) => {
@@ -241,23 +211,15 @@ async function start(firstLine: string, secondLine: string, translationsFile: st
   const fallbackUnicodeFontSerif = await loadFont("whoami/GoNotoCurrentSerif.ttf");
   const fallbackUnicodeFonts = [fallbackUnicodeFont, fallbackUnicodeFontSerif];
   const translated = ((await Assets.load<string>(`whoami/translations/${translationsFile}`)) as string).split("\n");
-  const translations = [
+  const translations = new Set([
     ...translated,
     ...translated.map((s) => s.toLowerCase()),
     ...translated.map((s) => s.toUpperCase()),
-  ];
-  const sketchParams = {
+  ]);
+  return {
     mainFont,
     secondaryFontFamilies,
     fallbackUnicodeFonts,
-    flagRotation,
-    firstLine,
-    secondLine,
     translations,
   };
-  new WhoAmI(sketchParams).run();
 }
-
-void start("ХТО", "Я?", "who.txt", random.integer(-45, 45));
-//void start("ДЕ", "МИ?", "where.txt", 0);
-//void start("ЩО", "ЦЕ?", "what.txt", 90);

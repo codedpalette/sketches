@@ -1,4 +1,5 @@
 import paper from "paper/dist/paper-core";
+paper.setup([1, 1]);
 
 export type PointLike = paper.PointLike;
 export type SizeLike = paper.SizeLike;
@@ -22,10 +23,6 @@ export type Line = paper.Path.Line;
 export const Line = paper.Path.Line;
 export type Ellipse = paper.Path.Ellipse;
 export const Ellipse = paper.Path.Ellipse;
-
-export function setup(size: SizeLike) {
-  paper.setup(size);
-}
 
 Point.prototype.toVec = function () {
   return [this.x, this.y];
