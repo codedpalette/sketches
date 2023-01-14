@@ -1,6 +1,7 @@
 import is from "@sindresorhus/is";
 import { finalize, isObservable } from "rxjs";
 
+//TODO: Function with callback
 export function timed<T>(target: object, propertyKey: string, descriptor: TypedPropertyDescriptor<T>) {
   const scopeName = is.function_(target) ? `static ${target.name}` : target.constructor.name;
   const timerName = `${scopeName}::${propertyKey}`;
