@@ -1,16 +1,14 @@
 import { fromPolar } from "math/angles";
-import { atan, pi, tan } from "mathjs";
+import { abs, atan, pi, tan } from "mathjs";
 import { rectanglePacking } from "packing/rectangle";
 import { Rectangle } from "paper";
-import { EdgesGeometry, Fog, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, PlaneGeometry, Scene } from "three";
-import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
-import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
-import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
+import { Fog, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, PlaneGeometry, Scene } from "three";
 import { radToDeg } from "three/src/math/MathUtils";
 import { init, run } from "drawing/sketch";
+import { createNoise4D } from "simplex-noise";
 
-const params = init();
-
+const noise = createNoise4D();
+const params = init({ width: 700, height: 700 });
 const loopDurationSeconds = 5;
 const planeWidth = 2;
 const planeHeight = 2;
@@ -26,19 +24,16 @@ camera.position.setZ(z);
 const scene = new Scene();
 scene.fog = new Fog(0x000000, 0, z + planeHeight / 2);
 
-const material = new MeshBasicMaterial({ color: "lightgreen", depthWrite: false });
-const lineMaterial = new LineMaterial({ color: 0x006400, linewidth: 0.0025 }); //TODO: Affect by light
 const geometry = new PlaneGeometry(1, 1);
-const edgesGeometry = new LineSegmentsGeometry().fromEdgesGeometry(new EdgesGeometry(geometry));
 const planes: Group[] = [];
-
 const sides = 4; //TODO: recalculate formulas for dynamic number of slices
 for (let i = 0; i < sides; i++) {
-  const packing = rectanglePacking(new Rectangle(0, 0, planeWidth, planeHeight), 20);
-  for (let j = 0; j < 4; j++) {
+  const packing = rectanglePacking(new Rectangle(0, 0, planeWidth, planeHeight), 40);
+  for (let j = 0; j < 3; j++) {
     const group = new Group();
     for (const rect of packing) {
-      const rectMesh = new Mesh(geometry, material).add(new LineSegments2(edgesGeometry, lineMaterial));
+      const material = new MeshBasicMaterial({ color: "white", depthWrite: true });
+      const rectMesh = new Mesh(geometry, material);
       rectMesh.scale.set(rect.width, rect.height, 1);
       rectMesh.position.set(rect.center.x - planeWidth / 2, rect.center.y - planeHeight / 2, 0);
       group.add(rectMesh);
@@ -55,9 +50,8 @@ for (let i = 0; i < sides; i++) {
   }
 }
 
-const backTunnelMaterial = material.clone();
-backTunnelMaterial.depthWrite = true;
-const backTunnel = new Mesh(geometry, backTunnelMaterial).add(new LineSegments2(edgesGeometry, lineMaterial));
+const backTunnelMaterial = new MeshBasicMaterial({ color: "white" });
+const backTunnel = new Mesh(geometry, backTunnelMaterial);
 backTunnel.position.set(0, 0, -planeHeight / 2);
 backTunnel.scale.set(planeWidth, planeHeight, 1);
 scene.add(backTunnel);
@@ -65,15 +59,27 @@ scene.add(backTunnel);
 const update = (deltaTime: number, elapsedTotal: number) => {
   const positionOffSet = (deltaTime * planeHeight) / loopDurationSeconds;
   const cameraRotation = (elapsedTotal * 2 * pi) / loopDurationSeconds;
-  const cameraPosition = fromPolar(0.3 * planeWidth, cameraRotation);
+  const cameraPosition = fromPolar(0.2 * planeWidth, cameraRotation);
   camera.position.set(cameraPosition.x, cameraPosition.y, camera.position.z);
   camera.lookAt(0, 0, 0);
   camera.rotateZ(-cameraRotation / 2);
 
+  const noiseScaleFactor = 0.2;
   for (const plane of planes) {
     plane.position.z += positionOffSet;
     if (plane.position.z >= 2 * planeHeight) {
-      plane.position.z -= planeHeight * 4;
+      plane.position.z -= planeHeight * (planes.length / sides);
+    }
+    for (const mesh of plane.children as Mesh[]) {
+      const x = abs(mesh.position.x - planeWidth / 2) * noiseScaleFactor;
+      const y = (plane.position.z + abs(mesh.position.y - planeHeight / 2)) * noiseScaleFactor;
+      const z = abs((elapsedTotal % loopDurationSeconds) - loopDurationSeconds / 2) * noiseScaleFactor;
+
+      const hue = noise(x, y, z, 0);
+      const sat = 0.5 + noise(x, y, z, 100) / 2;
+      const bri = 0.5 + noise(x, y, z, 200) / 5;
+
+      (mesh.material as MeshBasicMaterial).color.setHSL(hue, sat, bri);
     }
   }
 };

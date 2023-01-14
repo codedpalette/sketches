@@ -25,6 +25,7 @@
     "pixi.js": "^7.0.5",
     "random-js": "^2.1.0",
     "rxjs": "^7.8.0",
+    "simplex-noise": "^4.0.1",
     "three": "^0.148.0"
   },
   "devDependencies": {
