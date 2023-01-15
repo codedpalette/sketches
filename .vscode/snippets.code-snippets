@@ -32,7 +32,7 @@
     "prefix": "sketch3d",
     "body": [
       "import { init, run } from \"drawing/sketch\";",
-      "import { PerspectiveCamera, Scene } from \"three\";",
+      "import { Color, PerspectiveCamera, Scene } from \"three\";",
       "",
       "const params = init({ debug: true });",
       "const scene = new Scene();",

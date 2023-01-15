@@ -12,7 +12,7 @@ const params = init();
 const loopDurationSeconds = 5;
 const planeDim = 2;
 const sides = 6;
-const holeScale = 0.2; //Relation between central hole and screen dimensions
+const holeScale = 0.2; //Relation between central hole and screen dimensions //TODO: Maybe animate?
 const apothem = planeDim / (2 * tan(pi / sides));
 
 const camera = configureCamera(holeScale);

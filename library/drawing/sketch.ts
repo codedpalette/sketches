@@ -11,6 +11,7 @@ export interface SketchParams {
 }
 
 export function init(params?: Partial<SketchParams>): SketchParams {
+  //TODO: Return preset Container / Camera&Scene with params set
   const defaultParams: SketchParams = {
     debug: false,
     width: 1080,
@@ -75,7 +76,7 @@ function runThree(sketch: ThreeSketch, params: SketchParams) {
     sketch.scene.add(new AxesHelper(), new GridHelper());
   }
 
-  const renderer = new WebGLRenderer({ antialias: true, preserveDrawingBuffer: false });
+  const renderer = new WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
   renderer.setSize(params.width, params.height);
   document.body.appendChild(renderer.domElement);
 
