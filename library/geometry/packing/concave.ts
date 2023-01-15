@@ -1,8 +1,7 @@
 import { CompoundPath, Matrix, Path, Point, Rectangle } from "geometry/paths";
 import hull from "hull.js";
-import { asyncScheduler, map, Observable, observeOn, range } from "rxjs";
+import { asyncScheduler, finalize, map, Observable, observeOn, range } from "rxjs";
 import { random } from "util/random";
-import { timed } from "util/timing";
 
 export type Bounds2D = {
   horizontal: [number, number];
@@ -23,117 +22,109 @@ export type PackingParams = {
   randomizeParams?: RandomizationParams;
 };
 
+// http://paulbourke.net/fractals/randomtile/
 export function concavePacking(
   shapesFactory: (i: number) => CompoundPath,
-  packingParams: PackingParams
+  params: PackingParams
 ): Observable<CompoundPath> {
-  return new Packing(shapesFactory, packingParams).generateConcavePacking();
+  const paths: CompoundPath[] = [];
+  const c = random.real(1, 1.5);
+  const rectArea = Math.abs(params.boundingRect.width * params.boundingRect.height);
+  const totalArea = rectArea - (params.blacklistShape?.area || 0);
+  const initialArea = totalArea / zeta(c);
+
+  const t0 = performance.now();
+  console.log("[timer] [generateConcavePacking]: begin");
+  return range(0, params.nShapes)
+    .pipe(observeOn(asyncScheduler))
+    .pipe(
+      map((i) => {
+        (i + 1) % 100 == 0 && console.log(`Packed ${i + 1} shapes out of ${params.nShapes}`);
+        const desiredArea = i == 0 ? initialArea : initialArea * Math.pow(i, -c);
+        const tryPath = shapesFactory(i).reorient(false, true) as CompoundPath;
+        const tryArea = concaveHull(tryPath).area;
+        const scaleFactor = Math.sqrt(desiredArea / tryArea);
+        tryPath.scale(scaleFactor, [0, 0]);
+        const newPath = tryPlaceTile(tryPath, paths, params);
+        paths.push(newPath);
+        return newPath;
+      })
+    )
+    .pipe(
+      finalize(() =>
+        console.log(`[timer] [generateConcavePacking]: timer ${((performance.now() - t0) * 0.001).toFixed(3)}s`)
+      )
+    );
 }
 
-// Using class here to add execution time decorators
-class Packing {
-  private boundingRect: Rectangle;
-  private nShapes: number;
-  private blacklistShape?: CompoundPath;
-  private randomizeParams?: RandomizationParams;
-  constructor(private shapesFactory: (i: number) => CompoundPath, packingParams: PackingParams) {
-    ({
-      boundingRect: this.boundingRect,
-      nShapes: this.nShapes,
-      blacklistShape: this.blacklistShape,
-      randomizeParams: this.randomizeParams,
-    } = packingParams);
+function tryPlaceTile(
+  tryPath: CompoundPath,
+  existingPaths: CompoundPath[],
+  params: PackingParams,
+  nTries = 100
+): CompoundPath {
+  const pathsToCheck = params.blacklistShape ? [params.blacklistShape, ...existingPaths] : existingPaths;
+  for (;;) {
+    for (let i = 0; i < nTries; i++) {
+      const matrix = tryTransformMatrix(tryPath, params.boundingRect, params.randomizeParams);
+      tryPath.transform(matrix);
+      if (!intersectsExistingPaths(tryPath, pathsToCheck)) return tryPath;
+      tryPath.transform(matrix.invert());
+    }
+    tryPath.scale(0.9, [0, 0]);
   }
+}
 
-  // http://paulbourke.net/fractals/randomtile/
-  @timed
-  generateConcavePacking(): Observable<CompoundPath> {
-    const paths: CompoundPath[] = [];
-    const c = random.real(1, 1.5);
-    const rectArea = Math.abs(this.boundingRect.width * this.boundingRect.height);
-    const totalArea = rectArea - (this.blacklistShape?.area || 0);
-    const initialArea = totalArea / this.zeta(c);
+function intersectsExistingPaths(tryPath: CompoundPath, pathsToCheck: CompoundPath[]): boolean {
+  const tryPathPoints = tryPath.childPaths().flatMap((path) => [path.getPointAt(0), path.getPointAt(path.length / 2)]);
+  const intersects = pathsToCheck.some(
+    (path) => tryPathPoints.some((point) => path.contains(point)) || tryPath.intersects(path)
+  );
+  return intersects;
+}
 
-    return range(0, this.nShapes)
-      .pipe(observeOn(asyncScheduler))
-      .pipe(
-        map((i) => {
-          (i + 1) % 100 == 0 && console.log(`Packed ${i + 1} shapes out of ${this.nShapes}`);
-          const desiredArea = i == 0 ? initialArea : initialArea * Math.pow(i, -c);
-          const tryPath = this.shapesFactory(i).reorient(false, true) as CompoundPath;
-          const tryArea = this.concaveHull(tryPath).area;
-          const scaleFactor = Math.sqrt(desiredArea / tryArea);
-          tryPath.scale(scaleFactor, [0, 0]);
-          const newPath = this.tryPlaceTile(tryPath, paths);
-          paths.push(newPath);
-          return newPath;
-        })
-      );
-  }
+function tryTransformMatrix(
+  tryPath: CompoundPath,
+  boundingRect: Rectangle,
+  randomizeParams?: RandomizationParams
+): Matrix {
+  const matrix = new Matrix();
+  const [minX, minY, maxX, maxY] = [boundingRect.left, boundingRect.bottom, boundingRect.right, boundingRect.top];
+  const [x, y] = [
+    random.integer(minX - tryPath.bounds.width, maxX),
+    random.integer(minY - tryPath.bounds.height, maxY),
+  ];
 
-  private tryPlaceTile(tryPath: CompoundPath, existingPaths: CompoundPath[], nTries = 100): CompoundPath {
-    const pathsToCheck = this.blacklistShape ? [this.blacklistShape, ...existingPaths] : existingPaths;
-    for (;;) {
-      for (let i = 0; i < nTries; i++) {
-        const matrix = this.tryTransformMatrix(tryPath);
-        tryPath.transform(matrix);
-        if (!this.intersectsExistingPaths(tryPath, pathsToCheck)) return tryPath;
-        tryPath.transform(matrix.invert());
-      }
-      tryPath.scale(0.9, [0, 0]);
+  matrix.translate([x, y]);
+  if (randomizeParams) {
+    const { rotationBounds, skewBounds, shearBounds } = randomizeParams;
+    if (rotationBounds) {
+      const rotation = random.integer(rotationBounds[0], rotationBounds[1]);
+      matrix.rotate(rotation, tryPath.position);
+    }
+    if (skewBounds) {
+      const skewHor = random.integer(...skewBounds.horizontal);
+      const skewVer = random.integer(...skewBounds.vertical);
+      matrix.skew(skewHor, skewVer);
+    }
+    if (shearBounds) {
+      const shearHor = random.integer(...shearBounds.horizontal);
+      const shearVer = random.integer(...shearBounds.vertical);
+      matrix.shear(shearHor, shearVer);
     }
   }
+  return matrix;
+}
 
-  private intersectsExistingPaths(tryPath: CompoundPath, pathsToCheck: CompoundPath[]): boolean {
-    const tryPathPoints = tryPath
-      .childPaths()
-      .flatMap((path) => [path.getPointAt(0), path.getPointAt(path.length / 2)]);
-    const intersects = pathsToCheck.some(
-      (path) => tryPathPoints.some((point) => path.contains(point)) || tryPath.intersects(path)
-    );
-    return intersects;
-  }
+function concaveHull(shape: Point[] | CompoundPath, concavity = 50): CompoundPath {
+  const pointSet = (shape instanceof CompoundPath ? shape.toPoints() : shape).map((point) => [point.x, point.y]);
+  const hullShape = hull(pointSet, concavity) as number[][];
+  const hullPath = new Path(hullShape.map((point) => new Point(point[0], point[1])));
+  return new CompoundPath(hullPath);
+}
 
-  private tryTransformMatrix(tryPath: CompoundPath): Matrix {
-    const matrix = new Matrix();
-    const [boundingRect, randomizeParams] = [this.boundingRect, this.randomizeParams];
-    const [minX, minY, maxX, maxY] = [boundingRect.left, boundingRect.bottom, boundingRect.right, boundingRect.top];
-    const [x, y] = [
-      random.integer(minX - tryPath.bounds.width, maxX),
-      random.integer(minY - tryPath.bounds.height, maxY),
-    ];
-
-    matrix.translate([x, y]);
-    if (randomizeParams) {
-      const { rotationBounds, skewBounds, shearBounds } = randomizeParams;
-      if (rotationBounds) {
-        const rotation = random.integer(rotationBounds[0], rotationBounds[1]);
-        matrix.rotate(rotation, tryPath.position);
-      }
-      if (skewBounds) {
-        const skewHor = random.integer(...skewBounds.horizontal);
-        const skewVer = random.integer(...skewBounds.vertical);
-        matrix.skew(skewHor, skewVer);
-      }
-      if (shearBounds) {
-        const shearHor = random.integer(...shearBounds.horizontal);
-        const shearVer = random.integer(...shearBounds.vertical);
-        matrix.shear(shearHor, shearVer);
-      }
-    }
-    return matrix;
-  }
-
-  private concaveHull(shape: Point[] | CompoundPath, concavity = 50): CompoundPath {
-    const pointSet = (shape instanceof CompoundPath ? shape.toPoints() : shape).map((point) => [point.x, point.y]);
-    const hullShape = hull(pointSet, concavity) as number[][];
-    const hullPath = new Path(hullShape.map((point) => new Point(point[0], point[1])));
-    return new CompoundPath(hullPath);
-  }
-
-  private zeta(z: number): number {
-    const secondTerm = (z + 3) / (z - 1);
-    const thirdTerm = 1 / Math.pow(2, z + 1);
-    return 1 + secondTerm * thirdTerm;
-  }
+function zeta(z: number): number {
+  const secondTerm = (z + 3) / (z - 1);
+  const thirdTerm = 1 / Math.pow(2, z + 1);
+  return 1 + secondTerm * thirdTerm;
 }

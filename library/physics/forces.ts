@@ -1,4 +1,3 @@
-import is from "@sindresorhus/is";
 import { Point } from "geometry/paths";
 import { add, divide, min, multiply, square } from "mathjs";
 
@@ -6,7 +5,7 @@ export type Vector2 = [number, number];
 export type Vector2Like = Vector2 | { x: number; y: number };
 
 function toVector(vectorLike: Vector2Like): Vector2 {
-  return is.array(vectorLike) ? vectorLike : [vectorLike.x, vectorLike.y];
+  return vectorLike instanceof Array ? vectorLike : [vectorLike.x, vectorLike.y];
 }
 
 interface BodyLike {

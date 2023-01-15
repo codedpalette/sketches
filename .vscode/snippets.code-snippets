@@ -39,5 +39,16 @@
       "const camera = new PerspectiveCamera(45, params.width/params.height, 1, 1000);",
       "run({ scene, camera }, params);"
     ]
+  },
+  "Timed": {
+    "scope": "typescript",
+    "prefix": "timed",
+    "body": [
+      "const t0 = performance.now()",
+      "console.log('[timer] [${1:timerName}]: begin')",
+      "// Code to time",
+      "$0",
+      "console.log(`[timer] [${1:timerName}]: timer ${((performance.now() - t0) * 0.001).toFixed(3)}s`)"
+    ]
   }
 }

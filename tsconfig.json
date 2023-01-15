@@ -4,10 +4,6 @@
     "noEmitOnError": true,
     "isolatedModules": true,
     "target": "ES2019",
-    "experimentalDecorators": true,
-    "baseUrl": "./library",
-    "paths": {
-      "@sindresorhus/is": ["../node_modules/@sindresorhus/is/dist/index"]
-    }
+    "baseUrl": "./library"
   }
 }
