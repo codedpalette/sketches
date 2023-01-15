@@ -1,5 +1,5 @@
 import is from "@sindresorhus/is";
-import { Point } from "geometry";
+import { Point } from "geometry/paths";
 import { add, divide, min, multiply, square } from "mathjs";
 
 export type Vector2 = [number, number];

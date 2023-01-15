@@ -1,7 +1,7 @@
 import { drawPath } from "drawing/pixi";
 import { init, run } from "drawing/sketch";
-import { Color, CompoundPath, Line, Path, Point, Rectangle } from "geometry";
-import { deg, fromPolar } from "math/angles";
+import { Color, CompoundPath, Line, Path, Point, Rectangle } from "geometry/paths";
+import { deg, fromPolar } from "geometry/angles";
 import { max, min, multiply, sign, sin, tan } from "mathjs";
 import { Container } from "pixi.js";
 import { random } from "util/random";

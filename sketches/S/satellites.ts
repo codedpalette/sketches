@@ -1,5 +1,5 @@
 import { drawPath } from "drawing/pixi";
-import { Color, Ellipse, Path, Point, Rectangle } from "geometry";
+import { Color, Ellipse, Path, Point, Rectangle } from "geometry/paths";
 import { cos, cube, multiply, norm, pi, sin, sqrt, square, subtract, unaryMinus } from "mathjs";
 import { Attractor, Mover, TwoBodySystem, Vector2, Vector2Like } from "physics/forces";
 import { Container, Graphics } from "pixi.js";

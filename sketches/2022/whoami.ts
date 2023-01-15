@@ -1,7 +1,7 @@
 import { drawLines, drawPath, LineLike } from "drawing/pixi";
 import { init, run } from "drawing/sketch";
-import { Color, CompoundPath, Point, Rectangle } from "geometry";
-import { concavePacking } from "packing/concave";
+import { Color, CompoundPath, Point, Rectangle } from "geometry/paths";
+import { concavePacking } from "geometry/packing/concave";
 import { Assets, Container, Graphics } from "pixi.js";
 import { Font, loadFont, textToPath } from "util/font";
 import { random } from "util/random";

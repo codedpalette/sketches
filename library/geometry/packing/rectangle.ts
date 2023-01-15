@@ -1,4 +1,4 @@
-import { Rectangle } from "geometry";
+import { Rectangle } from "geometry/paths";
 import { min } from "mathjs";
 import { random } from "util/random";
 

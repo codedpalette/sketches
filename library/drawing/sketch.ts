@@ -7,7 +7,7 @@ export interface SketchParams {
   debug: boolean;
   width: number;
   height: number;
-  bgColor: string | number; //TODO: Color library
+  bgColor: string | number;
 }
 
 export function init(params?: Partial<SketchParams>): SketchParams {

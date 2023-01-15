@@ -1,4 +1,4 @@
-import { CompoundPath, Matrix, Path, Point, Rectangle } from "geometry";
+import { CompoundPath, Matrix, Path, Point, Rectangle } from "geometry/paths";
 import hull from "hull.js";
 import { asyncScheduler, map, Observable, observeOn, range } from "rxjs";
 import { random } from "util/random";

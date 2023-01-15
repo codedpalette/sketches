@@ -1,5 +1,5 @@
 import fontkit from "@pdf-lib/fontkit";
-import { CompoundPath } from "geometry";
+import { CompoundPath } from "geometry/paths";
 
 export type Font = fontkit.Font;
 

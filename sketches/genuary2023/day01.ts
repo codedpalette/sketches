@@ -1,18 +1,18 @@
 import { abs, atan, pi, tan } from "mathjs";
-import { rectanglePacking } from "packing/rectangle";
+import { rectanglePacking } from "geometry/packing/rectangle";
 import { Rectangle } from "paper";
 import { Fog, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, PlaneGeometry, Scene } from "three";
 import { radToDeg } from "three/src/math/MathUtils";
 import { init, run } from "drawing/sketch";
 import { createNoise4D } from "simplex-noise";
-import { fromPolar } from "math/angles";
+import { fromPolar } from "geometry/angles";
 
 const noise = createNoise4D();
 const params = init();
 const loopDurationSeconds = 5;
 const planeDim = 2;
 const sides = 6;
-const holeScale = 0.1; //Relation between central hole and screen dimensions
+const holeScale = 0.2; //Relation between central hole and screen dimensions
 const apothem = planeDim / (2 * tan(pi / sides));
 
 const camera = configureCamera(holeScale);
@@ -73,7 +73,7 @@ const update = (deltaTime: number, elapsedTotal: number) => {
 
 function configureCamera(holeScale: number, cameraToUpdate?: PerspectiveCamera) {
   const k = (1 - holeScale) / (2 * holeScale);
-  const fov = radToDeg(atan(k)) * 2; //TODO: Animate fov
+  const fov = radToDeg(atan(k)) * 2;
   const z = apothem * (1 / k + 1);
   const far = z + planeDim;
   if (cameraToUpdate) {
