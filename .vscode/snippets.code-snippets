@@ -24,6 +24,7 @@
       "",
       "const params = init({ debug: true });",
       "const container = new Container();",
+      "$0",
       "run({ container }, params);"
     ]
   },
@@ -37,6 +38,7 @@
       "const params = init({ debug: true });",
       "const scene = new Scene();",
       "const camera = new PerspectiveCamera(45, params.width/params.height, 1, 1000);",
+      "$0",
       "run({ scene, camera }, params);"
     ]
   },
@@ -46,7 +48,6 @@
     "body": [
       "const t0 = performance.now()",
       "console.log('[timer] [${1:timerName}]: begin')",
-      "// Code to time",
       "$0",
       "console.log(`[timer] [${1:timerName}]: timer ${((performance.now() - t0) * 0.001).toFixed(3)}s`)"
     ]

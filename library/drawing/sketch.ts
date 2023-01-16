@@ -2,6 +2,8 @@ import { Application, Container } from "pixi.js";
 import { AxesHelper, Camera, Clock, GridHelper, Scene, WebGLRenderer } from "three";
 import { drawAxes } from "./pixi";
 import { getWebGL2ErrorMessage, isWebGL2Available } from "./webgl";
+import Stats, { Panel } from "stats.js";
+import { max } from "mathjs";
 
 export interface SketchParams {
   debug: boolean;
@@ -11,7 +13,6 @@ export interface SketchParams {
 }
 
 export function init(params?: Partial<SketchParams>): SketchParams {
-  //TODO: Return preset Container / Camera&Scene with params set
   const defaultParams: SketchParams = {
     debug: false,
     width: 1080,
@@ -39,11 +40,15 @@ function isPixiSketch(sketch: Sketch): sketch is PixiSketch {
 }
 
 export function run(sketch: PixiSketch | ThreeSketch, params: SketchParams) {
-  if (isPixiSketch(sketch)) runPixi(sketch, params);
-  else runThree(sketch, params);
+  const stats = params.debug ? new Stats() : undefined;
+  stats?.showPanel(0);
+  stats && document.body.appendChild(stats.dom);
+
+  if (isPixiSketch(sketch)) runPixi(sketch, params, stats);
+  else runThree(sketch, params, stats);
 }
 
-function runPixi(sketch: PixiSketch, params: SketchParams) {
+function runPixi(sketch: PixiSketch, params: SketchParams, stats?: Stats) {
   const app = new Application({
     width: params.width,
     height: params.height,
@@ -64,29 +69,47 @@ function runPixi(sketch: PixiSketch, params: SketchParams) {
     let totalElapsed = 0;
     const update = sketch.update;
     app.ticker.add(() => {
+      stats?.begin();
       const deltaSeconds = app.ticker.deltaMS / 1000;
       totalElapsed += deltaSeconds;
       update(deltaSeconds, totalElapsed);
+      stats?.end();
     });
   }
 }
 
-function runThree(sketch: ThreeSketch, params: SketchParams) {
+function runThree(sketch: ThreeSketch, params: SketchParams, stats?: Stats) {
   if (params.debug) {
     sketch.scene.add(new AxesHelper(), new GridHelper());
   }
 
-  const renderer = new WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  const drawCallsPanel = new Panel("DrawCalls", "lightgreen", "darkgreen");
+  stats?.addPanel(drawCallsPanel);
+
+  const renderer = new WebGLRenderer({
+    antialias: true,
+    preserveDrawingBuffer: true,
+    stencil: false,
+    depth: false,
+    alpha: false,
+    powerPreference: "high-performance",
+  });
   renderer.setSize(params.width, params.height);
   document.body.appendChild(renderer.domElement);
 
   const clock = new Clock(true);
+  let maxDrawCalls = 0;
   const render = () => {
-    if (sketch.update) {
-      requestAnimationFrame(render);
-      sketch.update(clock.getDelta(), clock.elapsedTime);
-    }
+    stats?.begin();
     renderer.render(sketch.scene, sketch.camera);
+    const frameDrawCalls = renderer.info.render.calls;
+    maxDrawCalls = max(frameDrawCalls, maxDrawCalls);
+    drawCallsPanel.update(frameDrawCalls, maxDrawCalls);
+    if (sketch.update) {
+      sketch.update(clock.getDelta(), clock.elapsedTime);
+      requestAnimationFrame(render);
+    }
+    stats?.end();
   };
 
   if (isWebGL2Available()) render();

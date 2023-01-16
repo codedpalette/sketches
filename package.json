@@ -25,11 +25,13 @@
     "random-js": "^2.1.0",
     "rxjs": "^7.8.0",
     "simplex-noise": "^4.0.1",
+    "stats.js": "^0.17.0",
     "three": "^0.148.0"
   },
   "devDependencies": {
     "@tsconfig/recommended": "^1.0.1",
     "@types/hull.js": "^1.0.2",
+    "@types/stats.js": "^0.17.0",
     "@types/three": "^0.148.0",
     "@typescript-eslint/eslint-plugin": "^5.47.0",
     "@typescript-eslint/parser": "^5.47.0",
