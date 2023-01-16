@@ -89,9 +89,6 @@ function runThree(sketch: ThreeSketch, params: SketchParams, stats?: Stats) {
   const renderer = new WebGLRenderer({
     antialias: true,
     preserveDrawingBuffer: true,
-    stencil: false,
-    depth: false,
-    alpha: false,
     powerPreference: "high-performance",
   });
   renderer.setSize(params.width, params.height);

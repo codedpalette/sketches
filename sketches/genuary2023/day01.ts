@@ -8,12 +8,12 @@ import { createNoise4D } from "simplex-noise";
 import { fromPolar } from "geometry/angles";
 
 const noise = createNoise4D();
-const params = init({ debug: true });
+const params = init();
 const loopDurationSeconds = 5;
 const planeDim = 2;
 const sides = 4;
 const rectanglesPerSide = 30;
-const holeScale = 0.2; //Relation between central hole and screen dimensions //TODO: Maybe animate?
+const holeScale = 0.2; //Relation between central hole and screen dimensions
 const apothem = planeDim / (2 * tan(pi / sides));
 
 const camera = configureCamera(holeScale);
@@ -40,7 +40,8 @@ const update = (deltaTime: number, elapsedTotal: number) => {
   const positionOffSet = (deltaTime * planeDim) / loopDurationSeconds;
   const cameraRotation = (elapsedTotal * 2 * pi) / (loopDurationSeconds * 2);
   const cameraPosition = fromPolar(apothem * 0.5, cameraRotation);
-  camera.position.set(cameraPosition.x, cameraPosition.y, camera.position.z);
+  camera.position.setX(cameraPosition.x);
+  camera.position.setY(cameraPosition.y);
   camera.position.z -= positionOffSet;
   if (camera.position.z <= 0) {
     camera.position.z += planeDim;
