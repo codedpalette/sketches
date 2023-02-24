@@ -77,8 +77,9 @@ const container = new Container();
 const background = new Graphics()
   .beginFill(parseInt(bgColor, 16))
   .drawRect(-params.width / 2, -params.height / 2, params.width, params.height);
+background.filters = [new NoiseFilter(random.real(0.1, 0.2))];
+
 container.addChild(background);
 container.addChild(drawLayer("diag_up"));
 container.addChild(drawLayer("diag_down"));
-container.filters = [new NoiseFilter(random.real(0.1, 0.2))];
 run({ container }, params);
