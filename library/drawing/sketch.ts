@@ -39,6 +39,7 @@ function isPixiSketch(sketch: Sketch): sketch is PixiSketch {
   return (<PixiSketch>sketch).container !== undefined;
 }
 
+//TODO: Refactor debug param, add capture mode, show fps only if update is present
 export function run(sketch: PixiSketch | ThreeSketch, params: SketchParams) {
   const stats = params.debug ? new Stats() : undefined;
   stats?.showPanel(0);
@@ -61,8 +62,8 @@ function runPixi(sketch: PixiSketch, params: SketchParams, stats?: Stats) {
   const mainContainer = new Container();
   mainContainer.position = { x: params.width / 2, y: params.height / 2 };
   mainContainer.scale.set(1, -1);
-  params.debug && mainContainer.addChild(drawAxes(params));
   mainContainer.addChild(sketch.container);
+  params.debug && mainContainer.addChild(drawAxes(params));
 
   app.stage.addChild(mainContainer);
   if (sketch.update) {
