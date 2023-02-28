@@ -6,6 +6,9 @@ import { Assets, Container, Graphics } from "pixi.js";
 import { Font, loadFont, textToPath } from "util/font";
 import { random } from "util/random";
 
+//TODO: Performance optimization (maybe rewrite to wasm?)
+//Sell with Printify, 50% - на ЗСУ
+
 interface FontFamily {
   regular: Font;
   bold: Font;
@@ -210,7 +213,7 @@ async function loadTextParams(translationsFile: string): Promise<TextParams> {
   const fallbackUnicodeFont = await loadFont("whoami/GoNotoCurrent.ttf");
   const fallbackUnicodeFontSerif = await loadFont("whoami/GoNotoCurrentSerif.ttf");
   const fallbackUnicodeFonts = [fallbackUnicodeFont, fallbackUnicodeFontSerif];
-  const translated = ((await Assets.load<string>(`whoami/translations/${translationsFile}`)) as string).split("\n");
+  const translated = (await Assets.load<string>(`whoami/translations/${translationsFile}`)).split("\n");
   const translations = new Set([
     ...translated,
     ...translated.map((s) => s.toLowerCase()),

@@ -6,6 +6,14 @@ import { Container, Graphics } from "pixi.js";
 import { random } from "util/random";
 import { init, run } from "drawing/sketch";
 
+//TODO: Colors from noise, gradient
+//TODO: Spinning stars in the background
+//TODO: VHS effect
+//MAYBE:
+// Echo waves from rectangle sides
+// Display bodies as arcs, instead of circles
+// Wavy rectangle sides (from noise)
+
 const params = init({ debug: true });
 const system = fromOrbit({
   position: new Point(0, 0),
