@@ -14,39 +14,6 @@ import { init, run } from "drawing/sketch";
 // Display bodies as arcs, instead of circles
 // Wavy rectangle sides (from noise)
 
-const params = init({ debug: true });
-const system = fromOrbit({
-  position: new Point(0, 0),
-  semiMajor: 200,
-  semiMinor: 150,
-  rotationAngle: 0,
-  periodSeconds: 5,
-});
-
-const container = new Container();
-container.addChild(system.draw(params.debug));
-const update = (deltaTime: number) => system.update(deltaTime);
-run({ container, update }, params);
-
-function fromOrbit(orbitParams: OrbitParams): PlanetarySystem {
-  const orbit = Orbit.fromParams(orbitParams);
-  const mu = (4 * square(pi) * cube(orbit.semiMajor)) / square(orbit.periodSeconds);
-  const theta = random.real(0, pi * 2);
-
-  const sunPosition = random.pick(orbit.foci);
-  const satellitePosition = [orbit.semiMajor * cos(theta), orbit.semiMinor * sin(theta)] as Vector2;
-  const satelliteVelocity = initialVelocity(orbit, subtract(satellitePosition, sunPosition), theta, mu);
-  return new PlanetarySystem(new Sun(sunPosition, mu), new Satellite(satellitePosition, satelliteVelocity), orbit);
-}
-
-// https://en.wikipedia.org/wiki/Kepler%27s_laws_of_planetary_motion#Position_as_a_function_of_time
-function initialVelocity(orbit: Orbit, heliocentricVector: Vector2, theta: number, mu: number): Vector2 {
-  const [r, a, e] = [norm(heliocentricVector) as number, orbit.semiMajor, orbit.eccentricity];
-  const scalar = (sqrt(mu * a) as number) / r;
-  const vector = [-sin(theta), (sqrt(1 - square(e)) as number) * cos(theta)] as Vector2;
-  return multiply(vector, scalar * random.sign());
-}
-
 class PlanetarySystem extends TwoBodySystem {
   private initialSize: Rectangle;
   private rectGraphics: Graphics;
@@ -137,4 +104,37 @@ class Sun extends Attractor {
     super(position, mass);
     this.graphics = new Graphics().beginFill(0x000000).drawCircle(this.position.x, this.position.y, 10);
   }
+}
+
+const params = init({ debug: true });
+const system = fromOrbit({
+  position: new Point(0, 0),
+  semiMajor: 200,
+  semiMinor: 150,
+  rotationAngle: 0,
+  periodSeconds: 5,
+});
+
+const container = new Container();
+container.addChild(system.draw(params.debug));
+const update = (deltaTime: number) => system.update(deltaTime);
+run({ container, update }, params);
+
+function fromOrbit(orbitParams: OrbitParams): PlanetarySystem {
+  const orbit = Orbit.fromParams(orbitParams);
+  const mu = (4 * square(pi) * cube(orbit.semiMajor)) / square(orbit.periodSeconds);
+  const theta = random.real(0, pi * 2);
+
+  const sunPosition = random.pick(orbit.foci);
+  const satellitePosition = [orbit.semiMajor * cos(theta), orbit.semiMinor * sin(theta)] as Vector2;
+  const satelliteVelocity = initialVelocity(orbit, subtract(satellitePosition, sunPosition), theta, mu);
+  return new PlanetarySystem(new Sun(sunPosition, mu), new Satellite(satellitePosition, satelliteVelocity), orbit);
+}
+
+// https://en.wikipedia.org/wiki/Kepler%27s_laws_of_planetary_motion#Position_as_a_function_of_time
+function initialVelocity(orbit: Orbit, heliocentricVector: Vector2, theta: number, mu: number): Vector2 {
+  const [r, a, e] = [norm(heliocentricVector) as number, orbit.semiMajor, orbit.eccentricity];
+  const scalar = (sqrt(mu * a) as number) / r;
+  const vector = [-sin(theta), (sqrt(1 - square(e)) as number) * cos(theta)] as Vector2;
+  return multiply(vector, scalar * random.sign());
 }
