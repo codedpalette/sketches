@@ -1,3 +1,4 @@
 .eslintrc.js
 bin
 .parcel-cache
+electron.js
