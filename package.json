@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "serve": "parcel index.html --dist-dir bin",
-    "electron": "wait-on http://localhost:1234 && electron .",
+    "electron": "wait-on http://localhost:1234 && electron --js-flags=--max-old-space-size=8192 .",
     "start": "concurrently \"yarn serve\" \"yarn electron\" -k -c auto -s command-1",
     "postinstall": "husky install"
   },

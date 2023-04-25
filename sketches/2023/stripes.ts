@@ -1,5 +1,5 @@
 import { drawPath } from "drawing/pixi";
-import { init, run } from "drawing/sketch";
+import { SketchParams, run } from "drawing/sketch";
 import { Color, CompoundPath, Line, Path, Point, Rectangle } from "geometry/paths";
 import { deg, fromPolar } from "geometry/angles";
 import { max, min, multiply, sign, sin, tan } from "mathjs";
@@ -15,34 +15,33 @@ import { random } from "util/random";
 // Shade on stripes
 // Shade on the floor
 
-const params = init({ debug: true });
-const container = setup();
-run({ container }, params);
+void run(
+  (params) => {
+    const container = new Container();
+    const rect = generateRect(params).toPath();
+    rect.fillColor = new Color("black");
 
-function setup(): Container {
-  const container = new Container();
-  const rect = generateRect().toPath();
-  rect.fillColor = new Color("black");
+    const { lines, segments } = generateStripes(params);
+    const stripedRect = rect.intersect(segments) as CompoundPath;
+    container.addChild(drawPath(stripedRect));
 
-  const { lines, segments } = generateStripes();
-  const stripedRect = rect.intersect(segments) as CompoundPath;
-  container.addChild(drawPath(stripedRect));
+    if (params.debug) {
+      lines.strokeColor = new Color("blue");
+      container.addChild(drawPath(lines));
+    }
+    return { container };
+  },
+  { debug: true }
+);
 
-  if (params.debug) {
-    lines.strokeColor = new Color("blue");
-    container.addChild(drawPath(lines));
-  }
-  return container;
-}
-
-function generateRect(): Rectangle {
+function generateRect(params: SketchParams): Rectangle {
   const halfDim = min(params.width, params.height) / 2;
   const randomBounds = [0.5, 0.9] as const;
   const corner = new Point(multiply(halfDim, [-random.real(...randomBounds), random.real(...randomBounds)]));
   return new Rectangle(corner, [-corner.x * 2, -corner.y * 2]);
 }
 
-function generateStripes(): { lines: CompoundPath; segments: CompoundPath } {
+function generateStripes(params: SketchParams): { lines: CompoundPath; segments: CompoundPath } {
   const lines = [],
     segments = [];
   const slopeDeg = random.real(20, 70);

@@ -19,27 +19,29 @@
     "scope": "typescript",
     "prefix": "sketch2d",
     "body": [
-      "import { init, run } from \"drawing/sketch\";",
+      "import { run } from \"drawing/sketch\";",
       "import { Container } from \"pixi.js\";",
       "",
-      "const params = init({ debug: true });",
-      "const container = new Container();",
-      "$0",
-      "run({ container }, params);"
+      "void run((params) => {",
+      "   const container = new Container();$0",
+      "   return { container };",
+      " }, { debug: true }",
+      ");"
     ]
   },
   "Sketch 3D": {
     "scope": "typescript",
     "prefix": "sketch3d",
     "body": [
-      "import { init, run } from \"drawing/sketch\";",
-      "import { Color, PerspectiveCamera, Scene } from \"three\";",
+      "import { run } from \"drawing/sketch\";",
+      "import { PerspectiveCamera, Scene } from \"three\";",
       "",
-      "const params = init({ debug: true });",
-      "const scene = new Scene();",
-      "const camera = new PerspectiveCamera(45, params.width/params.height, 1, 1000);",
-      "$0",
-      "run({ scene, camera }, params);"
+      "void run((params) => {",
+      "   const scene = new Scene();",
+      "   const camera = new PerspectiveCamera(45, params.width/params.height, 1, 1000);$0",
+      "   return { scene, camera };",
+      " }, { debug: true }",
+      ");"
     ]
   },
   "Timed": {

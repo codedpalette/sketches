@@ -4,7 +4,7 @@ import { cos, cube, multiply, norm, pi, sin, sqrt, square, subtract, unaryMinus 
 import { Attractor, Mover, TwoBodySystem, Vector2, Vector2Like } from "physics/forces";
 import { Container, Graphics } from "pixi.js";
 import { random } from "util/random";
-import { init, run } from "drawing/sketch";
+import { run } from "drawing/sketch";
 
 //TODO: Colors from noise, gradient
 //TODO: Spinning stars in the background
@@ -106,19 +106,23 @@ class Sun extends Attractor {
   }
 }
 
-const params = init({ debug: true });
-const system = fromOrbit({
-  position: new Point(0, 0),
-  semiMajor: 200,
-  semiMinor: 150,
-  rotationAngle: 0,
-  periodSeconds: 5,
-});
+void run(
+  (params) => {
+    const system = fromOrbit({
+      position: new Point(0, 0),
+      semiMajor: 200,
+      semiMinor: 150,
+      rotationAngle: 0,
+      periodSeconds: 5,
+    });
+    const update = (deltaTime: number) => system.update(deltaTime);
 
-const container = new Container();
-container.addChild(system.draw(params.debug));
-const update = (deltaTime: number) => system.update(deltaTime);
-run({ container, update }, params);
+    const container = new Container();
+    container.addChild(system.draw(params.debug));
+    return { container, update };
+  },
+  { debug: true }
+);
 
 function fromOrbit(orbitParams: OrbitParams): PlanetarySystem {
   const orbit = Orbit.fromParams(orbitParams);

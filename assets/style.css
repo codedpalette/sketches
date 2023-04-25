@@ -4,9 +4,8 @@ body {
   padding: 0;
 }
 
-canvas {
+#canvas {
   display: block;
-  border: 1px solid black;
   position: fixed;
   top: 50%;
   left: 50%;
