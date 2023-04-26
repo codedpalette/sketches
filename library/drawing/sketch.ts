@@ -31,16 +31,26 @@ export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<Sket
   const params = setDefaultParams(paramsOverrides);
   const sketch = sketchFactory(params);
 
-  const stats = params.debug && sketch.update ? new Stats() : undefined;
-  stats?.showPanel(0);
-  stats && document.body.appendChild(stats.dom);
+  const stats = new Stats();
+  const panels = new Set(sketch.update ? [0, 2] : [2]);
+  for (let i = 0; i < stats.dom.children.length; i++) {
+    (stats.dom.children[i] as HTMLCanvasElement).style.display = panels.has(i) ? "block" : "none";
+  }
+  document.body.appendChild(stats.dom);
 
-  //TODO: Add redrawing on click
-  const canvas = isPixiSketch(sketch) ? runPixiSketch(sketch, params, stats) : runThreeSketch(sketch, params, stats);
+  const [ctx, canvas] = isPixiSketch(sketch) ? initPixiSketch(params) : initThreeSketch(params);
   canvas.id = "canvas";
+
+  const redraw = () => {
+    const sketch = sketchFactory(params);
+    runSketch(sketch, params, ctx, stats);
+  };
+  canvas.onclick = redraw;
   document.body.appendChild(canvas);
+
   //TODO: Add storing png with canvas-capture
   CanvasCapture.init(canvas, { showRecDot: true });
+  runSketch(sketch, params, ctx, stats);
 }
 
 function setDefaultParams(params?: Partial<SketchParams>): SketchParams {
@@ -50,6 +60,11 @@ function setDefaultParams(params?: Partial<SketchParams>): SketchParams {
     height: 1080,
   };
   return { ...defaultParams, ...params };
+}
+
+function runSketch(sketch: Sketch, params: SketchParams, ctx: Application | WebGLRenderer, stats: Stats) {
+  if (isPixiSketch(sketch)) runPixiSketch(sketch, params, ctx as Application, stats);
+  else runThreeSketch(sketch, params, ctx as WebGLRenderer, stats);
 }
 
 //TODO: Add capture mode
@@ -77,7 +92,7 @@ function setDefaultParams(params?: Partial<SketchParams>): SketchParams {
 //   });
 // }
 
-function runPixiSketch(sketch: PixiSketch, params: SketchParams, stats?: Stats): HTMLCanvasElement {
+function initPixiSketch(params: SketchParams): [Application, HTMLCanvasElement] {
   const app = new Application({
     width: params.width,
     height: params.height,
@@ -85,29 +100,38 @@ function runPixiSketch(sketch: PixiSketch, params: SketchParams, stats?: Stats):
     antialias: true,
     preserveDrawingBuffer: true,
   });
+  return [app, app.view as HTMLCanvasElement];
+}
 
+function runPixiSketch(sketch: PixiSketch, params: SketchParams, app: Application, stats: Stats) {
   const ticker = new Ticker();
   const mainContainer = new Container();
   mainContainer.position = { x: params.width / 2, y: params.height / 2 };
   mainContainer.scale.set(1, -1);
   mainContainer.addChild(sketch.container);
   params.debug && mainContainer.addChild(drawAxes(params));
+  if (app.stage.children) {
+    const children = app.stage.removeChildren();
+    children.forEach((obj) => obj.destroy(true));
+  }
   app.stage.addChild(mainContainer);
 
   const render = () => app.renderer.render(app.stage);
   const loop = renderLoop(sketch, () => ticker.deltaMS / 1000, render, stats);
   loop();
-  return app.view as HTMLCanvasElement;
 }
 
-function runThreeSketch(sketch: ThreeSketch, params: SketchParams, stats?: Stats): HTMLCanvasElement {
+function initThreeSketch(params: SketchParams): [WebGLRenderer, HTMLCanvasElement] {
   const renderer = new WebGLRenderer({
     antialias: true,
     preserveDrawingBuffer: true,
     powerPreference: "high-performance",
   });
   renderer.setSize(params.width, params.height);
+  return [renderer, renderer.domElement];
+}
 
+function runThreeSketch(sketch: ThreeSketch, params: SketchParams, renderer: WebGLRenderer, stats: Stats) {
   const clock = new Clock();
   const drawCallsPanel = new Panel("DrawCalls", "lightgreen", "darkgreen");
   let maxDrawCalls = 0;
@@ -125,25 +149,27 @@ function runThreeSketch(sketch: ThreeSketch, params: SketchParams, stats?: Stats
   };
   const loop = renderLoop(sketch, () => clock.getDelta(), render, stats);
   isWebGL2Available() ? loop() : document.body.appendChild(getWebGL2ErrorMessage(params.width));
-  return renderer.domElement;
 }
 
-function renderLoop(sketch: Sketch, deltaSeconds: () => number, render: () => void, stats?: Stats) {
+function renderLoop(sketch: Sketch, deltaSeconds: () => number, render: () => void, stats: Stats) {
   let totalElapsed = 0;
+  let needsUpdate = true;
 
   const loop = () => {
-    stats?.begin();
-    render();
+    stats.begin();
+    needsUpdate && render();
+    needsUpdate = false;
 
     CanvasCapture.checkHotkeys();
     if (sketch.update) {
       const deltaTime = deltaSeconds();
       totalElapsed += deltaTime;
       sketch.update(deltaTime, totalElapsed);
+      needsUpdate = true;
     }
 
+    stats.end();
     requestAnimationFrame(loop);
-    stats?.end();
   };
   return loop;
 }
