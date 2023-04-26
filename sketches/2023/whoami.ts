@@ -6,9 +6,6 @@ import { Assets, Container, Graphics } from "pixi.js";
 import { Font, loadFont, textToPath } from "util/font";
 import { random } from "util/random";
 
-//TODO: Performance optimization (maybe rewrite to wasm?)
-//Sell with Printify, 50% - на ЗСУ
-
 interface FontFamily {
   regular: Font;
   bold: Font;
