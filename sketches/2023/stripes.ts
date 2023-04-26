@@ -15,7 +15,7 @@ import { random } from "util/random";
 // Shade on stripes
 // Shade on the floor
 
-void run(
+run(
   (params) => {
     const container = new Container();
     const rect = generateRect(params).toPath();

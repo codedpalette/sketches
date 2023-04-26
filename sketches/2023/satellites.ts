@@ -106,7 +106,7 @@ class Sun extends Attractor {
   }
 }
 
-void run(
+run(
   (params) => {
     const system = fromOrbit({
       position: new Point(0, 0),

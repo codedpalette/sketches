@@ -24,12 +24,12 @@ export interface ThreeSketch {
 }
 
 type Sketch = PixiSketch | ThreeSketch;
-type SketchFactory = (params: SketchParams) => Sketch | Promise<Sketch>;
+type SketchFactory = (params: SketchParams) => Sketch;
 //const FPS = 60;
 
-export async function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<SketchParams>) {
+export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<SketchParams>) {
   const params = setDefaultParams(paramsOverrides);
-  const sketch = await sketchFactory(params);
+  const sketch = sketchFactory(params);
 
   const stats = params.debug && sketch.update ? new Stats() : undefined;
   stats?.showPanel(0);

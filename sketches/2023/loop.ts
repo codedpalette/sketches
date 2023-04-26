@@ -8,8 +8,7 @@ import { createNoise4D } from "simplex-noise";
 import { fromPolar } from "geometry/angles";
 
 const noise = createNoise4D();
-
-void run((params) => {
+run((params) => {
   const loopDurationSeconds = 5;
   const planeDim = 2;
   const sides = 4;

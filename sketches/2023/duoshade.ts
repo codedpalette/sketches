@@ -6,7 +6,7 @@ import { hsl } from "color-convert";
 import { min, sqrt } from "mathjs";
 import { createNoise2D } from "simplex-noise";
 
-void run((params) => {
+run((params) => {
   const hue = random.real(0, 360);
   const bgColor = hsl.hex([hue, random.real(20, 30), random.real(80, 90)]);
   const numLayers = random.integer(2, 5);
