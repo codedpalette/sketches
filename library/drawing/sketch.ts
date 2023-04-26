@@ -10,6 +10,7 @@ export interface SketchParams {
   debug: boolean;
   width: number;
   height: number;
+  resolution: number;
 }
 
 export interface PixiSketch {
@@ -26,6 +27,17 @@ export interface ThreeSketch {
 type Sketch = PixiSketch | ThreeSketch;
 type SketchFactory = (params: SketchParams) => Sketch;
 const FPS = 60;
+
+export const Params = {
+  DEBUG: {
+    debug: true,
+  },
+  PRINTIFY: {
+    width: 960,
+    height: 1200,
+    resolution: 5,
+  },
+};
 
 export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<SketchParams>) {
   const params = setDefaultParams(paramsOverrides);
@@ -61,6 +73,7 @@ function setDefaultParams(params?: Partial<SketchParams>): SketchParams {
     debug: false,
     width: 1080,
     height: 1080,
+    resolution: 1,
   };
   return { ...defaultParams, ...params };
 }
@@ -75,8 +88,10 @@ function initPixiSketch(params: SketchParams): [Application, HTMLCanvasElement] 
   const app = new Application({
     width: params.width,
     height: params.height,
+    resolution: params.resolution,
     background: "white",
     antialias: true,
+    autoDensity: true,
     preserveDrawingBuffer: true,
   });
   return [app, app.view as HTMLCanvasElement];
@@ -106,6 +121,7 @@ function initThreeSketch(params: SketchParams): [WebGLRenderer, HTMLCanvasElemen
     powerPreference: "high-performance",
   });
   renderer.setSize(params.width, params.height);
+  renderer.setPixelRatio(params.resolution);
   return [renderer, renderer.domElement];
 }
 

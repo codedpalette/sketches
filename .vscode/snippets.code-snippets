@@ -19,13 +19,13 @@
     "scope": "typescript",
     "prefix": "sketch2d",
     "body": [
-      "import { run } from \"drawing/sketch\";",
+      "import { run, Params } from \"drawing/sketch\";",
       "import { Container } from \"pixi.js\";",
       "",
       "run((params) => {",
       "   const container = new Container();$0",
       "   return { container };",
-      " }, { debug: true }",
+      " }, Params.DEBUG",
       ");"
     ]
   },
@@ -33,14 +33,14 @@
     "scope": "typescript",
     "prefix": "sketch3d",
     "body": [
-      "import { run } from \"drawing/sketch\";",
+      "import { run, Params } from \"drawing/sketch\";",
       "import { PerspectiveCamera, Scene } from \"three\";",
       "",
       "run((params) => {",
       "   const scene = new Scene();",
       "   const camera = new PerspectiveCamera(45, params.width/params.height, 1, 1000);$0",
       "   return { scene, camera };",
-      " }, { debug: true }",
+      " }, Params.DEBUG",
       ");"
     ]
   },

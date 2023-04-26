@@ -1,5 +1,5 @@
 import { drawPath } from "drawing/pixi";
-import { SketchParams, run } from "drawing/sketch";
+import { Params, SketchParams, run } from "drawing/sketch";
 import { Color, CompoundPath, Line, Path, Point, Rectangle } from "geometry/paths";
 import { deg, fromPolar } from "geometry/angles";
 import { max, min, multiply, sign, sin, tan } from "mathjs";
@@ -15,24 +15,21 @@ import { random } from "util/random";
 // Shade on stripes
 // Shade on the floor
 
-run(
-  (params) => {
-    const container = new Container();
-    const rect = generateRect(params).toPath();
-    rect.fillColor = new Color("black");
+run((params) => {
+  const container = new Container();
+  const rect = generateRect(params).toPath();
+  rect.fillColor = new Color("black");
 
-    const { lines, segments } = generateStripes(params);
-    const stripedRect = rect.intersect(segments) as CompoundPath;
-    container.addChild(drawPath(stripedRect));
+  const { lines, segments } = generateStripes(params);
+  const stripedRect = rect.intersect(segments) as CompoundPath;
+  container.addChild(drawPath(stripedRect));
 
-    if (params.debug) {
-      lines.strokeColor = new Color("blue");
-      container.addChild(drawPath(lines));
-    }
-    return { container };
-  },
-  { debug: true }
-);
+  if (params.debug) {
+    lines.strokeColor = new Color("blue");
+    container.addChild(drawPath(lines));
+  }
+  return { container };
+}, Params.DEBUG);
 
 function generateRect(params: SketchParams): Rectangle {
   const halfDim = min(params.width, params.height) / 2;
