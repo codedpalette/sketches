@@ -25,6 +25,7 @@ export interface ThreeSketch {
 }
 
 type Sketch = PixiSketch | ThreeSketch;
+type SketchContext = Application | WebGLRenderer;
 type SketchFactory = (params: SketchParams) => Sketch;
 const FPS = 60;
 
@@ -50,7 +51,7 @@ export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<Sket
   }
   document.body.appendChild(stats.dom);
 
-  const [ctx, canvas] = isPixiSketch(sketch) ? initPixiSketch(params) : initThreeSketch(params);
+  const [ctx, canvas] = initSketch(sketch, params);
   canvas.id = "canvas";
   CanvasCapture.init(canvas, { showRecDot: true });
   CanvasCapture.bindKeyToPNGSnapshot("p");
@@ -59,42 +60,68 @@ export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<Sket
   });
   let cancel = runSketch(sketch, params, ctx, stats);
 
-  const redraw = () => {
+  canvas.onclick = () => {
     cancel();
     const sketch = sketchFactory(params);
     cancel = runSketch(sketch, params, ctx, stats);
   };
-  canvas.onclick = redraw;
+  if (process.env.NODE_ENV === "production") {
+    window.addEventListener("resize", () => {
+      cancel();
+      const params = setDefaultParams(paramsOverrides);
+      const sketch = sketchFactory(params);
+      initSketch(sketch, params, ctx);
+      cancel = runSketch(sketch, params, ctx, stats);
+    });
+  }
   document.body.appendChild(canvas);
 }
 
-function setDefaultParams(params?: Partial<SketchParams>): SketchParams {
-  const defaultParams: SketchParams = {
+function setDefaultParams(paramsOverrides?: Partial<SketchParams>): SketchParams {
+  const defaultParams = {
     debug: false,
-    width: 1080,
-    height: 1080,
     resolution: 1,
   };
-  return { ...defaultParams, ...params };
+  const dimensions =
+    process.env.NODE_ENV === "production"
+      ? { width: window.innerWidth, height: window.innerHeight }
+      : { width: 1080, height: 1080 };
+  return { ...defaultParams, ...dimensions, ...paramsOverrides };
 }
 
-function runSketch(sketch: Sketch, params: SketchParams, ctx: Application | WebGLRenderer, stats: Stats) {
+function initSketch<T extends Sketch>(
+  sketch: T,
+  params: SketchParams,
+  ctx?: SketchContext
+): [SketchContext, HTMLCanvasElement] {
+  if (isPixiSketch(sketch)) {
+    const app = (ctx ||
+      new Application({
+        background: "white",
+        antialias: true,
+        autoDensity: true,
+        preserveDrawingBuffer: true,
+      })) as Application;
+    app.renderer.resize(params.width, params.height);
+    app.renderer.resolution = params.resolution;
+    return [app, app.view as HTMLCanvasElement];
+  } else {
+    const renderer = (ctx ||
+      new WebGLRenderer({
+        antialias: true,
+        preserveDrawingBuffer: true,
+        powerPreference: "high-performance",
+      })) as WebGLRenderer;
+    renderer.setSize(params.width, params.height);
+    renderer.setPixelRatio(params.resolution);
+    return [renderer, renderer.domElement];
+  }
+}
+
+function runSketch(sketch: Sketch, params: SketchParams, ctx: SketchContext, stats: Stats) {
   return isPixiSketch(sketch)
     ? runPixiSketch(sketch, params, ctx as Application, stats)
     : runThreeSketch(sketch, params, ctx as WebGLRenderer, stats);
-}
-
-function initPixiSketch(params: SketchParams): [Application, HTMLCanvasElement] {
-  const app = new Application({
-    width: params.width,
-    height: params.height,
-    resolution: params.resolution,
-    background: "white",
-    antialias: true,
-    autoDensity: true,
-    preserveDrawingBuffer: true,
-  });
-  return [app, app.view as HTMLCanvasElement];
 }
 
 function runPixiSketch(sketch: PixiSketch, params: SketchParams, app: Application, stats: Stats) {
@@ -114,22 +141,11 @@ function runPixiSketch(sketch: PixiSketch, params: SketchParams, app: Applicatio
   return loop.cancel;
 }
 
-function initThreeSketch(params: SketchParams): [WebGLRenderer, HTMLCanvasElement] {
-  const renderer = new WebGLRenderer({
-    antialias: true,
-    preserveDrawingBuffer: true,
-    powerPreference: "high-performance",
-  });
-  renderer.setSize(params.width, params.height);
-  renderer.setPixelRatio(params.resolution);
-  return [renderer, renderer.domElement];
-}
-
 function runThreeSketch(sketch: ThreeSketch, params: SketchParams, renderer: WebGLRenderer, stats: Stats) {
   const clock = new Clock();
   const drawCallsPanel = new Panel("DrawCalls", "lightgreen", "darkgreen");
   let maxDrawCalls = 0;
-  stats?.addPanel(drawCallsPanel);
+  stats && stats.dom.children.length !== 4 && stats.addPanel(drawCallsPanel);
 
   const [scene, camera] = [sketch.scene, sketch.camera];
   params.debug && scene.add(new AxesHelper(), new GridHelper());

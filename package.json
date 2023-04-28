@@ -2,10 +2,11 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "serve": "parcel index.html --dist-dir bin",
+    "serve": "parcel --dist-dir bin",
     "electron": "wait-on http://localhost:1234 && electron --js-flags=--max-old-space-size=8192 .",
     "start": "concurrently \"yarn serve\" \"yarn electron\" -k -c auto -s command-1",
-    "postinstall": "husky install"
+    "postinstall": "husky install",
+    "build": "parcel build --target genclub --no-content-hash"
   },
   "lint-staged": {
     "*.ts": [
@@ -13,10 +14,13 @@
       "prettier --write"
     ]
   },
+  "source": "index.html",
   "main": "electron.js",
   "targets": {
-    "electron": {
-      "context": "electron-renderer"
+    "genclub": {
+      "context": "browser",
+      "sourceMap": false,
+      "publicUrl": "./"
     }
   },
   "staticFiles": {
