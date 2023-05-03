@@ -1,12 +1,10 @@
 import { SketchParams, run } from "drawing/sketch";
 import { Line, Point } from "geometry/paths";
 import { Container, Graphics, NoiseFilter } from "pixi.js";
-import { random } from "util/random";
+import { noise3d, random } from "util/random";
 import { hsl } from "color-convert";
 import { min, sqrt } from "mathjs";
-import { createNoise3D } from "simplex-noise";
 
-const noise = createNoise3D();
 run((params) => {
   const hue = random.real(0, 360);
   const bgColor = hsl.hex([hue, random.real(20, 30), random.real(80, 90)]);
@@ -54,7 +52,7 @@ run((params) => {
     const mask = new Graphics().beginFill(0xffffff);
     for (let x = -params.width / 2; x < params.width / 2; x += step) {
       for (let y = -params.height / 2; y < params.height / 2; y += step) {
-        const n = noise((x + step / 2) * noiseFactor, (y + step / 2) * noiseFactor, layerNum * 1000);
+        const n = noise3d((x + step / 2) * noiseFactor, (y + step / 2) * noiseFactor, layerNum * 1000);
         n > cutoff && mask.drawRect(x, y, step, step);
       }
     }
