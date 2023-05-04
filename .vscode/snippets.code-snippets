@@ -23,10 +23,9 @@
       "import { Container } from \"pixi.js\";",
       "",
       "run((params) => {",
-      "   const container = new Container();$0",
-      "   return { container };",
-      " }, Params.DEBUG",
-      ");"
+      "  const container = new Container();$0",
+      "  return { container };",
+      "}, Params.DEBUG);"
     ]
   },
   "Sketch 3D": {
@@ -37,11 +36,10 @@
       "import { PerspectiveCamera, Scene } from \"three\";",
       "",
       "run((params) => {",
-      "   const scene = new Scene();",
-      "   const camera = new PerspectiveCamera(45, params.width/params.height, 1, 1000);$0",
-      "   return { scene, camera };",
-      " }, Params.DEBUG",
-      ");"
+      "  const scene = new Scene();",
+      "  const camera = new PerspectiveCamera(45, params.width/params.height, 1, 1000);$0",
+      "  return { scene, camera };",
+      "}, Params.DEBUG);"
     ]
   },
   "Timed": {
