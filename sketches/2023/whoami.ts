@@ -25,16 +25,16 @@ const [firstLine, secondLine, translationsFile, flagRotation] = ["ХТО", "Я?"
 //const [firstLine, secondLine, translationsFile, flagRotation] = ["ЩО", "ЦЕ?", "what.txt", 90];
 void loadTextParams(translationsFile).then((textParams) => {
   run((params) => {
-    const nTexts = 500;
+    const nTexts = 1000;
     const lineHeight = 300;
     const lineSpacing = 50;
     const margin = 10;
-    const { background, foreground } = createFlag();
+    const { foreground } = createFlag();
 
     const container = new Container();
     const mainPaths = generateMainText(textParams.mainFont);
-    !params.debug && container.addChild(background);
-    container.addChild(drawMainText(mainPaths));
+    //!params.debug && container.addChild(background);
+    //container.addChild(drawMainText(mainPaths));
     container.addChild(generateSecondaryTexts(mainPaths, textParams));
     return { container };
 
@@ -64,6 +64,7 @@ void loadTextParams(translationsFile).then((textParams) => {
       return path;
     }
 
+    // eslint-disable-next-line unused-imports/no-unused-vars
     function drawMainText(mainPaths: CompoundPath[]): Container {
       const container = new Container();
       const pathSteps = params.debug ? 1 : 10;

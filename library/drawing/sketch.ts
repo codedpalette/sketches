@@ -1,4 +1,4 @@
-import { Application, Container, Ticker } from "pixi.js";
+import { Application, ColorSource, Container, Ticker } from "pixi.js";
 import { AxesHelper, Camera, Clock, GridHelper, Scene, WebGLRenderer } from "three";
 import { drawAxes } from "./pixi";
 import { getWebGL2ErrorMessage, isWebGL2Available } from "./webgl";
@@ -11,6 +11,7 @@ export interface SketchParams {
   width: number;
   height: number;
   resolution: number;
+  background: ColorSource;
 }
 
 export interface PixiSketch {
@@ -81,6 +82,7 @@ function setDefaultParams(paramsOverrides?: Partial<SketchParams>): SketchParams
   const defaultParams = {
     debug: false,
     resolution: 1,
+    background: "white",
   };
   const dimensions =
     process.env.NODE_ENV === "production"
@@ -97,13 +99,13 @@ function initSketch<T extends Sketch>(
   if (isPixiSketch(sketch)) {
     const app = (ctx ||
       new Application({
-        background: "white",
+        background: params.background,
         antialias: true,
         autoDensity: true,
         preserveDrawingBuffer: true,
       })) as Application;
-    app.renderer.resize(params.width, params.height);
     app.renderer.resolution = params.resolution;
+    app.renderer.resize(params.width, params.height);
     return [app, app.view as HTMLCanvasElement];
   } else {
     const renderer = (ctx ||
@@ -112,8 +114,8 @@ function initSketch<T extends Sketch>(
         preserveDrawingBuffer: true,
         powerPreference: "high-performance",
       })) as WebGLRenderer;
-    renderer.setSize(params.width, params.height);
     renderer.setPixelRatio(params.resolution);
+    renderer.setSize(params.width, params.height);
     return [renderer, renderer.domElement];
   }
 }
