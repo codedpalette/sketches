@@ -42,7 +42,7 @@ export const Params = {
 };
 
 export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<SketchParams>) {
-  const params = setDefaultParams(paramsOverrides);
+  let params = setDefaultParams(paramsOverrides);
   const sketch = sketchFactory(params);
 
   const stats = new Stats();
@@ -69,7 +69,7 @@ export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<Sket
   if (process.env.NODE_ENV === "production") {
     window.addEventListener("resize", () => {
       cancel();
-      const params = setDefaultParams(paramsOverrides);
+      params = setDefaultParams(paramsOverrides);
       const sketch = sketchFactory(params);
       initSketch(sketch, params, ctx);
       cancel = runSketch(sketch, params, ctx, stats);
