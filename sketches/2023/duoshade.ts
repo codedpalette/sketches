@@ -1,16 +1,15 @@
 import { SketchParams, run } from "drawing/sketch";
 import { Line, Point } from "geometry/paths";
-import { Container, Graphics, NoiseFilter } from "pixi.js";
+import { Container, Graphics, NoiseFilter, Sprite } from "pixi.js";
 import { noise3d, random } from "util/random";
 import { hsl } from "color-convert";
-import { min, sqrt } from "mathjs";
+import { sqrt } from "mathjs";
 
 run((params) => {
   const hue = random.real(0, 360);
   const bgColor = hsl.hex([hue, random.real(20, 30), random.real(80, 90)]);
-  const numLayers = random.integer(2, 5);
+  const numLayers = random.integer(2, 4);
   const startingRotation = random.real(0, 360);
-  const maskGridStep = 500;
 
   const container = new Container();
 
@@ -36,7 +35,7 @@ run((params) => {
     container.mask = mask;
     container.addChild(mask);
 
-    const lineStep = random.real(5, 15);
+    const lineStep = random.real(10, 20);
     const sat = random.real(50, 100);
     const bri = random.real(10, 30);
     const lines = drawLines(lineStep, sat, bri, params);
@@ -47,17 +46,22 @@ run((params) => {
   }
 
   function drawMask(layerNum: number, noiseFactor: number, cutoff: number, params: SketchParams) {
-    const size = min(params.width, params.height);
-    const step = size / maskGridStep;
-    const mask = new Graphics().beginFill(0xffffff);
-    for (let x = -params.width / 2; x < params.width / 2; x += step) {
-      for (let y = -params.height / 2; y < params.height / 2; y += step) {
-        const n = noise3d((x + step / 2) * noiseFactor, (y + step / 2) * noiseFactor, layerNum * 1000);
-        n > cutoff && mask.drawRect(x, y, step, step);
+    const canvas = new OffscreenCanvas(params.width, params.height);
+    const ctx = canvas.getContext("2d") as OffscreenCanvasRenderingContext2D;
+    const imageData = ctx.getImageData(0, 0, params.width, params.height);
+    const pixels = imageData.data;
+    let i = 0;
+    for (let x = 0; x < params.width; x++) {
+      for (let y = 0; y < params.height; y++) {
+        const n = noise3d(x * noiseFactor, y * noiseFactor, layerNum * 1000);
+        pixels[i++] = pixels[i++] = pixels[i++] = n > cutoff ? 255 : 0;
+        pixels[i++] = 255;
       }
     }
-    mask.endFill();
-    return mask;
+    ctx.putImageData(imageData, 0, 0);
+    const sprite = Sprite.from(canvas);
+    sprite.anchor.set(0.5, 0.5);
+    return sprite;
   }
 
   function drawLines(lineStep: number, sat: number, bri: number, params: SketchParams) {
@@ -72,6 +76,7 @@ run((params) => {
       line.position = new Point(0, -i);
       c.addChild(drawLine(line, lineColor, lineStep));
     }
+    c.cacheAsBitmap = true;
     return c;
   }
 
