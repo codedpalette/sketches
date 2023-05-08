@@ -1,7 +1,7 @@
-import fontkit from "@pdf-lib/fontkit";
+import { create, GlyphRun, Font as FontKitFont } from "fontkit";
 import { CompoundPath } from "geometry/paths";
 
-export type Font = fontkit.Font;
+export type Font = FontKitFont;
 
 export function textToPath(text: string, font: Font, removeOffset = false, fontSize = 72): CompoundPath | undefined {
   // Check if font has glyphs for all characters in text
@@ -12,11 +12,11 @@ export function textToPath(text: string, font: Font, removeOffset = false, fontS
   }
 
   // Try to convert text to glyphs
-  let layout: fontkit.GlyphRun;
+  let layout: GlyphRun;
   try {
     layout = font.layout(text);
   } catch (e) {
-    console.error(`Layout failed: text = ${text}, font = ${font.fullName as string}`);
+    console.error(`Layout failed: text = ${text}, font = ${font.fullName}`);
     return undefined;
   }
 
@@ -38,8 +38,7 @@ export function textToPath(text: string, font: Font, removeOffset = false, fontS
 
 export async function loadFont(path: string): Promise<Font> {
   const arrayBuffer = await (await (await fetch(`http://localhost:1234/${path}`)).blob()).arrayBuffer();
-  const buffer = new Uint8Array(arrayBuffer);
-  // eslint-disable-next-line import/no-named-as-default-member
-  const font = fontkit.create(buffer);
+  const buffer = Buffer.from(arrayBuffer);
+  const font = create(buffer);
   return font;
 }

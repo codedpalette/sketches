@@ -5,6 +5,7 @@ import { concavePacking } from "geometry/packing/concave";
 import { Assets, Container, Graphics } from "pixi.js";
 import { Font, loadFont, textToPath } from "util/font";
 import { random } from "util/random";
+import { max } from "mathjs";
 
 interface FontFamily {
   regular: Font;
@@ -20,13 +21,13 @@ interface TextParams {
   translations: Set<string>;
 }
 
-const [firstLine, secondLine, translationsFile, flagRotation] = ["ХТО", "Я?", "who.txt", random.integer(-45, 45)];
+const [firstLine, secondLine, translationsFile, flagRotation] = ["ХТО", "Я?", "who.txt", 45];
 //const [firstLine, secondLine, translationsFile, flagRotation] = ["ДЕ", "МИ?", "where.txt", 0];
 //const [firstLine, secondLine, translationsFile, flagRotation] = ["ЩО", "ЦЕ?", "what.txt", 90];
 void loadTextParams(translationsFile).then((textParams) => {
   run((params) => {
-    const nTexts = 1000;
-    const lineHeight = 300;
+    const nTexts = 1200;
+    const lineHeight = params.width < params.height ? 250 : 300;
     const lineSpacing = 50;
     const margin = 10;
     const { foreground } = createFlag();
@@ -55,7 +56,8 @@ void loadTextParams(translationsFile).then((textParams) => {
     function generateMainGlyph(mainFont: Font, x: number, y: number, char: string): CompoundPath {
       const path = textToPath(char, mainFont, true) as CompoundPath; // Can't be undefined for mainFont
       const boundingBox = calculateGlyphBoundingBox(path);
-      const scaleX = lineHeight / boundingBox.width;
+      const scaleXFactor = max(boundingBox.width / boundingBox.height - 1, 1);
+      const scaleX = (lineHeight / boundingBox.width) * scaleXFactor;
       const scaleY = lineHeight / boundingBox.height;
 
       path.translate([-boundingBox.width / 2, -boundingBox.height / 2]);
@@ -117,8 +119,13 @@ void loadTextParams(translationsFile).then((textParams) => {
         ff.italic,
         ff.boldItalic,
       ]);
+      let textsArray: string[] = [];
       for (;;) {
-        const text = random.pick(Array.from(params.translations.values()));
+        if (textsArray.length == 0) {
+          textsArray = Array.from(params.translations.values());
+          random.shuffle(textsArray);
+        }
+        const text = textsArray.shift() as string;
         const textPath =
           textToPath(text, random.pick(allFontVariants)) ||
           textToPath(text, random.pick(params.fallbackUnicodeFonts)) ||
@@ -164,13 +171,13 @@ void loadTextParams(translationsFile).then((textParams) => {
         new Point([random.integer(0, params.width / 2), random.integer(-params.height / 2, 0)]),
       ];
 
-      const flipColors = random.bool();
-      const [background, foreground] = [flipColors, !flipColors].map((isBackground) => {
+      const flipColors = params.background == "white";
+      const [background, foreground] = [flipColors, !flipColors].map((isForeground) => {
         const graphics = new Graphics()
-          .beginFill(isBackground ? blue : yellow) // Fill background
+          .beginFill(isForeground ? blue : yellow) // Fill background
           .drawRect(-params.width, -params.height, params.width * 2, params.height * 2)
           .endFill()
-          .beginFill(isBackground ? yellow : blue) // Fill area under the curve
+          .beginFill(isForeground ? yellow : blue) // Fill area under the curve
           .moveTo(-params.width, -params.height)
           .lineTo(-params.width, 0)
           .bezierCurveTo(cpt1.x, cpt1.y, cpt2.x, cpt2.y, params.width, 0)
@@ -218,11 +225,11 @@ async function loadTextParams(translationsFile: string): Promise<TextParams> {
   const fallbackUnicodeFontSerif = await loadFont("whoami/GoNotoCurrentSerif.ttf");
   const fallbackUnicodeFonts = [fallbackUnicodeFont, fallbackUnicodeFontSerif];
   const translated = (await Assets.load<string>(`whoami/translations/${translationsFile}`)).split("\n");
-  const translations = new Set([
-    ...translated,
-    ...translated.map((s) => s.toLowerCase()),
-    ...translated.map((s) => s.toUpperCase()),
-  ]);
+  const translations = new Set(
+    [...translated, ...translated.map((s) => s.toLowerCase()), ...translated.map((s) => s.toUpperCase())].map((s) =>
+      s.trim()
+    )
+  );
   return {
     mainFont,
     secondaryFontFamilies,
