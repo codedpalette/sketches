@@ -1,8 +1,8 @@
-import { gray } from "color-convert";
+import { gray } from "drawing/pixi";
 import { run } from "drawing/sketch";
 import { Vector2 } from "geometry/vectors";
 import { DashLine } from "pixi-dashed-line";
-import { Container, Graphics } from "pixi.js";
+import { Color, Container, Graphics } from "pixi.js";
 import { random } from "util/random";
 
 run((params) => {
@@ -18,11 +18,11 @@ run((params) => {
   for (let i = 0; i < numPoints; i++) {
     for (let j = 0; j < numPoints; j++) {
       if (i == j) continue;
-      const color = gray.hex([random.real(0, 100)]);
+      const color = new Color(gray(random.real(0, 100)));
       const dash = new DashLine(g, {
         dash: [random.real(10, 20), random.real(2, 10)],
         width: random.real(0.2, 0.4),
-        color: parseInt(color, 16),
+        color: color.toNumber(),
         alpha: 0.5,
         useDots: false,
       });

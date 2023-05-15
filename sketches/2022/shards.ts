@@ -1,3 +1,4 @@
+import { gray, setBackground } from "drawing/pixi";
 import { run } from "drawing/sketch";
 import { multiply } from "mathjs";
 import { Container, DEG_TO_RAD, Graphics } from "pixi.js";
@@ -17,10 +18,7 @@ run((params) => {
   const bbox = { xl: -params.width / 2, xr: params.width / 2, yt: -params.height / 2, yb: params.height / 2 };
   const diagram = new Voronoi().compute(sites, bbox);
   const container = new Container();
-  const background = new Graphics()
-    .beginFill(gradientDirection ? "white" : "black")
-    .drawRect(-params.width / 2, -params.height / 2, params.width, params.height);
-  container.addChild(background);
+  setBackground(container, gradientDirection ? "white" : "black", params);
 
   for (const cell of diagram.cells) {
     const halfEdges = cell.halfedges;
@@ -33,7 +31,7 @@ run((params) => {
       const scaleFactor = (baseScaleFactor * (subShards - i)) / subShards;
       const alpha = map(i, 0, subShards, 1, 0);
       const fillColor = gradientDirection ? 256 - 24 * i : 16 * i;
-      const rgb = { r: fillColor, g: fillColor, b: fillColor };
+      const rgb = gray(fillColor);
 
       const pointData = halfEdges.map((edge) => {
         const point = edge.getStartpoint();

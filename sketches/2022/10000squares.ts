@@ -1,3 +1,4 @@
+import { gray } from "drawing/pixi";
 import { run } from "drawing/sketch";
 import { abs, cos, exp, min, pi, sin } from "mathjs";
 import { Container, Graphics } from "pixi.js";
@@ -34,9 +35,9 @@ run((params) => {
     const [width, height] = [random.real(radius, radius + radiusDiv), random.real(radius, radius + radiusDiv)];
 
     const alpha = map(factor, 1, 0, 255, 150);
-    const strokeColor = map(factor, 0, 1, 100, 50) / 255;
+    const strokeColor = map(factor, 0, 1, 100, 50);
     const strokeThickness = map(factor * factor, 0, 1, 0, 2);
-    graphics.lineStyle(strokeThickness, [strokeColor, strokeColor, strokeColor], alpha);
+    graphics.lineStyle(strokeThickness, gray(strokeColor), alpha);
 
     const hueNoiseFactor = 0.05;
     const n = noise2d(centerX * hueNoiseFactor, centerY * hueNoiseFactor);

@@ -1,5 +1,6 @@
 import { SVGScene } from "@pixi-essentials/svg";
-import { Graphics } from "pixi.js";
+import { ColorSource, Container, Graphics } from "pixi.js";
+import { SketchParams } from "./sketch";
 
 export type LineLike = [number, number, number, number] | { x1: number; y1: number; x2: number; y2: number };
 
@@ -29,4 +30,15 @@ export function drawPath(path: paper.Path | paper.CompoundPath): Graphics {
   const scene = new SVGScene(svg);
   const graphics = scene.root.children[0] as Graphics;
   return graphics;
+}
+
+export function setBackground(container: Container, color: ColorSource, params: SketchParams) {
+  const background = new Graphics()
+    .beginFill(color)
+    .drawRect(-params.width / 2, -params.height / 2, params.width, params.height);
+  container.addChild(background);
+}
+
+export function gray(gray: number): ColorSource {
+  return { r: gray, g: gray, b: gray };
 }
