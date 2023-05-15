@@ -8,6 +8,7 @@ import { fromPolar } from "geometry/angles";
 import { noise4d } from "util/random";
 
 run((params) => {
+  const noise = noise4d();
   const loopDurationSeconds = 5;
   const planeDim = 2;
   const sides = 4;
@@ -54,9 +55,9 @@ run((params) => {
       const y = abs(mesh.position.y) * noiseScaleFactor;
       const z = abs((elapsedTotal % loopDurationSeconds) * 2 - loopDurationSeconds) * noiseScaleFactor;
 
-      const hue = noise4d(x, y, z, 0);
-      const sat = 0.5 + noise4d(x, y, z, 100) / 4;
-      const bri = 0.5 + noise4d(x, y, z, 200) / 4;
+      const hue = noise(x, y, z, 0);
+      const sat = 0.5 + noise(x, y, z, 100) / 4;
+      const bri = 0.5 + noise(x, y, z, 200) / 4;
 
       (mesh.material as MeshBasicMaterial).color.setHSL(hue, sat, bri);
     }

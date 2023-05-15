@@ -7,6 +7,7 @@ import { abs, max, min, sqrt, tan } from "mathjs";
 import { deg } from "geometry/angles";
 
 run((params) => {
+  const noise = noise3d();
   const hue = random.real(0, 360);
   const bgColor = hsl.hex([hue, random.real(20, 30), random.real(80, 90)]);
   const numLayers = random.integer(2, 4);
@@ -52,7 +53,7 @@ run((params) => {
     let i = 0;
     for (let y = 0; y < params.height; y++) {
       for (let x = 0; x < params.width; x++) {
-        const n = noise3d(x * noiseFactor, y * noiseFactor, layerNum * 1000);
+        const n = noise(x * noiseFactor, y * noiseFactor, layerNum * 1000);
         pixels[i++] = pixels[i++] = pixels[i++] = n > cutoff ? 255 : 0;
         pixels[i++] = 255;
       }

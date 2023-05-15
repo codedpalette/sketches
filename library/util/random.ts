@@ -12,9 +12,9 @@ declare module "random-js" {
 }
 
 export const random = new Random(MersenneTwister19937.autoSeed());
-export const noise2d = createNoise2D(() => random.realZeroToOneExclusive());
-export const noise3d = createNoise3D(() => random.realZeroToOneExclusive());
-export const noise4d = createNoise4D(() => random.realZeroToOneExclusive());
+export const noise2d = () => createNoise2D(() => random.realZeroToOneExclusive());
+export const noise3d = () => createNoise3D(() => random.realZeroToOneExclusive());
+export const noise4d = () => createNoise4D(() => random.realZeroToOneExclusive());
 
 Random.prototype.sign = function () {
   return this.bool() ? 1 : -1;
