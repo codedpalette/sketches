@@ -43,8 +43,8 @@ run((params) => {
     const n = noise2d(centerX * hueNoiseFactor, centerY * hueNoiseFactor);
     const hue = n > 0.5 ? randColor : (randColor + 180) % 360;
     const sat = map(factor, 0, 1, 50, 0);
-    const lit = map(factor, 0, 1, 90, 100);
-    graphics.beginFill({ h: hue, s: sat, v: lit });
+    const val = map(factor, 0, 1, 90, 100);
+    graphics.beginFill({ h: hue, s: sat, v: val });
 
     const skewNoiseFactor = 0.01;
     const n1 = noise3d(centerX * skewNoiseFactor, centerY * skewNoiseFactor, 1000);

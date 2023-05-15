@@ -74,9 +74,9 @@ run((params) => {
     const avgVegMagSquared = avgVec[0] * avgVec[0] + avgVec[1] * avgVec[1];
     const weight = map(avgVegMagSquared, 0, maxDist, 4, 1);
     const alpha = map(avgVegMagSquared, 0, maxDist, 150, 50);
-    const bri = map(avgVegMagSquared, 0, maxDist, 70, 30);
+    const val = map(avgVegMagSquared, 0, maxDist, 70, 30);
     const sat = map(avgVegMagSquared, 0, maxDist, 80, 40);
-    const colorSource = { h: hue, s: sat, v: bri, a: alpha };
+    const colorSource = { h: hue, s: sat, v: val, a: alpha };
 
     g.lineStyle(weight, colorSource)
       .beginFill(colorSource)
