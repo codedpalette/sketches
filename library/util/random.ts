@@ -1,4 +1,5 @@
-import { cos, log, pi, sqrt } from "mathjs";
+import { Vector2 } from "geometry/vectors";
+import { cos, log, pi, sin, sqrt } from "mathjs";
 import { MersenneTwister19937, Random } from "random-js";
 import { createNoise2D, createNoise3D, createNoise4D } from "simplex-noise";
 
@@ -6,6 +7,7 @@ declare module "random-js" {
   interface Random {
     sign(): -1 | 1;
     normal(mean?: number, std?: number): number;
+    random2d(): Vector2;
   }
 }
 
@@ -24,4 +26,9 @@ Random.prototype.normal = function (mean = 0, std = 1) {
   const v = this.realZeroToOneExclusive();
   const z = (sqrt(-2 * log(u)) as number) * cos(2 * pi * v);
   return z * std + mean;
+};
+
+Random.prototype.random2d = function () {
+  const angle = this.real(0, pi * 2);
+  return [cos(angle), sin(angle)];
 };

@@ -12,11 +12,13 @@
     "bin": true
   },
   "cSpell.words": [
+    "bbox",
     "Comlink",
     "darkgreen",
     "fontkit",
     "FXAA",
     "genclub",
+    "halfedges",
     "Latus",
     "lightgreen",
     "linewidth",
@@ -30,11 +32,13 @@
     "PRINTIFY",
     "roboto",
     "sindresorhus",
+    "Startpoint",
     "transferables",
     "tspaths",
     "tweenjs",
     "unicodes",
     "Verdana",
+    "voronoi",
     "webglmessage"
   ],
   "typescript.tsdk": "./node_modules/typescript/lib"
