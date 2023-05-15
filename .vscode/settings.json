@@ -39,6 +39,7 @@
     "unicodes",
     "Verdana",
     "voronoi",
+    "voronoijs",
     "webglmessage"
   ],
   "typescript.tsdk": "./node_modules/typescript/lib"
