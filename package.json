@@ -38,6 +38,7 @@
     "hull.js": "^1.0.3",
     "mathjs": "^11.5.0",
     "paper": "^0.12.17",
+    "pixi-dashed-line": "^1.4.2",
     "pixi.js": "^7.2.1",
     "random-js": "^2.1.0",
     "rxjs": "^7.8.0",

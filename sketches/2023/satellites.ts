@@ -1,7 +1,8 @@
 import { drawPath } from "drawing/pixi";
 import { Color, Ellipse, Path, Point, Rectangle } from "geometry/paths";
 import { cos, cube, multiply, norm, pi, sin, sqrt, square, subtract, unaryMinus } from "mathjs";
-import { Attractor, Mover, TwoBodySystem, Vector2, Vector2Like } from "physics/forces";
+import { Attractor, Mover, TwoBodySystem } from "physics/forces";
+import { Vector2, Vector2Like } from "geometry/vectors";
 import { Container, Graphics } from "pixi.js";
 import { random } from "util/random";
 import { Params, run } from "drawing/sketch";

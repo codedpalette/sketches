@@ -1,12 +1,6 @@
 import { Point } from "geometry/paths";
 import { add, divide, min, multiply, square } from "mathjs";
-
-export type Vector2 = [number, number];
-export type Vector2Like = Vector2 | { x: number; y: number };
-
-function toVector(vectorLike: Vector2Like): Vector2 {
-  return vectorLike instanceof Array ? vectorLike : [vectorLike.x, vectorLike.y];
-}
+import { Vector2Like, Vector2, toVector } from "geometry/vectors";
 
 interface BodyLike {
   readonly position: Point;
