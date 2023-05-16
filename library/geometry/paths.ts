@@ -21,6 +21,8 @@ export const Matrix = paper.Matrix;
 
 export type Line = paper.Path.Line;
 export const Line = paper.Path.Line;
+export type Circle = paper.Path.Circle;
+export const Circle = paper.Path.Circle;
 export type Ellipse = paper.Path.Ellipse;
 export const Ellipse = paper.Path.Ellipse;
 
