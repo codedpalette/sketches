@@ -1,3 +1,4 @@
+import { abs, max, min } from "mathjs";
 import paper from "paper/dist/paper-core";
 paper.setup([1, 1]);
 
@@ -49,3 +50,12 @@ CompoundPath.prototype.toPoints = function (step = 1) {
 Rectangle.prototype.toPath = function () {
   return new Path.Rectangle(this);
 };
+
+export function plot(f: (x: number) => number, x0: number, x1: number, step?: number) {
+  step = step || abs(x1 - x0) / 100;
+  const path = new Path();
+  for (let i = min(x0, x1); i < max(x0, x1); i += step) {
+    path.add(new Point(i, f(i)));
+  }
+  return path;
+}
