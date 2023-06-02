@@ -1,5 +1,5 @@
 import { SVGScene } from "@pixi-essentials/svg";
-import { ColorSource, Container, Graphics } from "pixi.js";
+import { ColorSource, Container, Graphics, ILineStyleOptions } from "pixi.js";
 
 export type LineLike = [number, number, number, number] | { x1: number; y1: number; x2: number; y2: number };
 
@@ -11,8 +11,9 @@ export function drawLines(lines: LineLike[], graphics: Graphics) {
   });
 }
 
-export function drawAxes({ width, height }: { width: number; height: number }): Graphics {
-  const graphics = new Graphics().lineStyle(1, 0xff0000);
+export function drawAxes({ width, height }: { width: number; height: number }, options?: ILineStyleOptions): Graphics {
+  const lineStyleOptions = options || { width: 1, color: 0xff0000 };
+  const graphics = new Graphics().lineStyle(lineStyleOptions);
   const lines: LineLike[] = [
     [-width / 2, 0, width / 2, 0],
     [0, height / 2, 0, -height / 2],
