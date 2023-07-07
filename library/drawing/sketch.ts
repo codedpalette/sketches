@@ -5,6 +5,7 @@ import { getWebGL2ErrorMessage, isWebGL2Available } from "./webgl";
 import Stats, { Panel } from "stats.js";
 import { max, round } from "mathjs";
 import { CanvasCapture } from "canvas-capture";
+import { Path, Rectangle } from "geometry/paths";
 
 export interface SketchParams {
   debug: boolean;
@@ -198,4 +199,8 @@ function renderLoop(sketch: Sketch, deltaSeconds: () => number, render: () => vo
 
 function isPixiSketch(sketch: Sketch): sketch is PixiSketch {
   return (<PixiSketch>sketch).container !== undefined;
+}
+
+export function getBounds(params: SketchParams): Path {
+  return new Rectangle(-params.width / 2, params.height / 2, params.width, -params.height).toPath();
 }

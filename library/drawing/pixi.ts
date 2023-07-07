@@ -1,11 +1,17 @@
 import { SVGScene } from "@pixi-essentials/svg";
+import { Line, Path } from "geometry/paths";
 import { ColorSource, Container, Graphics, ILineStyleOptions } from "pixi.js";
 
-export type LineLike = [number, number, number, number] | { x1: number; y1: number; x2: number; y2: number };
+export type LineLike = [number, number, number, number] | { x1: number; y1: number; x2: number; y2: number } | Line;
 
 export function drawLines(lines: LineLike[], graphics: Graphics) {
   lines.forEach((line) => {
-    const [x1, y1, x2, y2] = line instanceof Array ? line : [line.x1, line.y1, line.x2, line.y2];
+    const [x1, y1, x2, y2] =
+      line instanceof Array
+        ? line
+        : line instanceof Path
+        ? [line.getPointAt(0).x, line.getPointAt(0).y, line.getPointAt(line.length).x, line.getPointAt(line.length).y]
+        : [line.x1, line.y1, line.x2, line.y2];
     graphics.moveTo(x1, y1);
     graphics.lineTo(x2, y2);
   });
