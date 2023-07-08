@@ -21,7 +21,7 @@ run((params) => {
     for (let i = 0; i < numBaseLines; i++) {
       const fromTheta = random.real(i * sector, (i + 1) * sector);
       const fromIdx = (fromTheta / (2 * pi)) * bounds.length;
-      const toTheta = fromTheta + random.real(pi / 2, (3 * pi) / 2); //TODO: Change?
+      const toTheta = fromTheta + random.real(pi / 2, (3 * pi) / 2);
       const toIdx = ((toTheta / (2 * pi)) % 1) * bounds.length;
       const line = new Line(bounds.getPointAt(fromIdx), bounds.getPointAt(toIdx));
       lines.push(line);
@@ -33,14 +33,14 @@ run((params) => {
     const container = new Container();
     for (const line of baseLines) {
       const rectSize = random.real(100, 200);
-      const step = line.length * random.real(0.01, 0.05); //TODO: Extrude rects
+      const step = line.length * random.real(0.01, 0.05);
       for (let i = 0; i < line.length; i += step) {
         const center = line.getPointAt(i);
         container.addChild(
           new Graphics()
             .lineStyle(1, "black")
             .setTransform(center.x, center.y)
-            .drawRect(-rectSize / 2, -rectSize / 2, rectSize, rectSize) //TODO: Offset vertices
+            .drawRect(-rectSize / 2, -rectSize / 2, rectSize, rectSize)
         );
       }
     }

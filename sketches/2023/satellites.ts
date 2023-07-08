@@ -7,14 +7,6 @@ import { Container, Graphics } from "pixi.js";
 import { random } from "util/random";
 import { Params, run } from "drawing/sketch";
 
-//TODO: Colors from noise, gradient
-//TODO: Spinning stars in the background
-//TODO: VHS effect
-//MAYBE:
-// Echo waves from rectangle sides
-// Display bodies as arcs, instead of circles
-// Wavy rectangle sides (from noise)
-
 class PlanetarySystem extends TwoBodySystem {
   private initialSize: Rectangle;
   private rectGraphics: Graphics;
