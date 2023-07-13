@@ -50,7 +50,7 @@ export abstract class TwoBodySystem {
   update(deltaTime: number) {
     let time = deltaTime;
     do {
-      const timeStep = min(time, 0.001);
+      const timeStep = min(time, 0.0001);
       const force = this.attractor.attract(this.mover);
       this.mover.applyForce(force);
       this.mover.update(timeStep);
