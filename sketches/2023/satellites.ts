@@ -1,5 +1,4 @@
-import { drawPath } from "drawing/pixi";
-import { Color, Ellipse, Path, Point } from "geometry/paths";
+import { Point, Rectangle } from "geometry/paths";
 import { abs, cos, cube, multiply, norm, pi, sin, sqrt, square, subtract, unaryMinus } from "mathjs";
 import { Attractor, Mover, TwoBodySystem } from "physics/forces";
 import { Vector2, Vector2Like } from "geometry/vectors";
@@ -41,7 +40,6 @@ interface OrbitParams {
 class Orbit implements OrbitParams {
   readonly eccentricity: number;
   readonly foci: Vector2[];
-  readonly shape: Path;
 
   private constructor(
     readonly position: Point,
@@ -53,7 +51,6 @@ class Orbit implements OrbitParams {
     const focus = [sqrt(square(this.semiMajor) - square(this.semiMinor)) as number, 0] as Vector2;
     this.eccentricity = sqrt(1 - square(this.semiMinor) / square(this.semiMajor)) as number;
     this.foci = [focus, unaryMinus(focus) as Vector2];
-    this.shape = new Ellipse({ center: [0, 0], radius: [this.semiMajor, this.semiMinor] });
   }
 
   static fromParams(params: OrbitParams): Orbit {
@@ -62,11 +59,15 @@ class Orbit implements OrbitParams {
 }
 
 class PlanetarySystem extends TwoBodySystem {
+  private initialSize: Rectangle;
   private rectGraphics: Graphics;
 
   constructor(private sun: Sun, private satellite: Satellite, private orbit: Orbit) {
     super(sun, satellite);
-    this.rectGraphics = new Graphics();
+    this.initialSize = new Rectangle(this.sun.position, this.satellite.position);
+    this.rectGraphics = new Graphics()
+      .beginFill(0x0000ff, 0.5)
+      .drawRect(0, 0, this.initialSize.width, this.initialSize.height);
     this.rectGraphics.position = this.sun.position;
   }
 
@@ -87,27 +88,34 @@ class PlanetarySystem extends TwoBodySystem {
 
     container.addChild(this.rectGraphics);
     if (debug) {
-      this.orbit.shape.strokeColor = new Color("red");
+      const orbitGraphics = new Graphics()
+        .lineStyle(1, "red")
+        .drawEllipse(0, 0, this.orbit.semiMajor, this.orbit.semiMinor);
       container.addChild(this.sun.graphics);
       container.addChild(this.satellite.graphics);
-      container.addChild(drawPath(this.orbit.shape));
+      container.addChild(orbitGraphics);
     }
     return container;
   }
 }
 
 run((params) => {
-  const system = fromOrbit({
-    position: new Point(0, 0),
-    semiMajor: 200,
-    semiMinor: 100,
-    rotationAngle: 0,
-    periodSeconds: 5,
+  const systems = Array.from({ length: 30 }, () => {
+    const semiMajor = random.real(150, 300);
+    return fromOrbit({
+      position: new Point(
+        random.real(-params.width / 2, params.width / 2),
+        random.real(-params.height / 2, params.height / 2)
+      ),
+      semiMajor,
+      semiMinor: random.real(100, semiMajor),
+      rotationAngle: random.real(0, 360),
+      periodSeconds: random.real(5, 15),
+    });
   });
-  const update = (deltaTime: number) => system.update(deltaTime);
-
+  const update = (deltaTime: number) => systems.forEach((system) => system.update(deltaTime));
   const container = new Container();
-  container.addChild(system.draw(params.debug));
+  systems.forEach((system) => container.addChild(system.draw(params.debug)));
   return { container, update };
 }, Params.DEBUG);
 

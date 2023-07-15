@@ -42,7 +42,7 @@ export function concavePacking(
         (i + 1) % 100 == 0 && console.log(`Packed ${i + 1} shapes out of ${params.nShapes}`);
         const desiredArea = i == 0 ? initialArea : initialArea * Math.pow(i, -c);
         const tryPath = shapesFactory(i).reorient(false, true) as CompoundPath;
-        const tryArea = concaveHull(tryPath).area;
+        const tryArea = concaveHull(tryPath).area; //TODO: extrude path and simplify
         const scaleFactor = Math.sqrt(desiredArea / tryArea);
         tryPath.scale(scaleFactor, [0, 0]);
         const newPath = tryPlaceTile(tryPath, paths, params);
@@ -77,6 +77,7 @@ function tryPlaceTile(
 
 function intersectsExistingPaths(tryPath: CompoundPath, pathsToCheck: CompoundPath[]): boolean {
   const tryPathPoints = tryPath.childPaths().flatMap((path) => [path.getPointAt(0), path.getPointAt(path.length / 2)]);
+  //TODO: speedup with quadtree
   const intersects = pathsToCheck.some(
     (path) => tryPathPoints.some((point) => path.contains(point)) || tryPath.intersects(path)
   );

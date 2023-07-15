@@ -47,7 +47,7 @@ export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<Sket
   const sketch = sketchFactory(params);
 
   const stats = new Stats();
-  const panels = new Set(sketch.update ? [0, 2] : [2]);
+  const panels = new Set(sketch.update ? [0, 1, 2] : [2]);
   for (let i = 0; i < stats.dom.children.length; i++) {
     (stats.dom.children[i] as HTMLCanvasElement).style.display = panels.has(i) ? "block" : "none";
   }
