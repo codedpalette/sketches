@@ -1,9 +1,8 @@
-import { Application, ColorSource, Container, Ticker } from "pixi.js";
-import { AxesHelper, Camera, Clock, GridHelper, Scene, WebGLRenderer } from "three";
+import { Application, Container } from "pixi.js";
+import { AxesHelper, Camera, GridHelper, Scene, WebGLRenderer } from "three";
 import { drawAxes } from "./pixi";
-import { getWebGL2ErrorMessage, isWebGL2Available } from "./webgl";
 import Stats, { Panel } from "stats.js";
-import { max, round } from "mathjs";
+import { max, min, round } from "mathjs";
 import { CanvasCapture } from "canvas-capture";
 import { Path, Rectangle } from "geometry/paths";
 
@@ -12,7 +11,6 @@ export interface SketchParams {
   width: number;
   height: number;
   resolution: number;
-  background: ColorSource;
 }
 
 export interface PixiSketch {
@@ -26,9 +24,16 @@ export interface ThreeSketch {
   update?: (deltaTime: number, elapsedTotal: number) => void;
 }
 
+interface SketchContext<T extends Sketch> {
+  canvas: HTMLCanvasElement;
+  context: T extends PixiSketch ? Application<HTMLCanvasElement> : WebGLRenderer;
+  resize: (params: SketchParams) => void;
+  run: (sketch: T) => void;
+  render: () => void;
+}
+
 type Sketch = PixiSketch | ThreeSketch;
-type SketchContext = Application | WebGLRenderer;
-type SketchFactory = (params: SketchParams) => Sketch;
+type SketchFactory<T extends Sketch> = (params: SketchParams) => T;
 const FPS = 60;
 
 export const Params = {
@@ -42,138 +47,40 @@ export const Params = {
   },
 };
 
-export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<SketchParams>) {
-  let params = setDefaultParams(paramsOverrides);
-  const sketch = sketchFactory(params);
-
+export function run<T extends Sketch>(sketchFactory: SketchFactory<T>, paramsOverrides?: Partial<SketchParams>) {
   const stats = new Stats();
-  const panels = new Set(sketch.update ? [0, 1, 2] : [2]);
   for (let i = 0; i < stats.dom.children.length; i++) {
-    (stats.dom.children[i] as HTMLCanvasElement).style.display = panels.has(i) ? "block" : "none";
+    (stats.dom.children[i] as HTMLCanvasElement).style.display = "block";
   }
   document.body.appendChild(stats.dom);
 
-  const [ctx, canvas] = initSketch(sketch, params);
-  canvas.id = "canvas";
-  CanvasCapture.init(canvas, { showRecDot: true });
-  CanvasCapture.bindKeyToPNGSnapshot("p");
-  CanvasCapture.bindKeyToVideoRecord("v", {
-    onExportProgress: (progress) => console.log(`Processing recording, ${round(progress * 100)}%...`),
-  });
-  let cancel = runSketch(sketch, params, ctx, stats);
+  const params = setDefaultParams(paramsOverrides);
+  const sketch = sketchFactory(params);
+  const context = initSketchContext(sketch, params, stats);
+  context.run(sketch);
 
-  canvas.onclick = () => {
-    cancel();
-    const sketch = sketchFactory(params);
-    cancel = runSketch(sketch, params, ctx, stats);
-  };
-  if (process.env.NODE_ENV === "production") {
-    window.addEventListener("resize", () => {
-      cancel();
-      params = setDefaultParams(paramsOverrides);
-      const sketch = sketchFactory(params);
-      initSketch(sketch, params, ctx);
-      cancel = runSketch(sketch, params, ctx, stats);
-    });
-  }
-  document.body.appendChild(canvas);
-}
-
-function setDefaultParams(paramsOverrides?: Partial<SketchParams>): SketchParams {
-  const defaultParams = {
-    debug: false,
-    resolution: 1,
-    background: "white",
-  };
-  const dimensions =
-    process.env.NODE_ENV === "production"
-      ? { width: window.innerWidth, height: window.innerHeight }
-      : { width: 1080, height: 1080 };
-  return { ...defaultParams, ...dimensions, ...paramsOverrides };
-}
-
-function initSketch<T extends Sketch>(
-  sketch: T,
-  params: SketchParams,
-  ctx?: SketchContext
-): [SketchContext, HTMLCanvasElement] {
-  if (isPixiSketch(sketch)) {
-    const app = (ctx ||
-      new Application({
-        background: params.background,
-        antialias: true,
-        autoDensity: true,
-        preserveDrawingBuffer: true,
-      })) as Application;
-    app.renderer.resolution = params.resolution;
-    app.renderer.resize(params.width, params.height);
-    return [app, app.view as HTMLCanvasElement];
-  } else {
-    const renderer = (ctx ||
-      new WebGLRenderer({
-        antialias: true,
-        preserveDrawingBuffer: true,
-        powerPreference: "high-performance",
-      })) as WebGLRenderer;
-    renderer.setPixelRatio(params.resolution);
-    renderer.setSize(params.width, params.height);
-    return [renderer, renderer.domElement];
-  }
-}
-
-function runSketch(sketch: Sketch, params: SketchParams, ctx: SketchContext, stats: Stats) {
-  return isPixiSketch(sketch)
-    ? runPixiSketch(sketch, params, ctx as Application, stats)
-    : runThreeSketch(sketch, params, ctx as WebGLRenderer, stats);
-}
-
-function runPixiSketch(sketch: PixiSketch, params: SketchParams, app: Application, stats: Stats) {
-  const ticker = new Ticker();
-  const mainContainer = new Container();
-  mainContainer.position = { x: params.width / 2, y: params.height / 2 };
-  mainContainer.scale.set(1, -1);
-  mainContainer.addChild(sketch.container);
-  params.debug && mainContainer.addChild(drawAxes(params));
-  const children = app.stage.children ? app.stage.removeChildren() : [];
-  children.forEach((obj) => obj.destroy(true));
-  app.stage.addChild(mainContainer);
-
-  const render = () => app.renderer.render(app.stage);
-  const loop = renderLoop(sketch, () => ticker.deltaMS / 1000, render, stats);
-  loop.loop();
-  return loop.cancel;
-}
-
-function runThreeSketch(sketch: ThreeSketch, params: SketchParams, renderer: WebGLRenderer, stats: Stats) {
-  const clock = new Clock();
-  const drawCallsPanel = new Panel("DrawCalls", "lightgreen", "darkgreen");
-  let maxDrawCalls = 0;
-  stats && stats.dom.children.length !== 4 && stats.addPanel(drawCallsPanel);
-
-  const [scene, camera] = [sketch.scene, sketch.camera];
-  params.debug && scene.add(new AxesHelper(), new GridHelper());
-
-  const render = () => {
-    renderer.render(scene, camera);
-
-    const frameDrawCalls = renderer.info.render.calls;
-    maxDrawCalls = max(frameDrawCalls, maxDrawCalls);
-    drawCallsPanel.update(frameDrawCalls, maxDrawCalls);
-  };
-  const loop = renderLoop(sketch, () => clock.getDelta(), render, stats);
-  isWebGL2Available() ? loop.loop() : document.body.appendChild(getWebGL2ErrorMessage(params.width));
-  return loop.cancel;
-}
-
-function renderLoop(sketch: Sketch, deltaSeconds: () => number, render: () => void, stats: Stats) {
   let totalElapsed = 0;
   let frameRecordCounter = 0;
   let needsUpdate = true;
-  let requestId: number;
-
-  const loop = () => {
+  let prevTime = 0;
+  let update = sketch.update;
+  const renderLoop = (timestamp: number) => {
     stats.begin();
-    needsUpdate && render();
+
+    let deltaTime = (timestamp - prevTime) / 1000;
+    prevTime = timestamp;
+
+    if (update) {
+      while (deltaTime > 0) {
+        const timeStep = min(deltaTime, 0.001);
+        totalElapsed += timeStep;
+        deltaTime -= timeStep;
+        update(timeStep, totalElapsed);
+      }
+      needsUpdate = true;
+    }
+
+    needsUpdate && context.render();
     needsUpdate = false;
 
     CanvasCapture.checkHotkeys();
@@ -182,19 +89,118 @@ function renderLoop(sketch: Sketch, deltaSeconds: () => number, render: () => vo
       frameRecordCounter++;
       if (frameRecordCounter % FPS == 0) console.log(`Recorded ${frameRecordCounter / FPS} seconds`);
     }
-    if (sketch.update) {
-      const deltaTime = deltaSeconds();
-      totalElapsed += deltaTime;
-      sketch.update(deltaTime, totalElapsed);
-      needsUpdate = true;
-    }
 
     stats.end();
-    requestId = requestAnimationFrame(loop);
+    requestAnimationFrame(renderLoop);
   };
 
-  const cancel = () => cancelAnimationFrame(requestId);
-  return { loop, cancel };
+  requestAnimationFrame(renderLoop);
+
+  context.canvas.onclick = () => {
+    const sketch = sketchFactory(params);
+    context.run(sketch);
+    totalElapsed = 0;
+    update = sketch.update;
+  };
+  if (process.env.NODE_ENV === "production") {
+    addEventListener("resize", () => {
+      const params = setDefaultParams(paramsOverrides);
+      const sketch = sketchFactory(params);
+      context.resize(params);
+      context.run(sketch);
+      totalElapsed = 0;
+      update = sketch.update;
+    });
+  }
+}
+
+function initSketchContext<T extends Sketch>(sketch: T, params: SketchParams, stats: Stats): SketchContext<T> {
+  const ctx = (isPixiSketch(sketch) ? initPixiSketch(params) : initThreeSketch(params, stats)) as SketchContext<T>;
+
+  const canvas = ctx.canvas;
+  canvas.id = "sketch";
+  document.body.appendChild(canvas);
+  CanvasCapture.init(canvas, { showRecDot: true });
+  CanvasCapture.bindKeyToPNGSnapshot("p");
+  CanvasCapture.bindKeyToVideoRecord("v", {
+    onExportProgress: (progress) => console.log(`Processing recording, ${round(progress * 100)}%...`),
+  });
+
+  ctx.resize(params);
+  return ctx;
+}
+
+function initPixiSketch(params: SketchParams): SketchContext<PixiSketch> {
+  const app = new Application<HTMLCanvasElement>({
+    antialias: true,
+    autoDensity: true,
+    preserveDrawingBuffer: true,
+    powerPreference: "high-performance",
+  });
+  app.stage.scale.set(1, -1);
+
+  return {
+    context: app,
+    canvas: app.view,
+    resize(params) {
+      app.renderer.resolution = params.resolution;
+      app.renderer.resize(params.width, params.height);
+      app.stage.position = { x: params.width / 2, y: params.height / 2 };
+    },
+    run(sketch) {
+      const children = app.stage.removeChildren();
+      children.forEach((obj) => obj.destroy(true));
+      app.stage.addChild(sketch.container);
+      params.debug && app.stage.addChild(drawAxes(params));
+    },
+    render() {
+      app.renderer.render(app.stage);
+    },
+  };
+}
+
+function initThreeSketch(params: SketchParams, stats: Stats): SketchContext<ThreeSketch> {
+  const renderer = new WebGLRenderer({
+    antialias: true,
+    preserveDrawingBuffer: true,
+    powerPreference: "high-performance",
+  });
+  const drawCallsPanel = new Panel("DrawCalls", "#ff8", "#221");
+  stats.addPanel(drawCallsPanel);
+
+  let maxDrawCalls = 0;
+  let scene: Scene, camera: Camera;
+  return {
+    context: renderer,
+    canvas: renderer.domElement,
+    resize(params) {
+      renderer.setPixelRatio(params.resolution);
+      renderer.setSize(params.width, params.height);
+    },
+    run(sketch) {
+      ({ scene, camera } = sketch);
+      params.debug && scene.add(new AxesHelper(), new GridHelper());
+    },
+    render() {
+      renderer.render(scene, camera);
+
+      const frameDrawCalls = renderer.info.render.calls;
+      maxDrawCalls = max(frameDrawCalls, maxDrawCalls);
+      drawCallsPanel.update(frameDrawCalls, maxDrawCalls);
+    },
+  };
+}
+
+function setDefaultParams(paramsOverrides?: Partial<SketchParams>): SketchParams {
+  const defaultParams = {
+    debug: false,
+    resolution: 1,
+  };
+  const dimensions =
+    process.env.NODE_ENV === "production"
+      ? { width: window.innerWidth, height: window.innerHeight }
+      : { width: 1080, height: 1080 };
+  return { ...defaultParams, ...dimensions, ...paramsOverrides };
 }
 
 function isPixiSketch(sketch: Sketch): sketch is PixiSketch {

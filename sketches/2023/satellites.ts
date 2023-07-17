@@ -1,10 +1,11 @@
-import { Point, Rectangle } from "geometry/paths";
+import { Point } from "geometry/paths";
 import { abs, cos, cube, multiply, norm, pi, sin, sqrt, square, subtract, unaryMinus } from "mathjs";
 import { Attractor, Mover, TwoBodySystem } from "physics/forces";
 import { Vector2, Vector2Like } from "geometry/vectors";
 import { Container, Graphics } from "pixi.js";
 import { random } from "util/random";
 import { Params, run } from "drawing/sketch";
+import { setBackground } from "drawing/pixi";
 
 class Sun extends Attractor {
   readonly graphics: Graphics;
@@ -40,6 +41,7 @@ interface OrbitParams {
 class Orbit implements OrbitParams {
   readonly eccentricity: number;
   readonly foci: Vector2[];
+  readonly graphics: Graphics;
 
   private constructor(
     readonly position: Point,
@@ -51,6 +53,8 @@ class Orbit implements OrbitParams {
     const focus = [sqrt(square(this.semiMajor) - square(this.semiMinor)) as number, 0] as Vector2;
     this.eccentricity = sqrt(1 - square(this.semiMinor) / square(this.semiMajor)) as number;
     this.foci = [focus, unaryMinus(focus) as Vector2];
+    this.graphics = new Graphics().lineStyle(1, "red").drawEllipse(0, 0, this.semiMajor, this.semiMinor);
+    this.graphics.cacheAsBitmap = true;
   }
 
   static fromParams(params: OrbitParams): Orbit {
@@ -59,15 +63,11 @@ class Orbit implements OrbitParams {
 }
 
 class PlanetarySystem extends TwoBodySystem {
-  private initialSize: Rectangle;
   private rectGraphics: Graphics;
 
   constructor(private sun: Sun, private satellite: Satellite, private orbit: Orbit) {
     super(sun, satellite);
-    this.initialSize = new Rectangle(this.sun.position, this.satellite.position);
-    this.rectGraphics = new Graphics()
-      .beginFill(0x0000ff, 0.5)
-      .drawRect(0, 0, this.initialSize.width, this.initialSize.height);
+    this.rectGraphics = new Graphics();
     this.rectGraphics.position = this.sun.position;
   }
 
@@ -88,12 +88,9 @@ class PlanetarySystem extends TwoBodySystem {
 
     container.addChild(this.rectGraphics);
     if (debug) {
-      const orbitGraphics = new Graphics()
-        .lineStyle(1, "red")
-        .drawEllipse(0, 0, this.orbit.semiMajor, this.orbit.semiMinor);
       container.addChild(this.sun.graphics);
       container.addChild(this.satellite.graphics);
-      container.addChild(orbitGraphics);
+      container.addChild(this.orbit.graphics);
     }
     return container;
   }
@@ -101,20 +98,21 @@ class PlanetarySystem extends TwoBodySystem {
 
 run((params) => {
   const systems = Array.from({ length: 30 }, () => {
-    const semiMajor = random.real(150, 300);
+    //TODO: debug deviations from orbit
+    const semiMajor = random.real(100, 150);
+    const w = params.width / 2 - 100;
+    const h = params.height / 2 - 100;
     return fromOrbit({
-      position: new Point(
-        random.real(-params.width / 2, params.width / 2),
-        random.real(-params.height / 2, params.height / 2)
-      ),
+      position: new Point(random.real(-w, w), random.real(-h, h)),
       semiMajor,
-      semiMinor: random.real(100, semiMajor),
+      semiMinor: random.real(50, semiMajor),
       rotationAngle: random.real(0, 360),
       periodSeconds: random.real(5, 15),
     });
   });
   const update = (deltaTime: number) => systems.forEach((system) => system.update(deltaTime));
   const container = new Container();
+  setBackground(container, "white", params);
   systems.forEach((system) => container.addChild(system.draw(params.debug)));
   return { container, update };
 }, Params.DEBUG);

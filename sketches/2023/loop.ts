@@ -5,15 +5,15 @@ import { Fog, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, PlaneGeometry, 
 import { radToDeg } from "three/src/math/MathUtils";
 import { run } from "drawing/sketch";
 import { fromPolar } from "geometry/angles";
-import { noise4d } from "util/random";
+import { noise4d, random } from "util/random";
 
 run((params) => {
   const noise = noise4d();
   const loopDurationSeconds = 5;
   const planeDim = 2;
-  const sides = 4;
+  const sides = random.integer(4, 8);
   const rectanglesPerSide = 30;
-  const holeScale = 0.2; //Relation between central hole and screen dimensions
+  const holeScale = random.real(0.2, 0.3); //Relation between central hole and screen dimensions
   const apothem = planeDim / (2 * tan(pi / sides));
 
   const camera = configureCamera(holeScale);
@@ -78,17 +78,12 @@ run((params) => {
     return group;
   }
 
-  function configureCamera(holeScale: number, cameraToUpdate?: PerspectiveCamera) {
+  function configureCamera(holeScale: number) {
     const k = (1 - holeScale) / (2 * holeScale);
     const fov = radToDeg(atan(k)) * 2;
     const z = apothem * (1 / k + 1);
     const far = z + planeDim;
-    if (cameraToUpdate) {
-      cameraToUpdate.fov = fov;
-      cameraToUpdate.far = z + planeDim;
-      cameraToUpdate.updateProjectionMatrix();
-    }
-    const camera = cameraToUpdate ?? new PerspectiveCamera(fov, params.width / params.height, 0.1, far);
+    const camera = new PerspectiveCamera(fov, params.width / params.height, 0.1, far);
     camera.position.setZ(z);
     return camera;
   }

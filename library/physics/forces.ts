@@ -1,5 +1,5 @@
 import { Point } from "geometry/paths";
-import { add, divide, min, multiply, square } from "mathjs";
+import { add, divide, max, multiply } from "mathjs";
 import { Vector2Like, Vector2, toVector } from "geometry/vectors";
 
 interface BodyLike {
@@ -18,7 +18,8 @@ abstract class Body implements BodyLike {
 export abstract class Attractor extends Body {
   attract(body: BodyLike): Vector2 {
     const forceVector = this.position.subtract(body.position);
-    const strength = (this.mass * body.mass) / square(forceVector.length);
+    const distance = max(forceVector.length, 5);
+    const strength = (this.mass * body.mass) / (distance * distance);
     const force = forceVector.normalize(strength);
     return [force.x, force.y];
   }
@@ -48,13 +49,8 @@ export abstract class TwoBodySystem {
   constructor(private attractor: Attractor, private mover: Mover) {}
 
   update(deltaTime: number) {
-    let time = deltaTime;
-    do {
-      const timeStep = min(time, 0.001);
-      const force = this.attractor.attract(this.mover);
-      this.mover.applyForce(force);
-      this.mover.update(timeStep);
-      time -= timeStep;
-    } while (time > 0);
+    const force = this.attractor.attract(this.mover);
+    this.mover.applyForce(force);
+    this.mover.update(deltaTime);
   }
 }

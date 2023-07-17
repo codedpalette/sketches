@@ -26,6 +26,7 @@ run((params) => {
     container.addChild(drawLayer(i));
   }
 
+  container.cacheAsBitmap = true;
   return { container };
 
   function drawLayer(layerNum: number) {
