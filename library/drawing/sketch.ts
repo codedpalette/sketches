@@ -48,12 +48,7 @@ export const Params = {
 };
 
 export function run<T extends Sketch>(sketchFactory: SketchFactory<T>, paramsOverrides?: Partial<SketchParams>) {
-  const stats = new Stats();
-  for (let i = 0; i < stats.dom.children.length; i++) {
-    (stats.dom.children[i] as HTMLCanvasElement).style.display = "block";
-  }
-  document.body.appendChild(stats.dom);
-
+  const stats = process.env.NODE_ENV === "production" ? undefined : initStats();
   const params = setDefaultParams(paramsOverrides);
   const sketch = sketchFactory(params);
   const context = initSketchContext(sketch, params, stats);
@@ -65,7 +60,7 @@ export function run<T extends Sketch>(sketchFactory: SketchFactory<T>, paramsOve
   let prevTime = 0;
   let update = sketch.update;
   const renderLoop = (timestamp: number) => {
-    stats.begin();
+    stats?.begin();
 
     let deltaTime = (timestamp - prevTime) / 1000;
     prevTime = timestamp;
@@ -90,7 +85,7 @@ export function run<T extends Sketch>(sketchFactory: SketchFactory<T>, paramsOve
       if (frameRecordCounter % FPS == 0) console.log(`Recorded ${frameRecordCounter / FPS} seconds`);
     }
 
-    stats.end();
+    stats?.end();
     requestAnimationFrame(renderLoop);
   };
 
@@ -102,7 +97,7 @@ export function run<T extends Sketch>(sketchFactory: SketchFactory<T>, paramsOve
     totalElapsed = 0;
     update = sketch.update;
   };
-  if (process.env.NODE_ENV === "production") {
+  process.env.NODE_ENV === "production" &&
     addEventListener("resize", () => {
       const params = setDefaultParams(paramsOverrides);
       const sketch = sketchFactory(params);
@@ -111,10 +106,18 @@ export function run<T extends Sketch>(sketchFactory: SketchFactory<T>, paramsOve
       totalElapsed = 0;
       update = sketch.update;
     });
-  }
 }
 
-function initSketchContext<T extends Sketch>(sketch: T, params: SketchParams, stats: Stats): SketchContext<T> {
+function initStats() {
+  const stats = new Stats();
+  for (let i = 0; i < stats.dom.children.length; i++) {
+    (stats.dom.children[i] as HTMLCanvasElement).style.display = "block";
+  }
+  document.body.appendChild(stats.dom);
+  return stats;
+}
+
+function initSketchContext<T extends Sketch>(sketch: T, params: SketchParams, stats?: Stats): SketchContext<T> {
   const ctx = (isPixiSketch(sketch) ? initPixiSketch(params) : initThreeSketch(params, stats)) as SketchContext<T>;
 
   const canvas = ctx.canvas;
@@ -159,14 +162,13 @@ function initPixiSketch(params: SketchParams): SketchContext<PixiSketch> {
   };
 }
 
-function initThreeSketch(params: SketchParams, stats: Stats): SketchContext<ThreeSketch> {
+function initThreeSketch(params: SketchParams, stats?: Stats): SketchContext<ThreeSketch> {
   const renderer = new WebGLRenderer({
     antialias: true,
     preserveDrawingBuffer: true,
     powerPreference: "high-performance",
   });
-  const drawCallsPanel = new Panel("DrawCalls", "#ff8", "#221");
-  stats.addPanel(drawCallsPanel);
+  const drawCallsPanel = stats?.addPanel(new Panel("DrawCalls", "#ff8", "#221"));
 
   let maxDrawCalls = 0;
   let scene: Scene, camera: Camera;
@@ -186,7 +188,7 @@ function initThreeSketch(params: SketchParams, stats: Stats): SketchContext<Thre
 
       const frameDrawCalls = renderer.info.render.calls;
       maxDrawCalls = max(frameDrawCalls, maxDrawCalls);
-      drawCallsPanel.update(frameDrawCalls, maxDrawCalls);
+      drawCallsPanel?.update(frameDrawCalls, maxDrawCalls);
     },
   };
 }

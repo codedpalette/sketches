@@ -19,11 +19,13 @@
     "scope": "typescript",
     "prefix": "sketch2d",
     "body": [
+      "import { setBackground } from \"drawing/pixi\";",
       "import { run, Params } from \"drawing/sketch\";",
       "import { Container } from \"pixi.js\";",
       "",
       "run((params) => {",
-      "  const container = new Container();$0",
+      "  const container = new Container();",
+      "  setBackground(container, \"white\", params);$0",
       "  return { container };",
       "}, Params.DEBUG);"
     ]
