@@ -6,6 +6,15 @@ import { max, min, multiply, sign, sin, tan } from "mathjs";
 import { Container } from "pixi.js";
 import { random } from "util/random";
 
+//TODO
+// - Color palette, gradients, blurry polygons in the background
+// - Calculate intercept offset to make corners always visible
+// - Noise for darker blots on stripes
+// - Suprematism (shapes on corners, spikes around)
+// - Negative space
+// - Shade on stripes
+// - Shade on the floor
+
 run((params) => {
   const container = new Container();
   const rect = generateRect(params).toPath();

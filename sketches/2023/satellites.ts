@@ -96,6 +96,15 @@ class PlanetarySystem extends TwoBodySystem {
   }
 }
 
+//TODO: Add
+// - Composition of orbits
+// - Colors from noise, gradient
+// - Spinning stars in the background
+// - VHS effect
+// - Echo waves from rectangle sides
+// - Display bodies as arcs, instead of circles
+// - Wavy rectangle sides (from noise)
+
 run((params) => {
   const systems = Array.from({ length: 30 }, () => {
     //TODO: debug deviations from orbit

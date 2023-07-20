@@ -11,6 +11,10 @@ interface LineEq {
   theta: number;
 }
 
+//TODO: Rework
+// - Noise blending for squares' sizes
+// - https://en.wikipedia.org/wiki/Blend_modes
+
 run((params) => {
   const noise = noise3d();
   const randColor = random.real(0, 360);

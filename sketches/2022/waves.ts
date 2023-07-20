@@ -5,6 +5,8 @@ import { Container, Graphics } from "pixi.js";
 import { map } from "util/map";
 import { noise2d, random } from "util/random";
 
+//TODO: rework
+
 run((params) => {
   const noise = noise2d();
   const hue = random.real(0, 360);

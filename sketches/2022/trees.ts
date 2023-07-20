@@ -5,6 +5,12 @@ import { BlurFilter, Color, ColorMatrixFilter, ColorSource, Container, Graphics 
 import { map } from "util/map";
 import { noise2d, random } from "util/random";
 
+//TODO: Redraw
+// - bright background
+// - one tree per layer
+// - less grass
+// add leaves and fruits
+
 run((params) => {
   const noise = noise2d();
   const maxDepth = 4;

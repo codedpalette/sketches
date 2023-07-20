@@ -18,8 +18,8 @@ run((params) => {
   setBackground(container, gray(backgroundColor), params);
 
   const circles: Circle[] = [];
-  const minRadius = 10;
-  const maxRadius = 100;
+  const minRadius = 30;
+  const maxRadius = 150;
   const totalCircles = 1000;
   const createCircleAttempts = 100;
 
@@ -81,7 +81,7 @@ run((params) => {
 
       const points: IPointData[] = [];
       for (let theta = 0; theta < 2 * pi; theta += thetaStep) {
-        const r = i + random.real(-0.5, 0.5) * noiseAmp;
+        const r = i + random.real(-0.2, 0.2) * noiseAmp;
         const x = circle.center[0] + r * cos(theta);
         const y = circle.center[1] + r * sin(theta);
         points.push({ x, y });

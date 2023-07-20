@@ -5,6 +5,8 @@ import { Container, Graphics } from "pixi.js";
 import { map } from "util/map";
 import { random } from "util/random";
 
+//TODO: smoother size increases
+
 run((params) => {
   const isDarkBackground = random.bool();
   let alphaStep = random.real(2, 10);

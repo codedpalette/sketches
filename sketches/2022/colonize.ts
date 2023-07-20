@@ -5,6 +5,9 @@ import { Container, Graphics } from "pixi.js";
 import { map } from "util/map";
 import { random } from "util/random";
 
+//TODO: Rework, optimize
+// - Increase number of layers
+
 run((params) => {
   const maxDist = (params.width * params.width + params.height * params.height) / 4;
   const influenceDist = 100;

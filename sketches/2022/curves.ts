@@ -6,6 +6,9 @@ import { ColorSource, Container, Graphics, RAD_TO_DEG } from "pixi.js";
 import { map } from "util/map";
 import { noise2d, random } from "util/random";
 
+//TODO: Rework, optimize
+// - less blank space
+
 run((params) => {
   const noise = noise2d();
   const numCurves = 2000;

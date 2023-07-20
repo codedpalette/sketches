@@ -1,9 +1,11 @@
-import { gray } from "drawing/pixi";
+import { gray, setBackground } from "drawing/pixi";
 import { run } from "drawing/sketch";
 import { Vector2 } from "geometry/vectors";
 import { DashLine } from "pixi-dashed-line";
 import { Color, Container, Graphics } from "pixi.js";
 import { random } from "util/random";
+
+//TODO: Add texture to background
 
 run((params) => {
   const numPoints = random.integer(40, 60);
@@ -31,6 +33,7 @@ run((params) => {
   }
 
   const container = new Container();
+  setBackground(container, "white", params);
   container.addChild(g);
   return { container };
 });

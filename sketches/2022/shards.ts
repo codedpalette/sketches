@@ -6,6 +6,8 @@ import { map } from "util/map";
 import { random } from "util/random";
 import { Site, Voronoi } from "voronoijs";
 
+//TODO: smoother gradient
+
 run((params) => {
   const gradientDirection = random.bool();
   const numSites = random.integer(50, 250);

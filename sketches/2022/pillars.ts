@@ -5,6 +5,8 @@ import { Container, Graphics } from "pixi.js";
 import { map } from "util/map";
 import { random } from "util/random";
 
+//TODO: add smaller bright details
+
 run((params) => {
   const cellSize = 10;
   const cells: boolean[][] = [];

@@ -4,6 +4,8 @@ import { hypot, pi } from "mathjs";
 import { Color, Container, Graphics, LINE_CAP, Sprite } from "pixi.js";
 import { random } from "util/random";
 
+//TODO: change color space
+
 run((params) => {
   const [w, h] = [params.width, params.height];
   const centerX = random.real(w * 0.1, w * 0.9);
