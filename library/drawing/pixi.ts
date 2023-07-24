@@ -1,6 +1,6 @@
 import { SVGScene } from "@pixi-essentials/svg";
 import { Line, Path } from "geometry/paths";
-import { ColorSource, Container, Graphics, ILineStyleOptions } from "pixi.js";
+import { ColorSource, Container, Graphics, ILineStyleOptions, Sprite } from "pixi.js";
 
 export type LineLike = [number, number, number, number] | { x1: number; y1: number; x2: number; y2: number } | Line;
 
@@ -47,4 +47,18 @@ export function setBackground(container: Container, color: ColorSource, params: 
 
 export function gray(gray: number): ColorSource {
   return { r: gray, g: gray, b: gray };
+}
+
+export function renderCanvas(
+  render: (ctx: OffscreenCanvasRenderingContext2D) => void,
+  params: { width: number; height: number }
+): Sprite {
+  const canvas = new OffscreenCanvas(params.width, params.height);
+  const ctx = canvas.getContext("2d") as OffscreenCanvasRenderingContext2D;
+  render(ctx);
+
+  const sprite = Sprite.from(canvas);
+  sprite.scale.set(1, -1);
+  sprite.anchor.set(0.5, 0.5);
+  return sprite;
 }

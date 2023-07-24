@@ -1,7 +1,7 @@
-import { gray } from "drawing/pixi";
+import { gray, renderCanvas } from "drawing/pixi";
 import { run } from "drawing/sketch";
 import { hypot, pi } from "mathjs";
-import { Color, Container, Graphics, LINE_CAP, Sprite } from "pixi.js";
+import { Color, Container, Graphics, LINE_CAP } from "pixi.js";
 import { random } from "util/random";
 
 //TODO: change color space
@@ -28,21 +28,15 @@ run((params) => {
   return { container };
 
   function createGradientFill() {
-    const canvas = new OffscreenCanvas(w, h);
-    const ctx = canvas.getContext("2d") as OffscreenCanvasRenderingContext2D;
-
-    const gradient = ctx.createConicGradient(angle, centerX, centerY);
-    const palette = [randomColor(), randomColor(), randomColor()];
-    gradient.addColorStop(0, palette[0].toRgbaString());
-    gradient.addColorStop(random.real(0.3, 0.7), palette[1].toRgbaString());
-    gradient.addColorStop(1, palette[2].toRgbaString());
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, w, h);
-
-    const sprite = Sprite.from(canvas);
-    sprite.scale.set(1, -1);
-    sprite.anchor.set(0.5, 0.5);
-    return sprite;
+    return renderCanvas((ctx) => {
+      const gradient = ctx.createConicGradient(angle, centerX, centerY);
+      const palette = [randomColor(), randomColor(), randomColor()];
+      gradient.addColorStop(0, palette[0].toRgbaString());
+      gradient.addColorStop(random.real(0.3, 0.7), palette[1].toRgbaString());
+      gradient.addColorStop(1, palette[2].toRgbaString());
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, w, h);
+    }, params);
   }
 
   function createRays() {
