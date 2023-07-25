@@ -5,8 +5,6 @@ import { DashLine } from "pixi-dashed-line";
 import { Color, Container, Graphics } from "pixi.js";
 import { random } from "util/random";
 
-//TODO: Add texture to background
-
 run((params) => {
   const numPoints = random.integer(40, 60);
   const points: Vector2[] = [];

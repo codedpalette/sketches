@@ -5,6 +5,8 @@ import { Container, Graphics, IPointData } from "pixi.js";
 import { map } from "util/map";
 import { random } from "util/random";
 
+//TODO: Change palette
+
 interface Circle {
   center: [number, number];
   radius: number;

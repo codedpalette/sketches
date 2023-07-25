@@ -7,6 +7,10 @@ import { Font, loadFont, textToPath } from "util/font";
 import { random } from "util/random";
 import { max } from "mathjs";
 
+//TODO: Optimize packing
+// - Speed up with quadtree
+// - Extrude path and simplify
+
 interface FontFamily {
   regular: Font;
   bold: Font;
@@ -171,7 +175,7 @@ void loadTextParams(translationsFile).then((textParams) => {
         new Point([random.integer(0, params.width / 2), random.integer(-params.height / 2, 0)]),
       ];
 
-      const flipColors = params.background == "white";
+      const flipColors = false; //TODO: Randomize
       const [background, foreground] = [flipColors, !flipColors].map((isForeground) => {
         const graphics = new Graphics()
           .beginFill(isForeground ? blue : yellow) // Fill background

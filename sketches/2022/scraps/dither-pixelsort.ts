@@ -5,8 +5,6 @@ import { hex } from "color-convert";
 import { random } from "util/random";
 import { add, distance, multiply, subtract } from "mathjs";
 
-//TODO: change pic
-
 getPixels("dither/pic.jpg", (err, pixels) => {
   if (err) {
     console.log("Bad image path");
