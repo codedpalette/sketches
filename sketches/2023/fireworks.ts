@@ -18,7 +18,7 @@ run((params) => {
   const numVortices = 3;
   const hypotenuse = hypot(params.width / 2, params.height / 2);
   for (let i = 0; i < numVortices; i++) {
-    const hue = (baseHue + (360 * i) / numVortices + random.real(-10, 10)) % 360; //TODO: Generate palette
+    const hue = baseHue + random.real(-30, 30);
     const r = random.real(hypotenuse / 4, hypotenuse / 2);
     const theta = (2 * pi * i) / numVortices + baseTheta;
     const { x, y } = fromPolar(r, theta);
@@ -50,8 +50,8 @@ run((params) => {
           x1 + params.width / 2,
           -y1 + params.height / 2
         );
-        const startColor = random.real(0, 20);
-        const endColor = startColor + random.real(30, 50);
+        const startColor = random.real(0, 10);
+        const endColor = random.real(40, 50);
         gradient.addColorStop(0, `rgb(${startColor} ${startColor} ${startColor})`);
         gradient.addColorStop(1, `rgb(${endColor} ${endColor} ${endColor})`);
         ctx.fillStyle = gradient;
@@ -85,8 +85,8 @@ run((params) => {
     const trailLength = random.real(150, 300);
 
     const sat = random.real(25, 100);
-    const val = random.real(75, 100);
-    const valPeriod = random.real(20, 50);
+    const val = random.real(40, 60);
+    const valPeriod = (maxRadius - minRadius) * random.real(0.25, 0.5);
 
     const vortexCoreRadius = maxRadius * random.real(0.25, 0.75);
     const gamma = random.real(0.2, 0.4);
@@ -96,7 +96,8 @@ run((params) => {
       let theta = random.real(0, 2 * pi);
 
       const valTheta = map((r - minRadius) % valPeriod, 0, valPeriod, 0, 2 * pi);
-      const valOffset = map(abs(sin(valTheta)), 0, 1, 25, 0);
+      const valOffset = sin(valTheta) * 25;
+
       const g = c.addChild(new Graphics());
       for (let j = 0; j < trailLength; j++) {
         const rotationalVelocity = (gamma / (2 * pi)) * (r <= vortexCoreRadius ? r / pow(vortexCoreRadius, 2) : 1 / r);
@@ -105,10 +106,10 @@ run((params) => {
         const { x: x0, y: y0 } = fromPolar(r, theta);
         const { x: x1, y: y1 } = fromPolar(r + rStep, theta - thetaStep);
 
-        const lineThickness = (1.5 + n(i * 100, j) + j / trailLength) * 2;
+        const lineThickness = (1 + n(i * 100, j) + j / trailLength) * 2;
         const alpha = j / (trailLength * 2) + 0.5;
-        const hueOffset = n(i * 10, j / 1000) * 100 * random.sign();
-        const color = hsv.hex([(hue + hueOffset + 360) % 360, sat, val - valOffset]);
+        const hueOffset = (n(i * 10, j / 1000) - 0.5) * 100;
+        const color = hsv.hex([(hue + hueOffset + 360) % 360, sat, val + valOffset]);
         g.lineStyle(lineThickness, color, alpha).moveTo(x0, y0).lineTo(x1, y1);
 
         theta += thetaStep;
