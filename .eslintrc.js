@@ -22,6 +22,7 @@ module.exports = {
   rules: {
     "@typescript-eslint/no-unused-vars": "off",
     "@typescript-eslint/member-ordering": "error",
+    "@typescript-eslint/no-explicit-any": ["error", { ignoreRestArgs: true }],
     "unused-imports/no-unused-imports": "warn",
     "unused-imports/no-unused-vars": [
       "warn",
