@@ -96,7 +96,8 @@ class PlanetarySystem extends TwoBodySystem {
   }
 }
 
-//TODO: Add
+// Add
+// - Debug deviations from orbit
 // - Composition of orbits
 // - Colors from noise, gradient
 // - Spinning stars in the background
@@ -107,7 +108,6 @@ class PlanetarySystem extends TwoBodySystem {
 
 run((params) => {
   const systems = Array.from({ length: 30 }, () => {
-    //TODO: debug deviations from orbit
     const semiMajor = random.real(100, 150);
     const w = params.width / 2 - 100;
     const h = params.height / 2 - 100;
