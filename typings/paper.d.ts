@@ -1,18 +1,18 @@
 declare namespace paper {
   interface Point {
-    toVec(): [number, number];
+    toVec(): [number, number]
   }
 
   interface Path {
-    toPoints(step = 1): Point[];
+    toPoints(step = 1): Point[]
   }
 
   interface CompoundPath {
-    childPaths(): Path[];
-    toPoints(step = 1): Point[];
+    childPaths(): Path[]
+    toPoints(step = 1): Point[]
   }
 
   interface Rectangle {
-    toPath(): Path;
+    toPath(): Path
   }
 }

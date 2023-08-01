@@ -1,9 +1,10 @@
 {
   "extends": "@tsconfig/recommended/tsconfig.json",
   "compilerOptions": {
-    "noEmitOnError": true,
+    "baseUrl": "./library",
+    "module": "ES2020",
+    "moduleResolution": "Node",
     "isolatedModules": true,
-    "target": "ES2019",
-    "baseUrl": "./library"
+    "types": ["vite/client"]
   }
 }
