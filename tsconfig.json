@@ -1,10 +1,17 @@
 {
-  "extends": "@tsconfig/recommended/tsconfig.json",
   "compilerOptions": {
-    "baseUrl": "./library",
-    "module": "ES2020",
-    "moduleResolution": "Node",
-    "isolatedModules": true,
-    "types": ["vite/client"]
+    "strict": true,
+    "baseUrl": "library", // Base url for resolving library classes
+    "target": "ES2020", // Vite build target
+    "module": "ESNext", // Needed for import.meta.url support
+    "skipLibCheck": true, // Skip typechecking library files
+    "esModuleInterop": true, // Needed for importing CommonJS modules
+    "moduleResolution": "node", // Otherwise type imports don't work
+    "noEmit": true, // Because we're using Vite for building
+    "isolatedModules": true, // Because esbuild only performs transpilation without type information
+    "useDefineForClassFields": true, // https://vitejs.dev/guide/features.html#usedefineforclassfields
+    "forceConsistentCasingInFileNames": true,
+
+    "types": ["vite/client"] // https://vitejs.dev/guide/features.html#client-types
   }
 }

@@ -1,3 +1,5 @@
+# Ignore artifacts
 out
 dist
-node_modules
+
+node_modules/

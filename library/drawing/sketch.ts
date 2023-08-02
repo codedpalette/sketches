@@ -1,11 +1,13 @@
-import { Application, Container } from "pixi.js"
-import { AxesHelper, Camera, GridHelper, Scene, WebGLRenderer } from "three"
-import { drawAxes } from "./pixi"
-import Stats, { Panel } from "stats.js"
-import { max, min, round } from "mathjs"
+import "@pixi/unsafe-eval"
+
 import { CanvasCapture } from "canvas-capture"
 import { Path, Rectangle } from "geometry/paths"
-import "@pixi/unsafe-eval"
+import { max, min, round } from "mathjs"
+import { Application, Container } from "pixi.js"
+import Stats, { Panel } from "stats.js"
+import { AxesHelper, Camera, GridHelper, Scene, WebGLRenderer } from "three"
+
+import { drawAxes } from "./pixi"
 
 export interface SketchParams {
   debug: boolean

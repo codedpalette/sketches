@@ -1,11 +1,11 @@
+import { setBackground } from "drawing/pixi"
+import { Params, run } from "drawing/sketch"
 import { Point } from "geometry/paths"
+import { Vector2, Vector2Like } from "geometry/vectors"
 import { abs, cos, cube, multiply, norm, pi, sin, sqrt, square, subtract, unaryMinus } from "mathjs"
 import { Attractor, Mover, TwoBodySystem } from "physics/forces"
-import { Vector2, Vector2Like } from "geometry/vectors"
 import { Container, Graphics } from "pixi.js"
 import { random } from "utils/random"
-import { Params, run } from "drawing/sketch"
-import { setBackground } from "drawing/pixi"
 
 class Sun extends Attractor {
   readonly graphics: Graphics

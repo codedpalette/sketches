@@ -4,7 +4,7 @@ declare module "glslify" {
     transform?: string[] | [string, unknown][]
   }
   interface Glslify {
-    (template: TemplateStringsArray, ...args: any[]): string
+    (template: TemplateStringsArray, ...args: string[]): string
     (file: string, option?: GlslifyOption): string
     compile(src: string, option?: GlslifyOption): string
     filename(filename: string, option?: GlslifyOption): string

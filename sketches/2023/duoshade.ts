@@ -1,10 +1,10 @@
+import { hsl } from "color-convert"
 import { run } from "drawing/sketch"
+import { deg } from "geometry/angles"
 import { Line, Point, Rectangle } from "geometry/paths"
+import { abs, max, min, sqrt, tan } from "mathjs"
 import { Container, Graphics, NoiseFilter, Sprite } from "pixi.js"
 import { noise3d, random } from "utils/random"
-import { hsl } from "color-convert"
-import { abs, max, min, sqrt, tan } from "mathjs"
-import { deg } from "geometry/angles"
 
 run((params) => {
   const noise = noise3d()

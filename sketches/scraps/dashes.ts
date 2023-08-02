@@ -1,8 +1,8 @@
 import { gray, setBackground } from "drawing/pixi"
 import { run } from "drawing/sketch"
 import { Vector2 } from "geometry/vectors"
-import { DashLine } from "pixi-dashed-line"
 import { Color, Container, Graphics } from "pixi.js"
+import { DashLine } from "pixi-dashed-line"
 import { random } from "utils/random"
 
 run((params) => {

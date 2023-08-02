@@ -1,6 +1,6 @@
 import { Point } from "geometry/paths"
+import { toVector, Vector2, Vector2Like } from "geometry/vectors"
 import { add, divide, max, multiply } from "mathjs"
-import { Vector2Like, Vector2, toVector } from "geometry/vectors"
 
 interface BodyLike {
   readonly position: Point

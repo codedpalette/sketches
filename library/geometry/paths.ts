@@ -1,5 +1,6 @@
 import { abs, max, min } from "mathjs"
 import paper from "paper/dist/paper-core"
+
 paper.setup([1, 1])
 
 export type PointLike = paper.PointLike

@@ -1,4 +1,4 @@
-import { cos, sin, unit, Unit } from "mathjs"
+import { cos, sin, Unit, unit } from "mathjs"
 
 type Degrees = Unit & { __unit: "deg" }
 

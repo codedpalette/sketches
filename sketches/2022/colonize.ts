@@ -1,6 +1,6 @@
-import { run, Params } from "drawing/sketch"
-import { distance, mean, subtract, divide, norm, multiply, add } from "mathjs"
+import { Params, run } from "drawing/sketch"
 import { Vector2 } from "geometry/vectors"
+import { add, distance, divide, mean, multiply, norm, subtract } from "mathjs"
 import { Container, Graphics } from "pixi.js"
 import { map } from "utils/map"
 import { random } from "utils/random"
