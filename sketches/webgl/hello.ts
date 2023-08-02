@@ -1,6 +1,6 @@
-//import glsl from "glslify";
+import glsl from "glslify"
 
-const vert = `#version 300 es
+const vert = glsl`#version 300 es
  
 // an attribute is an input (in) to a vertex shader.
 // It will receive data from a buffer
@@ -14,18 +14,25 @@ void main() {
   gl_Position = a_position;
 }`
 
-const frag = `#version 300 es
- 
+const frag = glsl`#version 300 es
 // fragment shaders don't have a default precision so we need
 // to pick one. highp is a good default. It means "high precision"
 precision highp float;
+
+#pragma glslify: noise = require(glsl-noise/simplex/3d)
  
 // we need to declare an output for the fragment shader
 out vec4 outColor;
  
 void main() {
   // Just set the output to a constant reddish-purple
-  outColor = vec4(1, 0.5, 0.5, 1);
+  //outColor = vec4(1, 0.5, 0.5, 1);
+  float red = noise(vec3(gl_FragCoord.xy, 0));
+  float green = noise(vec3(gl_FragCoord.xy, 1000));
+  float blue = noise(vec3(gl_FragCoord.xy, 2000));
+
+
+  outColor = vec4(red, green, blue, 1.);
 }`
 
 const canvas = document.createElement("canvas")

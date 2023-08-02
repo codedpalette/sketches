@@ -1,5 +1,6 @@
 import { defineConfig } from "vite"
 import { startup as electronStartup } from "vite-plugin-electron"
+import { glslify } from "vite-plugin-glslify"
 import { nodePolyfills } from "vite-plugin-node-polyfills"
 import tsconfigPaths from "vite-tsconfig-paths"
 
@@ -7,6 +8,7 @@ export default defineConfig({
   plugins: [
     nodePolyfills(),
     tsconfigPaths(),
+    glslify(),
     // https://github.com/electron-vite/vite-plugin-electron/blob/main/src/index.ts
     {
       name: "start-electron",
