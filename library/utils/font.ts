@@ -1,6 +1,8 @@
-import { create, GlyphRun, Font as FontKitFont } from "fontkit"
-import { CompoundPath } from "geometry/paths"
 import { Buffer } from "buffer"
+import { create, Font as FontKitFont, GlyphRun } from "fontkit"
+import { CompoundPath } from "geometry/paths"
+
+import { asset } from "./asset"
 
 export type Font = FontKitFont
 
@@ -38,8 +40,7 @@ export function textToPath(text: string, font: Font, removeOffset = false, fontS
 }
 
 export async function loadFont(path: string): Promise<Font> {
-  const fontUrl = new URL(`/assets/${path}`, import.meta.url)
-  const arrayBuffer = await (await (await fetch(fontUrl)).blob()).arrayBuffer()
+  const arrayBuffer = await (await (await fetch(asset(path))).blob()).arrayBuffer()
   const buffer = Buffer.from(arrayBuffer)
   const font = create(buffer)
   return font

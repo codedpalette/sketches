@@ -1,13 +1,13 @@
+import { hex } from "color-convert"
+import { setBackground } from "drawing/pixi"
 import { run } from "drawing/sketch"
 import getPixels from "get-pixels"
-import { Color, Container, Sprite, Texture } from "pixi.js"
-import { hex } from "color-convert"
-import { random } from "utils/random"
 import { add, distance, multiply, subtract } from "mathjs"
-import pic from "/assets/dither/pic.jpg"
-import { setBackground } from "drawing/pixi"
+import { Color, Container, Sprite, Texture } from "pixi.js"
+import { asset } from "utils/asset"
+import { random } from "utils/random"
 
-getPixels(pic, (err, pixels) => {
+getPixels(asset("dither/pic.jpg"), (err, pixels) => {
   if (err) {
     console.log("Bad image path")
     return

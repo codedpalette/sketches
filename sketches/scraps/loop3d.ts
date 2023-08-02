@@ -1,10 +1,10 @@
-import { abs, atan, pi, tan } from "mathjs"
-import { rectanglePacking } from "geometry/packing/rectangle"
-import { Rectangle } from "paper"
-import { Fog, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, PlaneGeometry, Scene } from "three"
-import { radToDeg } from "three/src/math/MathUtils"
 import { run } from "drawing/sketch"
 import { fromPolar } from "geometry/angles"
+import { rectanglePacking } from "geometry/packing/rectangle"
+import { abs, atan, pi, tan } from "mathjs"
+import { Rectangle } from "paper"
+import { Fog, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, PlaneGeometry, Scene } from "three"
+import { radToDeg } from "three/src/math/MathUtils.js"
 import { noise4d, random } from "utils/random"
 
 run((params) => {

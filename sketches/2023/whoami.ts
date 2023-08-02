@@ -1,11 +1,12 @@
 import { drawLines, drawPath, LineLike } from "drawing/pixi"
 import { run } from "drawing/sketch"
-import { Color, CompoundPath, Point, Rectangle } from "geometry/paths"
 import { concavePacking } from "geometry/packing/concave"
+import { Color, CompoundPath, Point, Rectangle } from "geometry/paths"
+import { max } from "mathjs"
 import { Assets, Container, Graphics } from "pixi.js"
+import { asset } from "utils/asset"
 import { Font, loadFont, textToPath } from "utils/font"
 import { random } from "utils/random"
-import { max } from "mathjs"
 
 //TODO: Optimize packing
 // - Speed up with quadtree
@@ -70,8 +71,7 @@ void loadTextParams(translationsFile).then((textParams) => {
       return path
     }
 
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    function drawMainText(mainPaths: CompoundPath[]): Container {
+    function _drawMainText(mainPaths: CompoundPath[]): Container {
       const container = new Container()
       const pathSteps = params.debug ? 1 : 10
       const alphaStep = (1 - 0.5) / pathSteps
@@ -228,17 +228,16 @@ async function loadTextParams(translationsFile: string): Promise<TextParams> {
   const fallbackUnicodeFont = await loadFont("whoami/GoNotoCurrent.ttf")
   const fallbackUnicodeFontSerif = await loadFont("whoami/GoNotoCurrentSerif.ttf")
   const fallbackUnicodeFonts = [fallbackUnicodeFont, fallbackUnicodeFontSerif]
-  const translatedUrl = new URL(`/assets/whoami/translations/${translationsFile}`, import.meta.url).href
-  const translated = (await Assets.load<string>(translatedUrl)).split("\n")
-  const translations = new Set(
-    [...translated, ...translated.map((s) => s.toLowerCase()), ...translated.map((s) => s.toUpperCase())].map((s) =>
-      s.trim()
-    )
-  )
+  const translated = (await Assets.load<string>(asset(`whoami/translations/${translationsFile}`))).split("\n")
+  const translations = [
+    ...translated,
+    ...translated.map((s) => s.toLowerCase()),
+    ...translated.map((s) => s.toUpperCase()),
+  ].map((s) => s.trim())
   return {
     mainFont,
     secondaryFontFamilies,
     fallbackUnicodeFonts,
-    translations,
+    translations: new Set(translations),
   }
 }
