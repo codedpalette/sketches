@@ -1,12 +1,14 @@
 {
   "license": "MIT",
   "private": true,
+  "main": "electron.js",
   "scripts": {
-    "serve": "parcel --dist-dir bin",
-    "electron": "wait-on http://localhost:1234 && electron --js-flags=--max-old-space-size=8192 .",
-    "start": "concurrently \"yarn serve\" \"yarn electron\" -k -c auto -s command-1",
-    "postinstall": "husky install",
-    "build": "parcel build --target genclub --no-content-hash"
+    "lint": "eslint --fix .",
+    "format": "prettier --write .",
+    "ci": "yarn run tsc && yarn lint && yarn format",
+    "start": "vite dev",
+    "build": "vite build && vite preview",
+    "prepare": "husky install"
   },
   "lint-staged": {
     "*.ts": [
@@ -14,72 +16,48 @@
       "prettier --write"
     ]
   },
-  "source": "index.html",
-  "main": "electron.js",
-  "targets": {
-    "genclub": {
-      "context": "browser",
-      "sourceMap": false,
-      "publicUrl": "./"
-    }
-  },
-  "staticFiles": {
-    "staticPath": "assets"
-  },
   "dependencies": {
-    "@pixi-essentials/svg": "^1.1.5",
-    "@pixi/filter-noise": "^7.2.1",
-    "@pixi/mesh-extras": "^7.0.5",
-    "@tweenjs/tween.js": "^18.6.4",
-    "canvas-capture": "^2.0.6",
+    "@pixi-essentials/svg": "^2.0.1",
+    "@pixi/unsafe-eval": "^7.2.4",
+    "canvas-capture": "^2.1.1",
     "color-convert": "^2.0.1",
     "fontkit": "^2.0.2",
     "get-pixels": "^3.3.3",
-    "glslify": "^7.1.1",
     "hull.js": "^1.0.3",
     "mathjs": "^11.5.0",
     "paper": "^0.12.17",
     "pixi-dashed-line": "^1.4.2",
-    "pixi.js": "^7.2.1",
+    "pixi.js": "^7.2.4",
     "random-js": "^2.1.0",
-    "rxjs": "^7.8.0",
+    "rxjs": "^7.8.1",
     "simplex-noise": "^4.0.1",
     "stats.js": "^0.17.0",
-    "three": "^0.148.0",
+    "three": "^0.155.0",
     "voronoijs": "^1.0.0"
   },
   "devDependencies": {
-    "@tsconfig/recommended": "^1.0.1",
     "@types/color-convert": "^2.0.0",
     "@types/fontkit": "^2.0.3",
     "@types/get-pixels": "^3.3.2",
     "@types/hull.js": "^1.0.2",
     "@types/stats.js": "^0.17.0",
-    "@types/three": "^0.148.0",
-    "@typescript-eslint/eslint-plugin": "^5.47.0",
-    "@typescript-eslint/parser": "^5.47.0",
-    "buffer": "^5.5.0",
-    "concurrently": "^8.0.1",
-    "crypto-browserify": "^3.12.0",
-    "electron": "^24.1.2",
-    "eslint": "^8.30.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-import-resolver-typescript": "^3.5.2",
-    "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-unused-imports": "^2.0.0",
-    "events": "^3.1.0",
+    "@types/three": "^0.155.0",
+    "@typescript-eslint/eslint-plugin": "^6.2.1",
+    "@typescript-eslint/parser": "^6.2.1",
+    "electron": "^24.6.2",
+    "eslint": "^8.44.0",
+    "eslint-config-prettier": "^8.9.0",
+    "eslint-import-resolver-typescript": "^3.5.5",
+    "eslint-plugin-import": "^2.28.0",
+    "eslint-plugin-simple-import-sort": "^10.0.0",
+    "eslint-plugin-unused-imports": "^3.0.0",
     "husky": "^8.0.3",
-    "lint-staged": "^13.1.0",
-    "parcel": "^2.8.2",
-    "parcel-reporter-static-files-copy": "^1.4.0",
-    "parcel-resolver-ts-base-url": "^1.3.1",
-    "path-browserify": "^1.0.0",
-    "prettier": "2.8.1",
-    "process": "^0.11.10",
-    "punycode": "^1.4.1",
-    "querystring-es3": "^0.2.1",
-    "stream-browserify": "^3.0.0",
-    "typescript": "^4.9.4",
-    "wait-on": "^7.0.1"
+    "lint-staged": "^13.2.3",
+    "prettier": "^2.8.8",
+    "typescript": "^5.1.6",
+    "vite": "^4.4.2",
+    "vite-plugin-electron": "^0.12.0",
+    "vite-plugin-node-polyfills": "^0.9.0",
+    "vite-tsconfig-paths": "^4.2.0"
   }
 }

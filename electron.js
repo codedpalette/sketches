@@ -1,31 +1,8 @@
-const { app, BrowserWindow } = require("electron");
-let mainWindow;
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { app, BrowserWindow } = require("electron")
 
-function createWindow() {
-  mainWindow = new BrowserWindow({
-    width: 1080,
-    height: 1080,
-  });
-
-  void mainWindow.loadURL("http://localhost:1234");
-  // mainWindow.loadURL(
-  //   isDev
-  //     ? "http://localhost:3000"
-  //     : `file://${path.join(__dirname, "../build/index.html")}`
-  // );
-  mainWindow.on("closed", () => (mainWindow = null));
-}
-
-app.on("ready", createWindow);
-
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
-});
-
-app.on("activate", () => {
-  if (mainWindow === null) {
-    createWindow();
-  }
-});
+app.whenReady().then(() => {
+  const mainWindow = new BrowserWindow({ width: 1080, height: 1080 })
+  mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL)
+})
+app.on("window-all-closed", app.quit)
