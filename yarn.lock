@@ -4510,6 +4510,11 @@ tweetnacl@^0.14.3, tweetnacl@~0.14.0:
   resolved "https://registry.yarnpkg.com/tweetnacl/-/tweetnacl-0.14.5.tgz#5ae68177f192d4456269d108afa93ff8743f4f64"
   integrity sha512-KXXFFdAbFXY4geFIwoyNK+f5Z1b7swfXABfL7HXCmoIWMKU3dmS26672A4EeQtDzLKy7SXmfBu51JolvEKwtGA==
 
+twgl.js@^5.5.1:
+  version "5.5.1"
+  resolved "https://registry.yarnpkg.com/twgl.js/-/twgl.js-5.5.1.tgz#90502f68ad2974f3d6ebb95bdef68c6919a3f0e6"
+  integrity sha512-YPzBb3Eo1ZMye489xsEN7TX6EtdP8TutWV2/vOJpjgWG2MxsDW+GiL7Vc1Nr7wdkwn//sE0Um15Uaq2QJmfOgQ==
+
 type-check@^0.4.0, type-check@~0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/type-check/-/type-check-0.4.0.tgz#07b8203bfa7056c0657050e3ccd2c37730bab8f1"

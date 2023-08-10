@@ -113,9 +113,7 @@ export function run<T extends Sketch>(sketchFactory: SketchFactory<T>, paramsOve
 
 function initStats() {
   const stats = new Stats()
-  for (let i = 0; i < stats.dom.children.length; i++) {
-    ;(stats.dom.children[i] as HTMLCanvasElement).style.display = "block"
-  }
+  //Array.from(stats.dom.children).forEach((e) => ((e as HTMLCanvasElement).style.display = "block"))
   document.body.appendChild(stats.dom)
   return stats
 }
@@ -204,7 +202,7 @@ function setDefaultParams(paramsOverrides?: Partial<SketchParams>): SketchParams
   const dimensions =
     process.env.NODE_ENV === "production"
       ? { width: window.innerWidth, height: window.innerHeight }
-      : { width: 1080, height: 1080 }
+      : { width: 1300, height: 1300 }
   return { ...defaultParams, ...dimensions, ...paramsOverrides }
 }
 
