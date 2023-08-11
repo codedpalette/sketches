@@ -1,11 +1,4 @@
-import { Sketch } from "drawing/sketch_v2"
-
 //TODO: change color space
-
-const sketch: Sketch = ({ gl, random, params }) => {
-  const render = () => {}
-  return { render }
-}
 
 // run((params) => {
 //   const [w, h] = [params.width, params.height]

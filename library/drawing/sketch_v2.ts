@@ -1,3 +1,5 @@
+import "utils/random"
+
 import { CanvasCapture } from "canvas-capture"
 import { round } from "mathjs"
 import { MersenneTwister19937, Random } from "random-js"
@@ -16,12 +18,8 @@ export interface SketchEnv {
   params: SketchParams
 }
 
-export interface SketchRun {
-  render: () => void
-  update?: (deltaTime: number, elapsedTotal: number) => void
-}
-
-export type Sketch = (env: SketchEnv) => SketchRun
+export type SketchRender = (deltaTime: number, totalTime: number) => void
+export type Sketch = (env: SketchEnv) => SketchRender
 
 export function run(sketch: Sketch, paramsOverrides?: Partial<SketchParams>) {
   const stats = process.env.NODE_ENV !== "production" ? new Stats() : undefined
@@ -31,43 +29,36 @@ export function run(sketch: Sketch, paramsOverrides?: Partial<SketchParams>) {
   const canvas = initCanvas(params)
   const gl = canvas.getContext("webgl2") as WebGL2RenderingContext
   const random = new Random(MersenneTwister19937.autoSeed())
-  const sketchRun = sketch({ gl, random, params })
 
-  const renderLoop = (_timestamp: number) => {
+  let [startTime, prevTime, frameRecordCounter] = [0, 0, 0]
+  let sketchRender = sketch({ gl, random, params })
+  const loop = (timestamp: number) => {
     stats?.begin()
 
-    // let deltaTime = (timestamp - prevTime) / 1000
-    // prevTime = timestamp
+    !startTime && (startTime = timestamp)
+    const totalTime = (timestamp - startTime) / 1000
+    const deltaTime = (timestamp - (prevTime || startTime)) / 1000
+    prevTime = timestamp
 
-    // if (update) {
-    //   while (deltaTime > 0) {
-    //     const timeStep = min(deltaTime, 0.001)
-    //     totalElapsed += timeStep
-    //     deltaTime -= timeStep
-    //     update(timeStep, totalElapsed)
-    //   }
-    //   needsUpdate = true
-    // }
-
-    // needsUpdate && context.render()
-    // needsUpdate = false
-
-    sketchRun.render()
+    sketchRender(deltaTime, totalTime)
     CanvasCapture.checkHotkeys()
-    // if (CanvasCapture.isRecording()) {
-    //   CanvasCapture.recordFrame()
-    //   frameRecordCounter++
-    //   if (frameRecordCounter % FPS == 0) console.log(`Recorded ${frameRecordCounter / FPS} seconds`)
-    // }
+    if (CanvasCapture.isRecording()) {
+      CanvasCapture.recordFrame()
+      frameRecordCounter++
+      if (frameRecordCounter % FPS == 0) console.log(`Recorded ${frameRecordCounter / FPS} seconds`)
+    } else if (frameRecordCounter != 0) frameRecordCounter == 0
 
     stats?.end()
-    requestAnimationFrame(renderLoop)
+    requestAnimationFrame(loop)
   }
+  requestAnimationFrame(loop)
 
-  requestAnimationFrame(renderLoop)
+  canvas.onclick = () => {
+    sketchRender = sketch({ gl, random, params })
+    startTime = 0
+    prevTime = 0
+  }
 }
-
-const canvasId = "sketch"
 
 function initCanvas(params: SketchParams): HTMLCanvasElement {
   const canvas = document.createElement("canvas")
@@ -91,3 +82,6 @@ function setDefaultParams(paramsOverrides?: Partial<SketchParams>): SketchParams
   const dimensions = process.env.NODE_ENV === "production" ? prodDimensions : devDimensions
   return { ...defaultParams, ...dimensions, ...paramsOverrides }
 }
+
+const canvasId = "sketch"
+const FPS = 60
