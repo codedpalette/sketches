@@ -1,61 +1,93 @@
-export function isWebGLAvailable() {
-  try {
-    const canvas = document.createElement("canvas")
-    return !!(window.WebGLRenderingContext && (canvas.getContext("webgl") || canvas.getContext("experimental-webgl")))
-  } catch (e) {
-    return false
-  }
+import "utils/random"
+
+import { CanvasCapture } from "canvas-capture"
+import { round } from "mathjs"
+import { MersenneTwister19937, Random } from "random-js"
+import Stats from "stats.js"
+
+export interface SketchParams {
+  debug: boolean //TODO: change with a hotkey
+  width: number
+  height: number
+  pixelDensity: number
 }
 
-export function isWebGL2Available() {
-  try {
-    const canvas = document.createElement("canvas")
-    return !!(window.WebGL2RenderingContext && canvas.getContext("webgl2"))
-  } catch (e) {
-    return false
-  }
+export interface SketchEnv {
+  gl: WebGL2RenderingContext
+  random: Random
+  params: SketchParams
 }
 
-export function getWebGLErrorMessage(canvasWidth: number) {
-  return getErrorMessage(1, canvasWidth)
-}
+export type SketchRender = (deltaTime: number, totalTime: number) => void
+export type SketchFactory = (env: SketchEnv) => SketchRender
 
-export function getWebGL2ErrorMessage(canvasWidth: number) {
-  return getErrorMessage(2, canvasWidth)
-}
+export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<SketchParams>) {
+  const stats = process.env.NODE_ENV !== "production" ? new Stats() : undefined
+  stats && document.body.appendChild(stats.dom)
 
-function getErrorMessage(version: 1 | 2, canvasWidth: number) {
-  const names = {
-    1: "WebGL",
-    2: "WebGL 2",
+  const params = setDefaultParams(paramsOverrides)
+  const canvas = initCanvas(params)
+  const gl = canvas.getContext("webgl2") as WebGL2RenderingContext
+  const random = new Random(MersenneTwister19937.autoSeed())
+
+  const sketch = { render: sketchFactory({ gl, random, params }) }
+  const resetClock = renderLoop(sketch, stats)
+  canvas.onclick = () => {
+    sketch.render = sketchFactory({ gl, random, params })
+    resetClock()
   }
 
-  const contexts = {
-    1: window.WebGLRenderingContext,
-    2: window.WebGL2RenderingContext,
-  }
-
-  let message =
-    'Your $0 does not seem to support <a href="http://khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" style="color:#000">$1</a>'
-
-  const element = document.createElement("div")
-  element.id = "webglmessage"
-  element.style.fontFamily = "monospace"
-  element.style.fontSize = "18px"
-  element.style.fontWeight = "normal"
-  element.style.textAlign = "center"
-  element.style.background = "#fff"
-  element.style.color = "#000"
-  element.style.paddingTop = "1.5em"
-  element.style.width = `${canvasWidth}px`
-
-  if (contexts[version]) {
-    message = message.replace("$0", "graphics card")
-  } else {
-    message = message.replace("$0", "browser")
-  }
-
-  message = message.replace("$1", names[version])
-  element.innerHTML = message
-  return element
+  //TODO: Resize with the same random
 }
+
+function renderLoop(sketch: { render: SketchRender }, stats?: Stats) {
+  let [startTime, prevTime, frameRecordCounter] = [0, 0, 0]
+  const loop = (timestamp: number) => {
+    stats?.begin()
+
+    !startTime && (startTime = timestamp)
+    const totalTime = (timestamp - startTime) / 1000
+    const deltaTime = (timestamp - (prevTime || startTime)) / 1000
+    prevTime = timestamp
+
+    sketch.render(deltaTime, totalTime)
+    CanvasCapture.checkHotkeys()
+    if (CanvasCapture.isRecording()) {
+      CanvasCapture.recordFrame()
+      frameRecordCounter++
+      if (frameRecordCounter % FPS == 0) console.log(`Recorded ${frameRecordCounter / FPS} seconds`)
+    } else if (frameRecordCounter != 0) frameRecordCounter == 0
+
+    stats?.end()
+    requestAnimationFrame(loop)
+  }
+  requestAnimationFrame(loop)
+
+  return () => (startTime = prevTime = 0)
+}
+
+function initCanvas(params: SketchParams): HTMLCanvasElement {
+  const canvas = document.createElement("canvas")
+  canvas.id = canvasId
+  canvas.width = params.width
+  canvas.height = params.height
+  document.body.appendChild(canvas)
+
+  CanvasCapture.init(canvas, { showRecDot: true })
+  CanvasCapture.bindKeyToPNGSnapshot("p")
+  CanvasCapture.bindKeyToVideoRecord("v", {
+    onExportProgress: (progress) => console.log(`Processing recording, ${round(progress * 100)}%...`),
+  })
+  return canvas
+}
+
+function setDefaultParams(paramsOverrides?: Partial<SketchParams>): SketchParams {
+  const defaultParams = { debug: false, pixelDensity: 1 }
+  const devDimensions = { width: 1300, height: 1300 }
+  const prodDimensions = { width: window.innerWidth, height: window.innerHeight }
+  const dimensions = process.env.NODE_ENV === "production" ? prodDimensions : devDimensions
+  return { ...defaultParams, ...dimensions, ...paramsOverrides }
+}
+
+const canvasId = "sketch"
+const FPS = 60
