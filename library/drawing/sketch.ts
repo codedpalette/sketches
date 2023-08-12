@@ -9,6 +9,8 @@ import { AxesHelper, Camera, GridHelper, Scene, WebGLRenderer } from "three"
 
 import { drawAxes } from "./pixi"
 
+//TODO: Remove this file
+
 export interface SketchParams {
   debug: boolean
   width: number

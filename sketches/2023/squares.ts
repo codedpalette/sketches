@@ -1,4 +1,4 @@
-import { run, SketchFactory } from "drawing/webgl"
+import { run, SketchFactory } from "drawing/renderer"
 import glsl from "glslify"
 import {
   createBufferInfoFromArrays,

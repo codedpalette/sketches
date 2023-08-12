@@ -7,6 +7,8 @@ import { BlurFilter, Container, Graphics, NoiseFilter } from "pixi.js"
 import { map } from "utils/map"
 import { noise2d, random } from "utils/random"
 
+//TODO: Rewrite to WebGL
+
 run((params) => {
   const n = noise2d()
   const container = new Container()

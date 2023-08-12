@@ -6,6 +6,8 @@ import { abs, max, min, sqrt, tan } from "mathjs"
 import { Container, Graphics, NoiseFilter, Sprite } from "pixi.js"
 import { noise3d, random } from "utils/random"
 
+//TODO: Rewrite to WebGL
+
 run((params) => {
   const noise = noise3d()
   const hue = random.real(0, 360)

@@ -37,7 +37,7 @@ export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<Sket
     resetClock()
   }
 
-  //TODO: Resize with the same random
+  //TODO: Resize with the same random seed
 }
 
 function renderLoop(sketch: { render: SketchRender }, stats?: Stats) {
