@@ -27,7 +27,7 @@ export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<Sket
 
   const params = setDefaultParams(paramsOverrides)
   const canvas = initCanvas(params)
-  const gl = canvas.getContext("webgl2") as WebGL2RenderingContext
+  const gl = canvas.getContext("webgl2", { premultipliedAlpha: false }) as WebGL2RenderingContext
   const random = new Random(MersenneTwister19937.autoSeed())
 
   const sketch = { render: sketchFactory({ gl, random, params }) }

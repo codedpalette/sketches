@@ -23,18 +23,25 @@ uniform float scaleVectorRotation;
 out vec3 v_color;
 out vec2 v_position;
 out vec2 w_position;
+
+const float PI = 3.1415926535897932384626433832795;
 void main() {    
-  vec2 worldCentre = (matrix * vec4(0, 0, 1, 1)).xy;  
-  float centreRotation = atan(worldCentre.y, worldCentre.x);  
+  //vec2 worldCentre = (matrix * vec4(0, 0, 1, 1)).xy;  
+  //float centreRotation = atan(worldCentre.y, worldCentre.x);  
 
   float depth = fract(startDepth+depthOffset);  
-  float theta = scaleVectorRotation - centreRotation;
+  float theta = scaleVectorRotation - depth*PI;
   
-  vec2 scale = abs(vec2(cos(theta), sin(theta)));  
-  scale = scale * scale * scale*0.5+0.5;
-  vec4 scaleVector = vec4(scale * scale * scale, 1, 1);  
-    
-  gl_Position = matrix * (scaleVector * vec4(position, depth, 1));
+  vec2 scaleDirection = vec2(cos(theta), sin(theta));       
+  vec2 scaleSign = sign(scaleDirection);
+  vec2 scaleEasing = pow(abs(scaleDirection), vec2(3., 3.));  
+  vec4 scaleVector = vec4(scaleEasing * 0.3 + .9, 1, 1);    
+  
+  vec2 translateDirection = min(abs(scaleDirection) * sqrt(2.), vec2(1., 1.)) * scaleSign;
+  vec4 translateVector = vec4(translateDirection, 0, 0);      
+      
+  vec4 local = vec4(position, depth, 1);  
+  gl_Position = matrix * ((local + translateVector) * scaleVector - translateVector);
 
   v_color = color;
   v_position = position;
@@ -44,6 +51,9 @@ void main() {
 const frag = glsl`#version 300 es
 
 precision highp float;
+
+#pragma glslify: noise = require(glsl-noise/simplex/2d)
+
 in vec3 v_color;
 in vec2 v_position;
 in vec2 w_position;
@@ -52,13 +62,22 @@ out vec4 outColor;
  
 void main() {  
   vec2 scale = vec2(cos(scaleVectorRotation), sin(scaleVectorRotation));
+
   float d = length(v_position-scale);  
   float d_world = length(w_position-scale);  
-  outColor = vec4((v_color-d/3.), 0.5); //TODO: Fix lighting
+  
+  float theta = atan(v_position.y, v_position.x);
+  float n = noise(vec2(theta*25., 0.)); //TODO: varying noise
+  
+  vec3 color = (v_color - d_world/3.) * (v_color - d/3.); //TODO: Fix lighting
+  if(length(v_position) + n*0.05 > 1.) 
+    discard;
+  else
+    outColor = vec4(color, 0.9);
 }`
 
 const sketch: SketchFactory = ({ gl, random }) => {
-  const instanceCount = 10000
+  const instanceCount = 500
   const scaleVectorOffset = random.real(0, Math.PI * 2)
   const scaleVectorRotationSeconds = 4
   const programInfo = createProgramInfo(gl, [vert, frag])
@@ -93,10 +112,10 @@ const sketch: SketchFactory = ({ gl, random }) => {
       const offsetBytes = i * 16 * 4 // 16 elements, 32 bit each
       const mat = new Float32Array(matrices.buffer, offsetBytes, 16)
 
-      const [scaleX, scaleY] = [random.real(0.2, 0.8), random.real(0.2, 0.8)]
+      const [scaleX, scaleY] = [random.real(0.2, 0.4), random.real(0.2, 0.4)]
       const [translateX, translateY] = [
-        random.real(0.5, 5) * (1 - scaleX) * random.sign(),
-        random.real(0.5, 5) * (1 - scaleY) * random.sign(),
+        random.real(0.5, 3) * (1 - scaleX) * random.sign(),
+        random.real(0.5, 3) * (1 - scaleY) * random.sign(),
       ]
       m4.scaling([scaleX, scaleY, 1], mat)
       m4.translate(mat, [translateX, translateY, 0], mat)
