@@ -6,7 +6,7 @@ import { max, min, multiply, sign, sin, tan } from "mathjs"
 import { Container } from "pixi.js"
 import { random } from "utils/random"
 
-//TODO: Rewrite to WebGL
+//Rewrite to WebGL
 // - Color palette, gradients, blurry polygons in the background
 // - Calculate intercept offset to make corners always visible
 // - Noise for darker blots on stripes

@@ -49,9 +49,7 @@ void main() {
 }`
 
 const frag = glsl`#version 300 es
-
 precision highp float;
-
 #pragma glslify: noise = require(glsl-noise/simplex/4d)
 
 in vec3 v_color;
@@ -62,7 +60,7 @@ uniform float scaleVectorRotation;
 uniform float totalTime;
 out vec4 outColor;
  
-const float noiseAmp = 0.2;
+const float noiseAmp = 0.2; //TODO: Increase in the direction to light
 const float radius = 0.8;
 void main() {  
   vec2 scale = vec2(cos(scaleVectorRotation), sin(scaleVectorRotation));
@@ -71,7 +69,7 @@ void main() {
   float d_world = length(w_position-scale); 
   float r = length(v_position);
   
-  vec3 color = (v_color - d_world/2.) * (v_color - d/2.);
+  vec3 color = (v_color - d_world/2.) * (v_color - d/2.); //TODO: Fix lighting, fresnel
   float alpha = smoothstep(0.5, 1.5, r)+0.7;
   
   if (r > radius + noiseAmp) {
@@ -85,8 +83,9 @@ void main() {
   }    
 }`
 
+//TODO: Portrait orientation
 const sketch: SketchFactory = ({ gl, random }) => {
-  const instanceCount = random.integer(1000, 3000)
+  const instanceCount = random.integer(1000, 3000) //TODO: Optimize for 10000
   const scaleVectorOffset = random.real(0, Math.PI * 2)
   const scaleVectorRotationSeconds = 3
 

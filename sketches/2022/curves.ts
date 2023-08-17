@@ -8,6 +8,7 @@ import { noise2d, random } from "utils/random"
 
 //TODO: Rework, optimize
 // - less blank space
+// https://tylerxhobbs.com/fidenza
 
 run((params) => {
   const noise = noise2d()
