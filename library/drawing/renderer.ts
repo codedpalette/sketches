@@ -27,7 +27,11 @@ export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<Sket
 
   const params = setDefaultParams(paramsOverrides)
   const canvas = initCanvas(params)
-  const gl = canvas.getContext("webgl2", { alpha: false }) as WebGL2RenderingContext
+  const gl = canvas.getContext("webgl2", {
+    alpha: false,
+    antialias: true,
+    powerPreference: "high-performance",
+  }) as WebGL2RenderingContext
   const random = new Random(MersenneTwister19937.autoSeed())
 
   const sketch = { render: sketchFactory({ gl, random, params }) }
@@ -67,12 +71,9 @@ function renderLoop(sketch: { render: SketchRender }, stats?: Stats) {
 }
 
 function initCanvas(params: SketchParams): HTMLCanvasElement {
-  const canvas = document.createElement("canvas")
-  canvas.id = canvasId
+  const canvas = document.getElementById(canvasId) as HTMLCanvasElement
   canvas.width = params.width
   canvas.height = params.height
-  document.body.appendChild(canvas)
-
   CanvasCapture.init(canvas, { showRecDot: true })
   CanvasCapture.bindKeyToPNGSnapshot("p")
   CanvasCapture.bindKeyToVideoRecord("v", {

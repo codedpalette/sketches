@@ -19,6 +19,7 @@
   "dependencies": {
     "@pixi-essentials/svg": "^2.0.1",
     "@pixi/unsafe-eval": "^7.2.4",
+    "@thi.ng/vectors": "^7.7.7",
     "canvas-capture": "^2.1.1",
     "color-convert": "^2.0.1",
     "fontkit": "^2.0.2",
