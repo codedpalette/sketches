@@ -1,10 +1,10 @@
 import { run, SketchFactory } from "drawing/renderer"
+import { compileShader } from "drawing/webgl"
 import glsl from "glslify"
 import {
   Arrays,
   AttribInfo,
   createBufferInfoFromArrays,
-  createProgramInfo,
   drawBufferInfo,
   m4,
   setAttribInfoBufferFromArray,
@@ -13,75 +13,77 @@ import {
 } from "twgl.js"
 import { map } from "utils/map"
 
-const vert = glsl`#version 300 es
-
-in vec2 position;
-in vec3 color;
-in mat4 matrix;
-in float depth;
-uniform vec2 resolution;
-uniform float scaleVectorRotation;
- 
-out vec3 v_color;
-out vec2 v_position;
-out vec2 w_position;
-out float v_depth;
-
-const float PI = 3.1415926535897932384626433832795;
-const float SQRT_2 = sqrt(2.);
-void main() {        
-  float theta = scaleVectorRotation - (1. - depth)*PI;
+const vert = glsl`
+  in vec2 position;
+  in vec3 color;
+  in mat4 matrix; //TODO: use mat3
+  in float depth;
   
-  vec2 scaleDirection = vec2(cos(theta), sin(theta));       
-  vec2 scaleSign = sign(scaleDirection);
-  vec4 scaleVector = vec4(pow(abs(scaleDirection), vec2(4., 4.)) * 0.4 + .8, 1, 1);    
+  out vec3 v_color;
+  out vec2 v_position;
+  out vec2 w_position;
+  out float v_depth;
   
-  vec2 translateDirection = min(abs(scaleDirection) * SQRT_2, vec2(1., 1.)) * scaleSign;
-  vec4 translateVector = vec4(translateDirection, 0, 0);      
-      
-  vec4 local = vec4(position*.5, depth, 1);  
-  gl_Position = matrix * ((local + translateVector) * scaleVector - translateVector);  
+  uniform vec2 resolution;
+  uniform float scaleVectorRotation;
 
-  v_color = color;
-  v_position = position;
-  w_position = gl_Position.xy;  
-  v_depth = depth;
-}`
+  const float SQRT_2 = sqrt(2.);
+  void main() {        
+    float theta = scaleVectorRotation - (1. - depth)*PI;
+    
+    vec2 scaleDirection = vec2(cos(theta), sin(theta));       
+    vec2 scaleSign = sign(scaleDirection);
+    vec4 scaleVector = vec4(pow(abs(scaleDirection), vec2(4., 4.)) * 0.4 + .8, 1, 1);    
+    
+    vec2 translateDirection = min(abs(scaleDirection) * SQRT_2, vec2(1., 1.)) * scaleSign;
+    vec4 translateVector = vec4(translateDirection, 0, 0);      
+        
+    vec4 local = vec4(position*.5, depth, 1);  
+    gl_Position = matrix * ((local + translateVector) * scaleVector - translateVector);  
 
-const frag = glsl`#version 300 es
-precision highp float;
-#pragma glslify: noise = require(glsl-noise/simplex/4d)
+    v_color = color;
+    v_position = position;
+    w_position = gl_Position.xy;  
+    v_depth = depth;
+  }
+`
 
-in vec3 v_color;
-in vec2 v_position;
-in vec2 w_position;
-in float v_depth;
-uniform float scaleVectorRotation;
-uniform float totalTime;
-out vec4 outColor;
- 
-const float noiseAmp = 0.2; //TODO: Increase in the direction to light
-const float radius = 0.8;
-void main() {  
-  vec2 scale = vec2(cos(scaleVectorRotation), sin(scaleVectorRotation));
+const frag = glsl`
+  #pragma glslify: noise = require(glsl-noise/simplex/4d)
 
-  float d = length(v_position-scale);  
-  float d_world = length(w_position-scale); 
-  float r = length(v_position);
+  in vec3 v_color;
+  in vec2 v_position;
+  in vec2 w_position;
+  in float v_depth;
+  out vec4 outColor;
+
+  uniform float scaleVectorRotation;
+  uniform float totalTime;  
   
-  vec3 color = (v_color - d_world/2.) * (v_color - d/2.); //TODO: Fix lighting, fresnel
-  float alpha = smoothstep(0.5, 1.5, r)+0.7;
+  const float noiseAmp = 0.2; //TODO: Increase in the direction to light
+  const float radius = 0.8;
   
-  if (r > radius + noiseAmp) {
-    outColor = vec4(color, 0.);    
-  } else if (r < radius) {
-    outColor = vec4(color, alpha);    
-  } else {
-    float theta = atan(v_position.y, v_position.x);
-    float n = noise(vec4(v_position*2., totalTime, v_depth * 100.));
-    outColor = vec4(color, r > radius + n*noiseAmp ? 0. : alpha);
-  }    
-}`
+  void main() {  
+    vec2 scale = vec2(cos(scaleVectorRotation), sin(scaleVectorRotation));
+
+    float d = length(v_position-scale);  
+    float d_world = length(w_position-scale); 
+    float r = length(v_position);
+    
+    vec3 color = (v_color - d_world/2.) * (v_color - d/2.); //TODO: Fix lighting, fresnel
+    float alpha = smoothstep(0.5, 1.5, r)+0.7;
+    
+    if (r > radius + noiseAmp) {
+      outColor = vec4(color, 0.);    
+    } else if (r < radius) {
+      outColor = vec4(color, alpha);    
+    } else {
+      float theta = atan(v_position.y, v_position.x);
+      float n = noise(vec4(v_position*2., totalTime, v_depth * 100.));
+      outColor = vec4(color, r > radius + n*noiseAmp ? 0. : alpha);
+    }    
+  }
+`
 
 //TODO: Portrait orientation
 const sketch: SketchFactory = ({ gl, random }) => {
@@ -92,14 +94,13 @@ const sketch: SketchFactory = ({ gl, random }) => {
   const matrices = new Float32Array(instanceCount * 16)
   const colors: number[] = []
 
-  const programInfo = createProgramInfo(gl, [vert, frag])
+  const programInfo = compileShader(gl, { vert, frag })
   const bufferInfo = fillBuffer()
   gl.enable(gl.BLEND)
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
   let counter = 0
   return function render(_, totalTime) {
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
     gl.clearColor(0, 0, 0, 1)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 

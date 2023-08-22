@@ -6,10 +6,10 @@ import { MersenneTwister19937, Random } from "random-js"
 import Stats from "stats.js"
 
 export interface SketchParams {
-  debug: boolean //TODO: change with a hotkey
+  debug: boolean
   width: number
   height: number
-  pixelDensity: number
+  pixelDensity: number //TODO: Implement
 }
 
 export interface SketchEnv {
@@ -27,15 +27,11 @@ export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<Sket
 
   const params = setDefaultParams(paramsOverrides)
   const canvas = initCanvas(params)
-  const gl = canvas.getContext("webgl2", {
-    alpha: false,
-    antialias: true,
-    powerPreference: "high-performance",
-  }) as WebGL2RenderingContext
+  const gl = canvas.getContext("webgl2", { alpha: false, antialias: true }) as WebGL2RenderingContext
   const random = new Random(MersenneTwister19937.autoSeed())
 
   const sketch = { render: sketchFactory({ gl, random, params }) }
-  const resetClock = renderLoop(sketch, stats)
+  const resetClock = renderLoop(sketch, gl, stats)
   canvas.onclick = () => {
     sketch.render = sketchFactory({ gl, random, params })
     resetClock()
@@ -44,7 +40,7 @@ export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<Sket
   //TODO: Resize with the same random seed
 }
 
-function renderLoop(sketch: { render: SketchRender }, stats?: Stats) {
+function renderLoop(sketch: { render: SketchRender }, gl: WebGL2RenderingContext, stats?: Stats) {
   let [startTime, prevTime, frameRecordCounter] = [0, 0, 0]
   const loop = (timestamp: number) => {
     stats?.begin()
@@ -54,7 +50,9 @@ function renderLoop(sketch: { render: SketchRender }, stats?: Stats) {
     const deltaTime = (timestamp - (prevTime || startTime)) / 1000
     prevTime = timestamp
 
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
     sketch.render(deltaTime, totalTime)
+
     CanvasCapture.checkHotkeys()
     if (CanvasCapture.isRecording()) {
       CanvasCapture.recordFrame()
