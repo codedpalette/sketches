@@ -3,16 +3,14 @@ import { CanvasCapture } from "canvas-capture"
 import Stats from "stats.js"
 
 export interface SketchParams {
-  debug: boolean
   width: number
   height: number
-  pixelDensity: number //TODO: Implement
+  pixelDensity: number
 }
 
 export interface SketchEnv {
   gl: WebGL2RenderingContext
   random: IRandom
-  params: SketchParams
 }
 
 export type SketchRender = (deltaTime: number, totalTime: number) => void
@@ -22,19 +20,17 @@ export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<Sket
   const stats = process.env.NODE_ENV !== "production" ? new Stats() : undefined
   stats && document.body.appendChild(stats.dom)
 
-  const params = setDefaultParams(paramsOverrides)
+  const params = { ...defaultParams, ...paramsOverrides }
   const canvas = initCanvas(params)
-  const gl = canvas.getContext("webgl2", { alpha: false, antialias: true }) as WebGL2RenderingContext
-  const random = new Smush32()
+  const gl = canvas.getContext("webgl2", { alpha: false }) as WebGL2RenderingContext
+  const random = new Smush32(performance.now())
 
-  const sketch = { render: sketchFactory({ gl, random, params }) }
+  const sketch = { render: sketchFactory({ gl, random }) }
   const resetClock = renderLoop(sketch, gl, stats)
   canvas.onclick = () => {
-    sketch.render = sketchFactory({ gl, random, params })
+    sketch.render = sketchFactory({ gl, random })
     resetClock()
   }
-
-  //TODO: Resize with the same random seed
 }
 
 function renderLoop(sketch: { render: SketchRender }, gl: WebGL2RenderingContext, stats?: Stats) {
@@ -47,9 +43,7 @@ function renderLoop(sketch: { render: SketchRender }, gl: WebGL2RenderingContext
     const deltaTime = (timestamp - (prevTime || startTime)) / 1000
     prevTime = timestamp
 
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
     sketch.render(deltaTime, totalTime)
-
     CanvasCapture.checkHotkeys()
     if (CanvasCapture.isRecording()) {
       CanvasCapture.recordFrame()
@@ -67,8 +61,11 @@ function renderLoop(sketch: { render: SketchRender }, gl: WebGL2RenderingContext
 
 function initCanvas(params: SketchParams): HTMLCanvasElement {
   const canvas = document.getElementById(canvasId) as HTMLCanvasElement
-  canvas.width = params.width
-  canvas.height = params.height
+  canvas.width = params.width * params.pixelDensity
+  canvas.height = params.height * params.pixelDensity
+  canvas.style.width = `${params.width}px`
+  canvas.style.height = `${params.height}px`
+
   CanvasCapture.init(canvas, { showRecDot: true })
   CanvasCapture.bindKeyToPNGSnapshot("p")
   CanvasCapture.bindKeyToVideoRecord("v", {
@@ -77,13 +74,6 @@ function initCanvas(params: SketchParams): HTMLCanvasElement {
   return canvas
 }
 
-function setDefaultParams(paramsOverrides?: Partial<SketchParams>): SketchParams {
-  const defaultParams = { debug: false, pixelDensity: 1 }
-  const devDimensions = { width: 1300, height: 1300 }
-  const prodDimensions = { width: window.innerWidth, height: window.innerHeight }
-  const dimensions = process.env.NODE_ENV === "production" ? prodDimensions : devDimensions
-  return { ...defaultParams, ...dimensions, ...paramsOverrides }
-}
-
 const canvasId = "sketch"
 const FPS = 60
+const defaultParams = { pixelDensity: 1, width: 1292, height: 1292 }
