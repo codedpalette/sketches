@@ -1,0 +1,38 @@
+diff --git a/dist/index.js b/dist/index.js
+index b71a8e2b55dcccd19b4a0067131a231012b6238d..a91389c0019f062aedb6ffde8510665161b858d0 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -46,9 +46,9 @@ function filesCompiler(extFilter, options) {
+       if (extFilter(id)) {
+         return {
+           code: `export default \`${(0, import_glslify.compile)(code, {
+-            ...options,
+-            basedir: import_path.default.dirname(id)
+-          })}\``
++            basedir: import_path.default.dirname(id),
++            ...options
++          })}\``,
+         };
+       }
+       return null;
+@@ -59,8 +59,8 @@ function filesCompiler(extFilter, options) {
+       const defaultRead = ctx.read;
+       ctx.read = async () => {
+         return (0, import_glslify.compile)(await defaultRead(), {
++          basedir: import_path.default.dirname(ctx.file),
+           ...options,
+-          basedir: import_path.default.dirname(ctx.file)
+         });
+       };
+     }
+@@ -221,8 +221,8 @@ function literalsCompiler(idFilter, funcFilter, options) {
+           const target = (0, import_astring.generate)(node);
+           try {
+             const compiled = (0, import_glslify2.compile)(target.replace(/`/g, ""), {
+-              ...options,
+-              basedir: import_path2.default.dirname(id)
++              basedir: import_path2.default.dirname(id),
++              ...options,              
+             });
+             s.overwrite(start, end, `\`${compiled}\``);
+           } catch (e) {

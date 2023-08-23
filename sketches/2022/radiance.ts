@@ -1,7 +1,7 @@
 import { coin } from "@thi.ng/random"
 import * as v from "@thi.ng/vectors"
 import { run, SketchFactory } from "drawing/sketch"
-import { compileShader } from "drawing/webgl"
+import { compileShader, quadBuffer } from "drawing/webgl"
 import glsl from "glslify"
 import { createBufferInfoFromArrays, drawBufferInfo, setBuffersAndAttributes, setUniforms } from "twgl.js"
 
@@ -38,7 +38,7 @@ const frag = glsl`
   uniform float gradientRotation;
   uniform int drawMode;
 
-  #pragma glslify: oklab_mix = require(../../library/shaders/oklab_mix.glsl) //TODO: basePath
+  #pragma glslify: oklab_mix = require(./oklab_mix.glsl)
 
   vec4 mix(float t) {
     for (int i = 0; i < colors.length(); i++) {
@@ -82,7 +82,7 @@ const sketch: SketchFactory = ({ gl, random }) => {
     gradientRotation,
   }
   const drawModes = [DRAW_BACKGROUND, DRAW_RAYS, DRAW_CIRCLE]
-  const buffers = [background(), rays(), circle()]
+  const buffers = [quadBuffer(gl), rays(), circle()]
 
   return function render() {
     gl.clearColor(0, 0, 0, 1)
@@ -98,13 +98,6 @@ const sketch: SketchFactory = ({ gl, random }) => {
     }
   }
 
-  function background() {
-    return createBufferInfoFromArrays(gl, {
-      position: { numComponents: 2, data: [-1, 1, 1, 1, -1, -1, 1, -1] },
-      indices: [0, 1, 2, 2, 1, 3],
-    })
-  }
-
   function rays() {
     const pointData: number[] = []
     const colorData: number[] = []
@@ -112,7 +105,7 @@ const sketch: SketchFactory = ({ gl, random }) => {
     const rotationStep = 0.2
 
     let rotation = 0
-    while (rotation < 2 * Math.PI - rotationStep / 2) {
+    while (rotation < 2 * Math.PI - rotationStep) {
       const rayRotation = rotation + gradientRotation
       const rayAngle = random.minmax(0.01, 0.05)
       const triangleHalfBase = triangleHeight * Math.tan(rayAngle / 2)

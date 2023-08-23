@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [
     nodePolyfills(),
     tsconfigPaths(),
-    glslify(),
+    glslify({ options: { basedir: "./library/shaders" } }),
     // https://github.com/electron-vite/vite-plugin-electron/blob/main/src/index.ts
     {
       name: "start-electron",
