@@ -5016,6 +5016,7 @@ __metadata:
     husky: ^8.0.3
     lint-staged: ^13.2.3
     prettier: ^2.8.8
+    spectorjs: ^0.9.29
     stats.js: ^0.17.0
     twgl.js: ^5.5.1
     typescript: ^5.1.6
@@ -5300,6 +5301,13 @@ __metadata:
   version: 1.4.8
   resolution: "sourcemap-codec@npm:1.4.8"
   checksum: b57981c05611afef31605732b598ccf65124a9fcb03b833532659ac4d29ac0f7bfacbc0d6c5a28a03e84c7510e7e556d758d0bb57786e214660016fb94279316
+  languageName: node
+  linkType: hard
+
+"spectorjs@npm:^0.9.29":
+  version: 0.9.29
+  resolution: "spectorjs@npm:0.9.29"
+  checksum: 1af7fd591b8a3971b62202b0d5011c0aab52e84781f4dc7d829f75a646303ac6b9a4c36982e2fde94875b15bc923beddf73b597479ee6eb7b83cf07165db8012
   languageName: node
   linkType: hard
 

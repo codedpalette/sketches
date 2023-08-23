@@ -22,6 +22,7 @@
     "canvas-capture": "^2.1.1",
     "glsl-noise": "^0.0.0",
     "glslify": "^7.1.1",
+    "spectorjs": "^0.9.29",
     "stats.js": "^0.17.0",
     "twgl.js": "^5.5.1"
   },

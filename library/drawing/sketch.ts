@@ -1,5 +1,6 @@
 import { IRandom, Smush32 } from "@thi.ng/random"
 import { CanvasCapture } from "canvas-capture"
+import { Spector } from "spectorjs"
 import Stats from "stats.js"
 
 export interface SketchParams {
@@ -18,6 +19,7 @@ export type SketchFactory = (env: SketchEnv) => SketchRender
 
 export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<SketchParams>) {
   const stats = process.env.NODE_ENV !== "production" ? new Stats() : undefined
+  const spector = process.env.NODE_ENV !== "production" ? new Spector() : undefined
   stats && document.body.appendChild(stats.dom)
 
   const params = { ...defaultParams, ...paramsOverrides }
@@ -30,6 +32,15 @@ export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<Sket
   canvas.onclick = () => {
     sketch.render = sketchFactory({ gl, random })
     resetClock()
+  }
+
+  if (spector) {
+    addEventListener("keydown", (e) => e.key == "r" && spector.captureNextFrame(canvas))
+    spector?.onCapture.add((capture) => {
+      const resultView = spector?.getResultUI()
+      resultView.display()
+      resultView.addCapture(capture)
+    })
   }
 }
 
