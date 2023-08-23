@@ -1,5 +1,6 @@
+import { coin } from "@thi.ng/random"
 import * as v from "@thi.ng/vectors"
-import { run, SketchFactory } from "drawing/renderer"
+import { run, SketchFactory } from "drawing/sketch"
 import { compileShader } from "drawing/webgl"
 import glsl from "glslify"
 import { createBufferInfoFromArrays, drawBufferInfo, setBuffersAndAttributes, setUniforms } from "twgl.js"
@@ -70,13 +71,13 @@ const frag = glsl`
 `
 
 const sketch: SketchFactory = ({ gl, random }) => {
-  const gradientCenter = [random.real(-0.8, 0.8), random.real(-0.8, 0.8)]
-  const gradientRotation = Math.atan2(gradientCenter[1], gradientCenter[0]) + random.real(-Math.PI / 4, Math.PI / 4)
+  const gradientCenter = [random.norm(0.8), random.norm(0.8)]
+  const gradientRotation = Math.atan2(gradientCenter[1], gradientCenter[0]) + random.norm(Math.PI / 4)
   const palette = [randomColor(), randomColor(), randomColor()] //TODO: Generate palette
 
   const programInfo = compileShader(gl, { vert, frag })
   const uniforms = {
-    colors: [...palette[0], 0, ...palette[1], random.real(0.3, 0.7), ...palette[2], 1],
+    colors: [...palette[0], 0, ...palette[1], random.minmax(0.3, 0.7), ...palette[2], 1],
     gradientCenter,
     gradientRotation,
   }
@@ -113,7 +114,7 @@ const sketch: SketchFactory = ({ gl, random }) => {
     let rotation = 0
     while (rotation < 2 * Math.PI - rotationStep / 2) {
       const rayRotation = rotation + gradientRotation
-      const rayAngle = random.real(0.01, 0.05)
+      const rayAngle = random.minmax(0.01, 0.05)
       const triangleHalfBase = triangleHeight * Math.tan(rayAngle / 2)
 
       const triangle = [
@@ -123,10 +124,10 @@ const sketch: SketchFactory = ({ gl, random }) => {
       ]
       triangle.forEach((point) => pointData.push(...v.add([], v.rotate([], point, rayRotation), gradientCenter)))
 
-      const color = random.bool() ? random.real(0, 0.2) : random.real(0.8, 1)
+      const color = coin(random) ? random.float(0.2) : 1 - random.float(0.2)
       colorData.push(...Array<number>(3).fill(color))
 
-      rotation += random.real(1, 1.5) * rotationStep
+      rotation += random.minmax(1, 1.5) * rotationStep
     }
 
     return createBufferInfoFromArrays(gl, {
@@ -137,7 +138,7 @@ const sketch: SketchFactory = ({ gl, random }) => {
   }
 
   function circle() {
-    const quadSize = random.real(0.1, 0.2)
+    const quadSize = random.minmax(0.1, 0.2)
     const quadVertices = [
       [-1, 1],
       [1, 1],
@@ -154,7 +155,7 @@ const sketch: SketchFactory = ({ gl, random }) => {
   }
 
   function randomColor() {
-    return [random.realZeroToOneInclusive(), random.realZeroToOneInclusive(), random.realZeroToOneInclusive()]
+    return [random.float(), random.float(), random.float()]
   }
 }
 

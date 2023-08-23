@@ -1,217 +1,89 @@
-import "@pixi/unsafe-eval"
-
+import { IRandom, Smush32 } from "@thi.ng/random"
 import { CanvasCapture } from "canvas-capture"
-import { Path, Rectangle } from "geometry/paths"
-import { max, min, round } from "mathjs"
-import { Application, Container } from "pixi.js"
-import Stats, { Panel } from "stats.js"
-import { AxesHelper, Camera, GridHelper, Scene, WebGLRenderer } from "three"
-
-import { drawAxes } from "./pixi"
-
-//TODO: Remove this file
+import Stats from "stats.js"
 
 export interface SketchParams {
   debug: boolean
   width: number
   height: number
-  resolution: number
+  pixelDensity: number //TODO: Implement
 }
 
-export interface PixiSketch {
-  container: Container
-  update?: (deltaTime: number, elapsedTotal: number) => void
+export interface SketchEnv {
+  gl: WebGL2RenderingContext
+  random: IRandom
+  params: SketchParams
 }
 
-export interface ThreeSketch {
-  scene: Scene
-  camera: Camera
-  update?: (deltaTime: number, elapsedTotal: number) => void
-}
+export type SketchRender = (deltaTime: number, totalTime: number) => void
+export type SketchFactory = (env: SketchEnv) => SketchRender
 
-interface SketchContext<T extends Sketch> {
-  canvas: HTMLCanvasElement
-  context: T extends PixiSketch ? Application<HTMLCanvasElement> : WebGLRenderer
-  resize: (params: SketchParams) => void
-  run: (sketch: T) => void
-  render: () => void
-}
+export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<SketchParams>) {
+  const stats = process.env.NODE_ENV !== "production" ? new Stats() : undefined
+  stats && document.body.appendChild(stats.dom)
 
-type Sketch = PixiSketch | ThreeSketch
-type SketchFactory<T extends Sketch> = (params: SketchParams) => T
-const FPS = 60
-
-export const Params = {
-  DEBUG: {
-    debug: true,
-  },
-  PRINTIFY: {
-    width: 960,
-    height: 1200,
-    resolution: 5,
-  },
-}
-
-export function run<T extends Sketch>(sketchFactory: SketchFactory<T>, paramsOverrides?: Partial<SketchParams>) {
-  const stats = process.env.NODE_ENV === "production" ? undefined : initStats()
   const params = setDefaultParams(paramsOverrides)
-  const sketch = sketchFactory(params)
-  const context = initSketchContext(sketch, params, stats)
-  context.run(sketch)
+  const canvas = initCanvas(params)
+  const gl = canvas.getContext("webgl2", { alpha: false, antialias: true }) as WebGL2RenderingContext
+  const random = new Smush32()
 
-  let totalElapsed = 0
-  let frameRecordCounter = 0
-  let needsUpdate = true
-  let prevTime = 0
-  let update = sketch.update
-  const renderLoop = (timestamp: number) => {
+  const sketch = { render: sketchFactory({ gl, random, params }) }
+  const resetClock = renderLoop(sketch, gl, stats)
+  canvas.onclick = () => {
+    sketch.render = sketchFactory({ gl, random, params })
+    resetClock()
+  }
+
+  //TODO: Resize with the same random seed
+}
+
+function renderLoop(sketch: { render: SketchRender }, gl: WebGL2RenderingContext, stats?: Stats) {
+  let [startTime, prevTime, frameRecordCounter] = [0, 0, 0]
+  const loop = (timestamp: number) => {
     stats?.begin()
 
-    let deltaTime = (timestamp - prevTime) / 1000
+    !startTime && (startTime = timestamp)
+    const totalTime = (timestamp - startTime) / 1000
+    const deltaTime = (timestamp - (prevTime || startTime)) / 1000
     prevTime = timestamp
 
-    if (update) {
-      while (deltaTime > 0) {
-        const timeStep = min(deltaTime, 0.001)
-        totalElapsed += timeStep
-        deltaTime -= timeStep
-        update(timeStep, totalElapsed)
-      }
-      needsUpdate = true
-    }
-
-    needsUpdate && context.render()
-    needsUpdate = false
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
+    sketch.render(deltaTime, totalTime)
 
     CanvasCapture.checkHotkeys()
     if (CanvasCapture.isRecording()) {
       CanvasCapture.recordFrame()
       frameRecordCounter++
       if (frameRecordCounter % FPS == 0) console.log(`Recorded ${frameRecordCounter / FPS} seconds`)
-    }
+    } else if (frameRecordCounter != 0) frameRecordCounter == 0
 
     stats?.end()
-    requestAnimationFrame(renderLoop)
+    requestAnimationFrame(loop)
   }
+  requestAnimationFrame(loop)
 
-  requestAnimationFrame(renderLoop)
-
-  context.canvas.onclick = () => {
-    const sketch = sketchFactory(params)
-    context.run(sketch)
-    totalElapsed = 0
-    update = sketch.update
-  }
-  process.env.NODE_ENV === "production" &&
-    addEventListener("resize", () => {
-      const params = setDefaultParams(paramsOverrides)
-      const sketch = sketchFactory(params)
-      context.resize(params)
-      context.run(sketch)
-      totalElapsed = 0
-      update = sketch.update
-    })
+  return () => (startTime = prevTime = 0)
 }
 
-function initStats() {
-  const stats = new Stats()
-  //Array.from(stats.dom.children).forEach((e) => ((e as HTMLCanvasElement).style.display = "block"))
-  document.body.appendChild(stats.dom)
-  return stats
-}
-
-function initSketchContext<T extends Sketch>(sketch: T, params: SketchParams, stats?: Stats): SketchContext<T> {
-  const ctx = (isPixiSketch(sketch) ? initPixiSketch(params) : initThreeSketch(params, stats)) as SketchContext<T>
-
-  const canvas = ctx.canvas
-  canvas.id = "sketch"
-  document.body.appendChild(canvas)
+function initCanvas(params: SketchParams): HTMLCanvasElement {
+  const canvas = document.getElementById(canvasId) as HTMLCanvasElement
+  canvas.width = params.width
+  canvas.height = params.height
   CanvasCapture.init(canvas, { showRecDot: true })
   CanvasCapture.bindKeyToPNGSnapshot("p")
   CanvasCapture.bindKeyToVideoRecord("v", {
-    onExportProgress: (progress) => console.log(`Processing recording, ${round(progress * 100)}%...`),
+    onExportProgress: (progress) => console.log(`Processing recording, ${Math.round(progress * 100)}%...`),
   })
-
-  ctx.resize(params)
-  return ctx
-}
-
-function initPixiSketch(params: SketchParams): SketchContext<PixiSketch> {
-  const app = new Application<HTMLCanvasElement>({
-    antialias: true,
-    autoDensity: true,
-    preserveDrawingBuffer: true,
-    powerPreference: "high-performance",
-  })
-  app.stage.scale.set(1, -1)
-
-  return {
-    context: app,
-    canvas: app.view,
-    resize(params) {
-      app.renderer.resolution = params.resolution
-      app.renderer.resize(params.width, params.height)
-      app.stage.position = { x: params.width / 2, y: params.height / 2 }
-    },
-    run(sketch) {
-      const children = app.stage.removeChildren()
-      children.forEach((obj) => obj.destroy(true))
-      app.stage.addChild(sketch.container)
-      params.debug && app.stage.addChild(drawAxes(params))
-    },
-    render() {
-      app.renderer.render(app.stage)
-    },
-  }
-}
-
-function initThreeSketch(params: SketchParams, stats?: Stats): SketchContext<ThreeSketch> {
-  const renderer = new WebGLRenderer({
-    antialias: true,
-    preserveDrawingBuffer: true,
-    powerPreference: "high-performance",
-  })
-  const drawCallsPanel = stats?.addPanel(new Panel("DrawCalls", "#ff8", "#221"))
-
-  let maxDrawCalls = 0
-  let scene: Scene, camera: Camera
-  return {
-    context: renderer,
-    canvas: renderer.domElement,
-    resize(params) {
-      renderer.setPixelRatio(params.resolution)
-      renderer.setSize(params.width, params.height)
-    },
-    run(sketch) {
-      ;({ scene, camera } = sketch)
-      params.debug && scene.add(new AxesHelper(), new GridHelper())
-    },
-    render() {
-      renderer.render(scene, camera)
-
-      const frameDrawCalls = renderer.info.render.calls
-      maxDrawCalls = max(frameDrawCalls, maxDrawCalls)
-      drawCallsPanel?.update(frameDrawCalls, maxDrawCalls)
-    },
-  }
+  return canvas
 }
 
 function setDefaultParams(paramsOverrides?: Partial<SketchParams>): SketchParams {
-  const defaultParams = {
-    debug: false,
-    resolution: 1,
-  }
-  const dimensions =
-    process.env.NODE_ENV === "production"
-      ? { width: window.innerWidth, height: window.innerHeight }
-      : { width: 1300, height: 1300 }
+  const defaultParams = { debug: false, pixelDensity: 1 }
+  const devDimensions = { width: 1300, height: 1300 }
+  const prodDimensions = { width: window.innerWidth, height: window.innerHeight }
+  const dimensions = process.env.NODE_ENV === "production" ? prodDimensions : devDimensions
   return { ...defaultParams, ...dimensions, ...paramsOverrides }
 }
 
-function isPixiSketch(sketch: Sketch): sketch is PixiSketch {
-  return (<PixiSketch>sketch).container !== undefined
-}
-
-export function getBounds(params: SketchParams): Path {
-  return new Rectangle(-params.width / 2, params.height / 2, params.width, -params.height).toPath()
-}
+const canvasId = "sketch"
+const FPS = 60

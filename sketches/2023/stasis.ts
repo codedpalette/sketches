@@ -1,4 +1,5 @@
-import { run, SketchFactory } from "drawing/renderer"
+import { random2 } from "@thi.ng/vectors"
+import { run, SketchFactory } from "drawing/sketch"
 import { compileShader } from "drawing/webgl"
 import glsl from "glslify"
 import {
@@ -11,7 +12,7 @@ import {
   setBuffersAndAttributes,
   setUniforms,
 } from "twgl.js"
-import { map } from "utils/map"
+import { map, sign } from "utils"
 
 const vert = glsl`
   in vec2 position;
@@ -87,8 +88,8 @@ const frag = glsl`
 
 //TODO: Portrait orientation
 const sketch: SketchFactory = ({ gl, random }) => {
-  const instanceCount = random.integer(1000, 3000) //TODO: Optimize for 10000
-  const scaleVectorOffset = random.real(0, Math.PI * 2)
+  const instanceCount = random.minmaxInt(1000, 3000) //TODO: Optimize for 10000
+  const scaleVectorOffset = random.float(Math.PI * 2)
   const scaleVectorRotationSeconds = 3
 
   const matrices = new Float32Array(instanceCount * 16)
@@ -137,14 +138,13 @@ const sketch: SketchFactory = ({ gl, random }) => {
       const offsetBytes = i * 16 * 4 // 16 elements, 32 bit each
       const mat = new Float32Array(matrices.buffer, offsetBytes, 16)
 
-      const [scaleX, scaleY] = [random.real(0.1, 0.2), random.real(0.1, 0.2)]
-      const [translateX, translateY] = [
-        ((1 - scaleX) / scaleX) * random.sign() * random.real(0, 1),
-        ((1 - scaleY) / scaleY) * random.sign() * random.real(0, 1),
-      ]
+      const [scaleX, scaleY] = random2(null, 0.1, 0.2)
+      const [translateX, translateY] = [scaleX, scaleY].map(
+        (scale) => ((1 - scale) / scale) * sign(random) * random.float()
+      )
       m4.scaling([scaleX, scaleY, 1], mat)
       m4.translate(mat, [translateX, translateY, 0], mat)
-      colors.push(random.real(0.3, 1), random.real(0.3, 1), random.real(0.3, 1))
+      colors.push(random.minmax(0.3, 1), random.minmax(0.3, 1), random.minmax(0.3, 1))
       depth.push(i / instanceCount)
     }
 
