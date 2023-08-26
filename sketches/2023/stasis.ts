@@ -32,6 +32,7 @@ const vert = glsl`
   void main() {        
     float theta = scaleVectorRotation - (1. - depth)*PI;
     
+    // TODO: Maybe precalculate matrices and store in texture?
     vec2 scaleDirection = vec2(cos(theta), sin(theta));       
     vec2 scaleSign = sign(scaleDirection);
     vec4 scaleVector = vec4(pow(abs(scaleDirection), vec2(4., 4.)) * 0.4 + .8, 1, 1);    

@@ -1,3 +1,4 @@
+// https://bottosson.github.io/posts/colorwrong/#what-can-we-do%3F
 vec3 srgb2linear(vec3 col) {
   vec3 linear = vec3(0.0);
   for(int i = 0; i < 3; i ++ ) {
@@ -16,6 +17,7 @@ vec3 linear2srgb(vec3 col) {
   return srgb;
 }
 
+// https://www.shadertoy.com/view/ttcyRS
 vec3 oklab_mix(vec3 colA, vec3 colB, float h)
 {
   const mat3 kCONEtoLMS = mat3(

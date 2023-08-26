@@ -1,3 +1,4 @@
+import glsl from "glslify"
 import { Arrays, createBufferInfoFromArrays, createProgramInfo } from "twgl.js"
 
 const prelude = `#version 300 es
@@ -19,3 +20,26 @@ export function quadBuffer(gl: WebGL2RenderingContext, additionalAttributes: Arr
     ...additionalAttributes,
   })
 }
+
+export const vertex2d = glsl`
+  in vec3 position; // Local, default z = 0  
+  in vec3 color; // default (0, 0, 0)
+  in mat3 transform;
+
+  out vec3 v_localPosition;
+  out vec3 v_globalPosition;
+  out vec3 v_color;
+
+  void main() {
+    mat3 transformMatrix = transform == mat3(0.0) ? mat3(1.0) : transform; //If uninitialized, set identity matrix
+    v_localPosition = position;
+
+    // Calculate global position without depth, than set it back
+    float depth = position.z;    
+    v_globalPosition = transformMatrix * vec3(position.xy, 1.0);
+    v_globalPosition.z = depth;
+
+    v_color = color;
+    gl_Position = vec4(v_globalPosition, 1.0);
+  }
+`

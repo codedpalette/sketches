@@ -24,7 +24,9 @@ export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<Sket
 
   const params = { ...defaultParams, ...paramsOverrides }
   const canvas = initCanvas(params)
-  const gl = canvas.getContext("webgl2", { alpha: false }) as WebGL2RenderingContext
+  const gl = canvas.getContext("webgl2", {
+    alpha: false, // Disable alpha in the backbuffer, https://webgl2fundamentals.org/webgl/lessons/webgl-and-alpha.html
+  }) as WebGL2RenderingContext
   const random = new Smush32(performance.now())
 
   const sketch = { render: sketchFactory({ gl, random }) }
@@ -50,11 +52,11 @@ function renderLoop(sketch: { render: SketchRender }, gl: WebGL2RenderingContext
     stats?.begin()
 
     !startTime && (startTime = timestamp)
-    const totalTime = (timestamp - startTime) / 1000
-    const deltaTime = (timestamp - (prevTime || startTime)) / 1000
+    const totalSeconds = (timestamp - startTime) / 1000
+    const deltaSeconds = (timestamp - (prevTime || startTime)) / 1000
     prevTime = timestamp
 
-    sketch.render(deltaTime, totalTime)
+    sketch.render(totalSeconds, deltaSeconds)
     CanvasCapture.checkHotkeys()
     if (CanvasCapture.isRecording()) {
       CanvasCapture.recordFrame()
@@ -67,7 +69,8 @@ function renderLoop(sketch: { render: SketchRender }, gl: WebGL2RenderingContext
   }
   requestAnimationFrame(loop)
 
-  return () => (startTime = prevTime = 0)
+  const resetClock = () => (startTime = prevTime = 0)
+  return resetClock
 }
 
 function initCanvas(params: SketchParams): HTMLCanvasElement {

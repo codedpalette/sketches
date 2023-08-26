@@ -15,6 +15,7 @@
   // 	],
   // 	"description": "Log output to console"
   // }
+  // TODO: Update snippets
   "Sketch 2D": {
     "scope": "typescript",
     "prefix": "sketch2d",

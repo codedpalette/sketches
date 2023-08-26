@@ -1,5 +1,6 @@
 import { coin, IRandom } from "@thi.ng/random"
 
+// https://vitejs.dev/guide/assets.html#new-url-url-import-meta-url
 export function asset(path: string) {
   return new URL(`/assets/${path}`, import.meta.url).href
 }
