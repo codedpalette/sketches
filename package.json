@@ -3,9 +3,10 @@
   "private": true,
   "main": "electron.js",
   "scripts": {
+    "typecheck": "tsc --noEmit",
     "lint": "eslint --fix .",
     "format": "prettier --write .",
-    "ci": "yarn run tsc && yarn lint && yarn format",
+    "ci": "yarn typecheck && yarn lint && yarn format",
     "start": "vite dev",
     "build": "vite build && vite preview",
     "postinstall": "husky install"
@@ -19,9 +20,10 @@
   "dependencies": {
     "@thi.ng/random": "^3.6.2",
     "@thi.ng/vectors": "^7.7.7",
+    "@use-gpu/glsl-loader": "^0.9.3",
+    "@use-gpu/shader": "^0.9.3",
     "canvas-capture": "^2.1.1",
     "glsl-noise": "^0.0.0",
-    "glslify": "^7.1.1",
     "spectorjs": "^0.9.29",
     "stats.js": "^0.17.0",
     "twgl.js": "^5.5.1"
@@ -40,15 +42,12 @@
     "husky": "^8.0.3",
     "lint-staged": "^13.2.3",
     "prettier": "^2.8.8",
+    "rollup-pluginutils": "^2.8.2",
     "typescript": "^5.1.6",
     "vite": "^4.4.2",
     "vite-plugin-electron": "^0.12.0",
-    "vite-plugin-glslify": "^2.0.2",
     "vite-plugin-node-polyfills": "^0.9.0",
     "vite-tsconfig-paths": "^4.2.0"
   },
-  "packageManager": "yarn@3.6.2",
-  "resolutions": {
-    "vite-plugin-glslify@^2.0.2": "patch:vite-plugin-glslify@npm%3A2.0.2#./.yarn/patches/vite-plugin-glslify-npm-2.0.2-c21d96c231.patch"
-  }
+  "packageManager": "yarn@3.6.2"
 }

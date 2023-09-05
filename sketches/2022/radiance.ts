@@ -1,95 +1,93 @@
 import { coin } from "@thi.ng/random"
 import { add, rotate } from "@thi.ng/vectors"
+import { bindBundle, glsl } from "@use-gpu/shader/glsl"
 import { run, SketchFactory } from "drawing/sketch"
-import { compileShader, quadBuffer, vertex2d } from "drawing/webgl"
-import glsl from "glslify"
-import {
-  createBufferInfoFromArrays,
-  createVertexArrayInfo,
-  drawBufferInfo,
-  setBuffersAndAttributes,
-  setUniforms,
-} from "twgl.js"
+import { createModel, quad, renderModels } from "drawing/webgl"
+import { oklabGradient } from "shaders/colors"
+import { attribute } from "shaders/inputs"
+import { transform2d } from "shaders/transform"
+import { color } from "utils/random"
 
-const DRAW_BACKGROUND = 0
-const DRAW_RAYS = 1
-const DRAW_CIRCLE = 2
-
-const frag = glsl`
-  in vec3 v_localPosition;
-  in vec3 v_globalPosition;
-  in vec3 v_color;  
-
-  out vec4 outColor;  
-
-  uniform vec4 colors[3];
+const backgroundFrag = glsl`
+  const int paletteSize = 3;
+  #pragma global
+  in vec3 v_position;
+  #pragma global
   uniform vec2 gradientCenter;
+  #pragma global
   uniform float gradientRotation;
-  uniform int drawMode;
+  #pragma global
+  uniform vec4 palette[paletteSize];
 
-  #pragma glslify: oklab_mix = require(./oklab_mix.glsl)
+  vec3 conic(vec2 position, vec2 gradientCenter, float gradientRotation, vec4 palette[paletteSize]);
 
-  vec4 mix(float t) {
-    for (int i = 0; i < colors.length(); i++) {
-      if (t > colors[i].w && t < colors[i+1].w) {
-        vec3 startColor = colors[i].rgb;
-        vec3 endColor = colors[i+1].rgb;
-        float t_scaled = (t - colors[i].w)/(colors[i+1].w - colors[i].w);
-        return vec4(oklab_mix(startColor, endColor, t_scaled), 1.0);              
-      }
-    }
+  #pragma export
+  vec3 main() {    
+    return conic(v_position.xy, gradientCenter, gradientRotation, palette);
+  }
+`
+
+const raysVert = glsl`
+  #pragma global
+  in vec3 position;
+  #pragma global
+  in vec3 color;
+  #pragma global
+  out vec3 v_color;  
+
+  #pragma export
+  vec3 main() {
+    v_color = color;
+    return position;
   }
 
-  void main() {    
-    if (drawMode == ${DRAW_BACKGROUND}) {
-      vec2 relative = v_globalPosition.xy - gradientCenter; 
-      float angle = atan(relative.y, relative.x);
-      float t = mod(angle - gradientRotation + PI, 2.0 * PI) / (2.0 * PI);  
-      outColor = mix(t);        
-    } else if (drawMode == ${DRAW_RAYS}) {
-      outColor = vec4(vec3(v_color), 1.);
-    } else if (drawMode == ${DRAW_CIRCLE}) {
-      if (length(v_localPosition) < 1.) {
-        float t = v_localPosition.y/2. + 0.5; //TODO: Add rotation
-        outColor = mix(t);
-      } else {
-        discard;
-      }
-    }    
+`
+
+const circleFrag = glsl`
+  #pragma global
+  in vec3 v_localPosition;  
+  #pragma global
+  uniform vec4 palette[3];
+
+  vec3 linear(float t, vec4 palette[3]);
+
+  #pragma export
+  vec3 main() {
+    if (length(v_localPosition) < 1.) {
+      float t = v_localPosition.y/2. + 0.5; //TODO: Add rotation
+      return linear(t, palette);
+    } else {
+      discard;
+    }
   }
 `
 
 const sketch: SketchFactory = ({ gl, random }) => {
   const gradientCenter = [random.norm(0.8), random.norm(0.8)]
   const gradientRotation = Math.atan2(gradientCenter[1], gradientCenter[0]) + random.norm(Math.PI / 4)
-  const palette = [randomColor(), randomColor(), randomColor()] //TODO: Generate palette
-
-  const programInfo = compileShader(gl, { vert: vertex2d, frag })
-  const uniforms = {
-    colors: [...palette[0], 0, ...palette[1], random.minmax(0.3, 0.7), ...palette[2], 1],
-    gradientCenter,
-    gradientRotation,
-  }
-  const drawModes = [DRAW_BACKGROUND, DRAW_RAYS, DRAW_CIRCLE]
-  const vertexArrays = [quadBuffer(gl), rays(), circle()].map(
-    (buffer) => createVertexArrayInfo(gl, programInfo, buffer) // Using vertex array to not pollute global buffer state
-  )
+  const palette = [...color(random), 0, ...color(random), random.minmax(0.3, 0.7), ...color(random), 1] //TODO: Generate palette
+  const uniforms = { palette, gradientCenter, gradientRotation }
+  const models = [initBackground(), initRays(), initCircle()] //TODO: Add noise texture
 
   return function render() {
     gl.clearColor(0, 0, 0, 1)
     gl.clear(gl.COLOR_BUFFER_BIT)
-    gl.useProgram(programInfo.program)
-
-    setUniforms(programInfo, uniforms)
-    for (const drawMode of drawModes) {
-      const vao = vertexArrays[drawMode]
-      setBuffersAndAttributes(gl, programInfo, vao)
-      setUniforms(programInfo, { drawMode })
-      drawBufferInfo(gl, vao)
-    }
+    renderModels(gl, ...models)
+    //TODO: Add antialias
   }
 
-  function rays() {
+  function initBackground() {
+    return createModel(gl, {
+      geometry: quad,
+      material: {
+        vert: attribute("position", "vec3"),
+        frag: bindBundle(backgroundFrag, oklabGradient(3)),
+      },
+      uniforms,
+    })
+  }
+
+  function initRays() {
     const pointData: number[] = []
     const colorData: number[] = []
     const triangleHeight = Math.hypot(2, 2)
@@ -106,6 +104,7 @@ const sketch: SketchFactory = ({ gl, random }) => {
         [-triangleHeight, triangleHalfBase],
         [-triangleHeight, -triangleHalfBase],
       ]
+      //TODO: Use matrices
       triangle.forEach((point) => pointData.push(...add([], rotate([], point, rayRotation), gradientCenter)))
 
       const color = coin(random) ? random.float(0.2) : 1 - random.float(0.2)
@@ -114,26 +113,30 @@ const sketch: SketchFactory = ({ gl, random }) => {
       rotation += random.minmax(1, 1.5) * rotationStep
     }
 
-    return createBufferInfoFromArrays(gl, {
-      position: { numComponents: 2, data: pointData },
-      color: { numComponents: 3, data: colorData },
+    return createModel(gl, {
+      geometry: {
+        position: { size: 2, data: pointData },
+        color: { size: 3, data: colorData },
+      },
+      material: {
+        vert: raysVert,
+        frag: attribute("color", "vec3"),
+      },
     })
   }
 
-  function circle() {
+  function initCircle() {
     const quadSize = random.minmax(0.1, 0.2)
+    const transformMatrix = [quadSize, 0, 0, 0, quadSize, 0, ...gradientCenter, 1] //TODO: Find normal matrix library
 
-    // prettier-ignore
-    const transformMatrix = [
-      quadSize, 0, 0,
-      0, quadSize, 0,
-      ...gradientCenter, 1
-    ] //TODO: Find normal matrix library
-    return quadBuffer(gl, { transform: { numComponents: 9, data: transformMatrix, divisor: 1 } })
-  }
-
-  function randomColor() {
-    return [random.float(), random.float(), random.float()]
+    return createModel(gl, {
+      geometry: { ...quad, transform: { size: 9, data: transformMatrix, divisor: 1 } },
+      material: {
+        vert: transform2d,
+        frag: bindBundle(circleFrag, oklabGradient(3)),
+      },
+      uniforms,
+    })
   }
 }
 

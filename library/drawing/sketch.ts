@@ -26,6 +26,7 @@ export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<Sket
   const canvas = initCanvas(params)
   const gl = canvas.getContext("webgl2", {
     alpha: false, // Disable alpha in the backbuffer, https://webgl2fundamentals.org/webgl/lessons/webgl-and-alpha.html
+    antialias: true,
   }) as WebGL2RenderingContext
   const random = new Smush32(performance.now())
 
