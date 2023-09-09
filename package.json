@@ -18,14 +18,14 @@
     ]
   },
   "dependencies": {
-    "@thi.ng/random": "^3.6.2",
-    "@thi.ng/vectors": "^7.7.7",
     "@use-gpu/glsl-loader": "^0.9.3",
     "@use-gpu/shader": "^0.9.3",
     "canvas-capture": "^2.1.1",
-    "glsl-noise": "^0.0.0",
+    "random-js": "^2.1.0",
+    "simplex-noise": "^4.0.1",
     "spectorjs": "^0.9.29",
     "stats.js": "^0.17.0",
+    "threejs-math": "^0.147.0",
     "twgl.js": "^5.5.1"
   },
   "devDependencies": {

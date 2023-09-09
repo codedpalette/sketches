@@ -1,7 +1,8 @@
-import { IRandom, Smush32 } from "@thi.ng/random"
 import { CanvasCapture } from "canvas-capture"
+import { MersenneTwister19937 } from "random-js"
 import { Spector } from "spectorjs"
 import Stats from "stats.js"
+import { Random } from "utils/random"
 
 export interface SketchParams {
   width: number
@@ -11,7 +12,7 @@ export interface SketchParams {
 
 export interface SketchEnv {
   gl: WebGL2RenderingContext
-  random: IRandom
+  random: Random
 }
 
 export type SketchRender = (deltaTime: number, totalTime: number) => void
@@ -26,9 +27,8 @@ export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<Sket
   const canvas = initCanvas(params)
   const gl = canvas.getContext("webgl2", {
     alpha: false, // Disable alpha in the backbuffer, https://webgl2fundamentals.org/webgl/lessons/webgl-and-alpha.html
-    antialias: true,
   }) as WebGL2RenderingContext
-  const random = new Smush32(performance.now())
+  const random = new Random(MersenneTwister19937.autoSeed())
 
   const sketch = { render: sketchFactory({ gl, random }) }
   const resetClock = renderLoop(sketch, gl, stats)
