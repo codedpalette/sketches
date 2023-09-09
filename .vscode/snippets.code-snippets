@@ -15,7 +15,6 @@
   // 	],
   // 	"description": "Log output to console"
   // }
-  // TODO: Update snippets
   "Sketch": {
     "scope": "typescript",
     "prefix": "sketch",
@@ -46,35 +45,6 @@
       "",
       "run(sketch)",
       ""
-    ]
-  },
-  "Sketch 2D": {
-    "scope": "typescript",
-    "prefix": "sketch2d",
-    "body": [
-      "import { setBackground } from \"drawing/pixi\";",
-      "import { run, Params } from \"drawing/sketch\";",
-      "import { Container } from \"pixi.js\";",
-      "",
-      "run((params) => {",
-      "  const container = new Container();",
-      "  setBackground(container, \"white\", params);$0",
-      "  return { container };",
-      "}, Params.DEBUG);"
-    ]
-  },
-  "Sketch 3D": {
-    "scope": "typescript",
-    "prefix": "sketch3d",
-    "body": [
-      "import { run, Params } from \"drawing/sketch\";",
-      "import { PerspectiveCamera, Scene } from \"three\";",
-      "",
-      "run((params) => {",
-      "  const scene = new Scene();",
-      "  const camera = new PerspectiveCamera(45, params.width/params.height, 1, 1000);$0",
-      "  return { scene, camera };",
-      "}, Params.DEBUG);"
     ]
   },
   "Timed": {
