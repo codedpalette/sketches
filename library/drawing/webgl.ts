@@ -2,6 +2,7 @@ import { glsl, linkBundle, setPreamble } from "@use-gpu/shader/glsl"
 import { FunctionRef, ShaderModule } from "@use-gpu/shader/mjs/glsl/types"
 import {
   Arrays,
+  BufferInfo,
   createBufferInfoFromArrays,
   createProgramInfo,
   createVertexArrayInfo,
@@ -16,17 +17,23 @@ export type ModelDef = {
   geometry: Arrays
   material: { vert: ShaderModule; frag: ShaderModule }
   uniforms?: object
+  instanceCount?: number
 }
 
 export type Model = {
   programInfo: ProgramInfo
+  bufferInfo: BufferInfo
   vertexArrayInfo: VertexArrayInfo
   uniforms?: object
+  instanceCount?: number
 }
 
 setPreamble("#version 300 es\nprecision mediump float;")
 
-export function createModel(gl: WebGL2RenderingContext, { geometry, material, uniforms }: ModelDef): Model {
+export function createModel(
+  gl: WebGL2RenderingContext,
+  { geometry, material, uniforms, instanceCount }: ModelDef
+): Model {
   const fragReturnType = getEntryPointReturnType(material.frag)
   const vs = linkBundle(mainVert, material, { ...globalDefines, VERT: 1 })
   const fs = linkBundle(mainFrag, material, {
@@ -35,18 +42,23 @@ export function createModel(gl: WebGL2RenderingContext, { geometry, material, un
     USE_ALPHA: fragReturnType == "vec4" ? 1 : 0,
   })
   const programInfo = createProgramInfo(gl, [vs, fs])
+  const bufferInfo = createBufferInfoFromArrays(gl, geometry)
   // Using vertex array to not pollute global buffer state
-  const vertexArrayInfo = createVertexArrayInfo(gl, programInfo, createBufferInfoFromArrays(gl, geometry))
-  return { programInfo, vertexArrayInfo, uniforms }
+  const vertexArrayInfo = createVertexArrayInfo(gl, programInfo, bufferInfo)
+  return { programInfo, bufferInfo, vertexArrayInfo, uniforms, instanceCount }
 }
 
 export function renderModels(gl: WebGL2RenderingContext, ...models: Model[]) {
   for (const model of models) {
-    const { programInfo, vertexArrayInfo, uniforms } = model
+    const { programInfo, vertexArrayInfo, uniforms, instanceCount } = model
     gl.useProgram(programInfo.program)
     setBuffersAndAttributes(gl, programInfo, vertexArrayInfo)
     uniforms && setUniforms(programInfo, uniforms)
-    drawBufferInfo(gl, vertexArrayInfo)
+    if (instanceCount !== undefined) {
+      drawBufferInfo(gl, vertexArrayInfo, gl.TRIANGLES, vertexArrayInfo.numElements, 0, instanceCount)
+    } else {
+      drawBufferInfo(gl, vertexArrayInfo)
+    }
   }
 }
 

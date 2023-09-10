@@ -27,10 +27,8 @@ export class Random extends BaseRandom {
     return z * std + mean
   }
 
-  // Returns random point on the unit circle
-  vec2() {
-    const angle = this.realZeroTo(Math.PI * 2)
-    return new Vector2(Math.cos(angle), Math.sin(angle))
+  vec2(min = 0, max = 1) {
+    return new Vector2(this.real(min, max), this.real(min, max))
   }
 }
 
