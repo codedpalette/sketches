@@ -18,17 +18,17 @@
     ]
   },
   "dependencies": {
-    "@use-gpu/glsl-loader": "^0.9.3",
-    "@use-gpu/shader": "^0.9.3",
     "canvas-capture": "^2.1.1",
+    "culori": "^3.2.0",
+    "pixi.js": "^7.2.4",
     "random-js": "^2.1.0",
     "simplex-noise": "^4.0.1",
     "spectorjs": "^0.9.29",
     "stats.js": "^0.17.0",
-    "threejs-math": "^0.147.0",
-    "twgl.js": "^5.5.1"
+    "threejs-math": "^0.147.0"
   },
   "devDependencies": {
+    "@types/culori": "^2.0.1",
     "@types/stats.js": "^0.17.0",
     "@typescript-eslint/eslint-plugin": "^6.2.1",
     "@typescript-eslint/parser": "^6.2.1",
@@ -42,7 +42,6 @@
     "husky": "^8.0.3",
     "lint-staged": "^13.2.3",
     "prettier": "^2.8.8",
-    "rollup-pluginutils": "^2.8.2",
     "typescript": "^5.1.6",
     "vite": "^4.4.2",
     "vite-plugin-electron": "^0.12.0",

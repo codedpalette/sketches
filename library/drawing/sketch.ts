@@ -1,4 +1,5 @@
 import { CanvasCapture } from "canvas-capture"
+import { Container, Renderer } from "pixi.js"
 import { MersenneTwister19937 } from "random-js"
 import { Spector } from "spectorjs"
 import Stats from "stats.js"
@@ -7,16 +8,16 @@ import { Random } from "utils/random"
 export interface SketchParams {
   width: number
   height: number
-  pixelDensity: number
+  resolution: number
 }
 
 export interface SketchEnv {
-  gl: WebGL2RenderingContext
+  renderer: Renderer
   random: Random
+  params: SketchParams
 }
 
-export type SketchRender = (deltaTime: number, totalTime: number) => void
-export type SketchFactory = (env: SketchEnv) => SketchRender
+export type SketchFactory = (env: SketchEnv) => Container
 
 export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<SketchParams>) {
   const stats = process.env.NODE_ENV !== "production" ? new Stats() : undefined
@@ -25,15 +26,16 @@ export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<Sket
 
   const params = { ...defaultParams, ...paramsOverrides }
   const canvas = initCanvas(params)
-  const gl = canvas.getContext("webgl2", {
-    alpha: false, // Disable alpha in the backbuffer, https://webgl2fundamentals.org/webgl/lessons/webgl-and-alpha.html
-  }) as WebGL2RenderingContext
+  const renderer = initRenderer(canvas, params)
   const random = new Random(MersenneTwister19937.autoSeed())
+  const stage = new Container().setTransform(params.width / 2, params.height / 2, 1, -1) //TODO: Local coordinates in [-1, 1]
+  stage.addChild(sketchFactory({ renderer, random, params }))
 
-  const sketch = { render: sketchFactory({ gl, random }) }
-  const resetClock = renderLoop(sketch, gl, stats)
+  const resetClock = renderLoop(renderer, stage, stats)
   canvas.onclick = () => {
-    sketch.render = sketchFactory({ gl, random })
+    const children = stage.removeChildren()
+    children.forEach((obj) => obj.destroy(true))
+    stage.addChild(sketchFactory({ renderer, random, params }))
     resetClock()
   }
 
@@ -47,22 +49,22 @@ export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<Sket
   }
 }
 
-function renderLoop(sketch: { render: SketchRender }, gl: WebGL2RenderingContext, stats?: Stats) {
+function renderLoop(renderer: Renderer, container: Container, stats?: Stats) {
   let [startTime, prevTime, frameRecordCounter] = [0, 0, 0]
   const loop = (timestamp: number) => {
     stats?.begin()
 
     !startTime && (startTime = timestamp)
-    const totalSeconds = (timestamp - startTime) / 1000
-    const deltaSeconds = (timestamp - (prevTime || startTime)) / 1000
+    const _totalSeconds = (timestamp - startTime) / 1000
+    const _deltaSeconds = (timestamp - (prevTime || startTime)) / 1000
     prevTime = timestamp
 
-    sketch.render(totalSeconds, deltaSeconds)
+    renderer.render(container)
     CanvasCapture.checkHotkeys()
     if (CanvasCapture.isRecording()) {
       CanvasCapture.recordFrame()
       frameRecordCounter++
-      if (frameRecordCounter % FPS == 0) console.log(`Recorded ${frameRecordCounter / FPS} seconds`)
+      if (frameRecordCounter % recordingFPS == 0) console.log(`Recorded ${frameRecordCounter / recordingFPS} seconds`)
     } else if (frameRecordCounter != 0) frameRecordCounter == 0
 
     stats?.end()
@@ -75,11 +77,12 @@ function renderLoop(sketch: { render: SketchRender }, gl: WebGL2RenderingContext
 }
 
 function initCanvas(params: SketchParams): HTMLCanvasElement {
-  const canvas = document.getElementById(canvasId) as HTMLCanvasElement
-  canvas.width = params.width * params.pixelDensity
-  canvas.height = params.height * params.pixelDensity
+  const canvas = document.createElement("canvas")
+  canvas.width = params.width * params.resolution
+  canvas.height = params.height * params.resolution
   canvas.style.width = `${params.width}px`
   canvas.style.height = `${params.height}px`
+  document.body.appendChild(canvas)
 
   CanvasCapture.init(canvas, { showRecDot: true })
   CanvasCapture.bindKeyToPNGSnapshot("p")
@@ -89,6 +92,15 @@ function initCanvas(params: SketchParams): HTMLCanvasElement {
   return canvas
 }
 
-const canvasId = "sketch"
-const FPS = 60
-const defaultParams = { pixelDensity: 1, width: 1292, height: 1292 }
+function initRenderer(canvas: HTMLCanvasElement, params: SketchParams): Renderer {
+  return new Renderer({
+    ...params,
+    antialias: true,
+    preserveDrawingBuffer: true,
+    background: "white",
+    view: canvas,
+  })
+}
+
+const recordingFPS = 60
+const defaultParams = { resolution: 1, width: 1292, height: 1292 }

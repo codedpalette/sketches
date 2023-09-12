@@ -1,3 +1,4 @@
+import { Color } from "pixi.js"
 import { Random as BaseRandom } from "random-js"
 import { createNoise2D, createNoise3D, createNoise4D } from "simplex-noise"
 import { Vector2 } from "threejs-math"
@@ -8,7 +9,7 @@ export class Random extends BaseRandom {
   }
 
   color() {
-    return [this.realZeroToOneInclusive(), this.realZeroToOneInclusive(), this.realZeroToOneInclusive()]
+    return new Color([this.realZeroToOneInclusive(), this.realZeroToOneInclusive(), this.realZeroToOneInclusive()])
   }
 
   realZeroTo(max: number, inclusive?: boolean) {

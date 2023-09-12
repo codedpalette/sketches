@@ -15,38 +15,26 @@
   // 	],
   // 	"description": "Log output to console"
   // }
-  "Sketch": {
+    "Sketch": {
     "scope": "typescript",
     "prefix": "sketch",
     "body": [
       "import { run, SketchFactory } from \"drawing/sketch\"",
-      "import { createModel, quad, renderModels } from \"drawing/webgl\"",
-      "import { uniform } from \"shaders/inputs\"",
-      "import { transform2d } from \"shaders/transform\"",
+      "import { Container, Graphics } from \"pixi.js\"",
       "",
-      "const sketch: SketchFactory = ({ gl }) => {",
-      "  const model = createModel(gl, {",
-      "    geometry: { ...quad, transform: { size: 9, data: [0.5, 0, 0, 0, 0.5, 0, 0, 0, 1], divisor: 1 } },",
-      "    material: {",
-      "      vert: transform2d,",
-      "      frag: uniform(\"color\", \"vec3\"),",
-      "    },",
-      "    uniforms: {",
-      "      color: [1, 0, 0],",
-      "    },",
-      "  })",
-      "",
-      "  return function render() {",
-      "    gl.clearColor(0, 0, 0, 1)",
-      "    gl.clear(gl.COLOR_BUFFER_BIT)",
-      "    renderModels(gl, model)",
-      "  }",
+      "const sketch: SketchFactory = ({ random, params }) => {",
+      "  const container = new Container()",
+      "  const graphics = container.addChild(new Graphics())",
+      "  graphics",
+      "    .beginFill(random.color())",
+      "    .drawRect(-params.width / 4, -params.height / 4, params.width / 2, params.height / 2)",
+      "  return container",
       "}",
       "",
       "run(sketch)",
       ""
     ]
-  },
+  }
   "Timed": {
     "scope": "typescript",
     "prefix": "timed",

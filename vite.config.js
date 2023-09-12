@@ -1,16 +1,12 @@
-import rollupGLSL from "@use-gpu/glsl-loader/rollup"
 import { defineConfig } from "vite"
 import { startup as electronStartup } from "vite-plugin-electron"
 import { nodePolyfills } from "vite-plugin-node-polyfills"
 import tsconfigPaths from "vite-tsconfig-paths"
 
-const glsl = rollupGLSL()
-
 export default defineConfig({
   plugins: [
     nodePolyfills(),
     tsconfigPaths(),
-    { name: "glsl-loader", transform: (source, id) => glsl.transform(source, id)?.code }, // Hack because of bug in plugin
     // https://github.com/electron-vite/vite-plugin-electron/blob/main/src/index.ts
     {
       name: "start-electron",

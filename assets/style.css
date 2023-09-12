@@ -4,7 +4,7 @@ body {
   padding: 0;
 }
 
-canvas#sketch {
+body > canvas {
   display: block;
   position: fixed;
   top: 50%;
