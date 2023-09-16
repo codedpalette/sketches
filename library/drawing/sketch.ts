@@ -39,6 +39,8 @@ export function run(sketchFactory: SketchFactory, paramsOverrides?: Partial<Sket
     resetClock()
   }
 
+  //TODO: UI for resizing, replay random values
+
   if (spector) {
     addEventListener("keydown", (e) => e.key == "r" && spector.captureNextFrame(canvas))
     spector?.onCapture.add((capture) => {

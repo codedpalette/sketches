@@ -70,4 +70,4 @@ const sketch: SketchFactory = ({ random, params }) => {
   }
 }
 
-run(sketch) //TODO: Strange issue with antialiasing when resolution > 1
+run(sketch)
