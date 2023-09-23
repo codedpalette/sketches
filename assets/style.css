@@ -11,3 +11,12 @@ body > canvas {
   left: 50%;
   transform: translate(-50%, -50%);
 }
+
+body > form {
+  text-align: right;
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  z-index: 10000;
+  background: white;
+}
