@@ -1,5 +1,5 @@
+import { run, SketchFactory } from "core/sketch"
 import { converter, formatCss } from "culori"
-import { run, SketchFactory } from "drawing/sketch"
 import { Container, Graphics, Sprite } from "pixi.js"
 import { Vector2 } from "threejs-math"
 
@@ -12,10 +12,16 @@ const sketch: SketchFactory = ({ random, params }) => {
 
   const container = new Container()
   container.addChild(drawBackground(), drawRays(), drawCircle()) //TODO: Add noise texture
-  return container
+
+  return { container, update }
+
+  function update(_: number, totalTime: number) {
+    container.getChildAt(1).rotation = ((totalTime % 10) / 10) * 2 * Math.PI
+  }
 
   function drawBackground() {
     // TODO: Refactor gradient function
+    // TODO: Antialias gradient border
     const canvas = new OffscreenCanvas(params.width, params.height)
     const ctx = canvas.getContext("2d") as OffscreenCanvasRenderingContext2D
     const gradient = ctx.createConicGradient(
@@ -37,7 +43,7 @@ const sketch: SketchFactory = ({ random, params }) => {
   function drawRays() {
     const triangleHeight = Math.hypot(params.width, params.height)
     const rotationStep = 0.25
-    const triangleContainer = new Container()
+    const triangleContainer = new Container().setTransform(gradientCenter.x, gradientCenter.y)
     const triangleTemplate = new Graphics()
       .beginFill("white")
       .drawPolygon([new Vector2(0, 0), new Vector2(-triangleHeight, 1), new Vector2(-triangleHeight, -1)])
@@ -49,13 +55,7 @@ const sketch: SketchFactory = ({ random, params }) => {
       const triangleHalfBase = triangleHeight * Math.tan(rayAngle / 2)
 
       const triangleGraphics = triangleContainer.addChild(
-        new Graphics(triangleTemplate.geometry).setTransform(
-          gradientCenter.x,
-          gradientCenter.y,
-          1,
-          triangleHalfBase,
-          rayRotation
-        )
+        new Graphics(triangleTemplate.geometry).setTransform(0, 0, 1, triangleHalfBase, rayRotation)
       )
       triangleGraphics.tint = new Array(3).fill(random.bool() ? random.realZeroTo(0.2) : 1 - random.realZeroTo(0.2))
 

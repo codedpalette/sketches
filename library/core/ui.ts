@@ -1,11 +1,15 @@
 import { CanvasCapture } from "canvas-capture"
-import { SketchParams } from "drawing/sketch"
+import { SketchParams } from "core/sketch"
 import { Renderer } from "pixi.js"
 import { Spector } from "spectorjs"
 import Stats from "stats.js"
 import { MathUtils } from "threejs-math"
 
-export function initUI(params: SketchParams, canvas: HTMLCanvasElement, renderer: Renderer, resizeSketch: () => void) {
+const minWidth = 800
+const minHeight = 800
+
+export function initUI(params: SketchParams, renderer: Renderer, resizeSketch: () => void) {
+  const canvas = renderer.view as HTMLCanvasElement
   initCanvasCapture(canvas)
   initSpector(canvas)
   initResizeUI(params, renderer, resizeSketch)
@@ -39,8 +43,8 @@ function initResizeUI(params: SketchParams, renderer: Renderer, resizeSketch: ()
 
   const inputHandler = () => {
     const newParams = {
-      width: MathUtils.clamp(getParam("width"), 800, params.width),
-      height: MathUtils.clamp(getParam("height"), 800, params.height),
+      width: MathUtils.clamp(getParam("width"), minWidth, params.width),
+      height: MathUtils.clamp(getParam("height"), minHeight, params.height),
       resolution: Math.max(getParam("resolution"), 1),
     }
     renderer.resolution = newParams.resolution
