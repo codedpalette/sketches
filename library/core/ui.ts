@@ -8,11 +8,11 @@ import { MathUtils } from "threejs-math"
 const minWidth = 800
 const minHeight = 800
 
-export function initUI(params: SketchParams, renderer: Renderer, resizeSketch: () => void) {
+export function initUI(defaultParams: SketchParams, renderer: Renderer, resizeSketch: () => void) {
   const canvas = renderer.view as HTMLCanvasElement
   initCanvasCapture(canvas)
   initSpector(canvas)
-  initResizeUI(params, renderer, resizeSketch)
+  initResizeUI(defaultParams, renderer, resizeSketch)
 
   const stats = new Stats()
   document.body.appendChild(stats.dom)
@@ -37,14 +37,14 @@ function initSpector(canvas: HTMLCanvasElement) {
   })
 }
 
-function initResizeUI(params: SketchParams, renderer: Renderer, resizeSketch: () => void) {
+function initResizeUI(defaultParams: SketchParams, renderer: Renderer, resizeSketch: () => void) {
   const resizeForm = document.createElement("form")
   const getParam = (paramKey: string) => parseInt((<HTMLInputElement>document.getElementById(paramKey)).value) || 0
 
   const inputHandler = () => {
     const newParams = {
-      width: MathUtils.clamp(getParam("width"), minWidth, params.width),
-      height: MathUtils.clamp(getParam("height"), minHeight, params.height),
+      width: MathUtils.clamp(getParam("width"), minWidth, defaultParams.width),
+      height: MathUtils.clamp(getParam("height"), minHeight, defaultParams.height),
       resolution: Math.max(getParam("resolution"), 1),
     }
     renderer.resolution = newParams.resolution
@@ -59,7 +59,7 @@ function initResizeUI(params: SketchParams, renderer: Renderer, resizeSketch: ()
     resizeSketch()
   }
 
-  for (const [key, value] of Object.entries(params)) {
+  for (const [key, value] of Object.entries(defaultParams)) {
     const labelElement = document.createElement("label")
     labelElement.textContent = `${key.charAt(0).toUpperCase() + key.slice(1)}:`
 

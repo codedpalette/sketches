@@ -13,9 +13,9 @@ const sketch: SketchFactory = ({ random, params }) => {
   const container = new Container()
   container.addChild(drawBackground(), drawRays(), drawCircle()) //TODO: Add noise texture
 
-  return { container, update }
+  return { container }
 
-  function update(_: number, totalTime: number) {
+  function _update(_: number, totalTime: number) {
     container.getChildAt(1).rotation = ((totalTime % 10) / 10) * 2 * Math.PI
   }
 
