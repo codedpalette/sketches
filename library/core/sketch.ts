@@ -9,14 +9,14 @@ const recordingFPS = 60
 const defaultParams = { resolution: 1, width: 1262, height: 1262 }
 
 export interface SketchParams {
-  width: number
-  height: number
-  resolution: number
+  readonly width: number
+  readonly height: number
+  readonly resolution: number
 }
 
 export interface SketchEnv {
   random: Random
-  params: Readonly<SketchParams>
+  params: SketchParams
 }
 
 export type UpdateFn = (deltaTime: number, totalTime: number) => void
@@ -35,6 +35,7 @@ export function run(sketchFactory: SketchFactory, view?: HTMLCanvasElement) {
     view,
     antialias: true,
     autoDensity: true,
+    background: "white",
   })
   const canvas = renderer.view as HTMLCanvasElement
   !canvas.isConnected && document.body.appendChild(canvas)

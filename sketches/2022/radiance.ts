@@ -1,14 +1,14 @@
+import { vector } from "@flatten-js/core"
 import { run, SketchFactory } from "core/sketch"
 import { converter, formatCss } from "culori"
-import { Container, Graphics, Sprite } from "pixi.js"
-import { Vector2 } from "threejs-math"
+import { Color, Container, Graphics, Sprite } from "pixi.js"
 
 const oklab = converter("oklab")
 const sketch: SketchFactory = ({ random, params }) => {
-  const gradientCenter = new Vector2(random.minmax(params.width * 0.4), random.minmax(params.height * 0.4))
+  const gradientCenter = vector(random.minmax(params.width * 0.4), random.minmax(params.height * 0.4))
   const gradientRotation = Math.atan2(gradientCenter.y, gradientCenter.x) + random.minmax(Math.PI / 8)
   const palette = [random.color(), random.color(), random.color()] // TODO: Generate palette
-  const paletteCss = palette.map((color) => formatCss(oklab(color.toHex())) as string)
+  const paletteCss = palette.map((color) => formatCss(oklab(new Color(color).toHex())) as string)
 
   const container = new Container()
   container.addChild(drawBackground(), drawRays(), drawCircle()) //TODO: Add noise texture
@@ -46,7 +46,7 @@ const sketch: SketchFactory = ({ random, params }) => {
     const triangleContainer = new Container().setTransform(gradientCenter.x, gradientCenter.y)
     const triangleTemplate = new Graphics()
       .beginFill("white")
-      .drawPolygon([new Vector2(0, 0), new Vector2(-triangleHeight, 1), new Vector2(-triangleHeight, -1)])
+      .drawPolygon([vector(0, 0), vector(-triangleHeight, 1), vector(-triangleHeight, -1)])
 
     let rotation = 0
     while (rotation < 2 * Math.PI - rotationStep / 2) {

@@ -19,7 +19,7 @@
     "scope": "typescript",
     "prefix": "sketch",
     "body": [
-      "import { run, SketchFactory } from \"drawing/sketch\"",
+      "import { run, SketchFactory } from \"core/sketch\"",
       "import { Container, Graphics } from \"pixi.js\"",
       "",
       "const sketch: SketchFactory = ({ random, params }) => {",
@@ -28,7 +28,7 @@
       "  graphics",
       "    .beginFill(random.color())",
       "    .drawRect(-params.width / 4, -params.height / 4, params.width / 2, params.height / 2)",
-      "  return container",
+      "  return { container }",
       "}",
       "",
       "run(sketch)",

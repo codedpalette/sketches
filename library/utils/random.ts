@@ -1,7 +1,6 @@
-import { Color } from "pixi.js"
+import { vector } from "@flatten-js/core"
 import { Random as BaseRandom } from "random-js"
 import { createNoise2D, createNoise3D, createNoise4D } from "simplex-noise"
-import { Vector2 } from "threejs-math"
 
 export class Random extends BaseRandom {
   sign() {
@@ -9,7 +8,7 @@ export class Random extends BaseRandom {
   }
 
   color() {
-    return new Color([this.realZeroToOneInclusive(), this.realZeroToOneInclusive(), this.realZeroToOneInclusive()])
+    return [this.realZeroToOneInclusive(), this.realZeroToOneInclusive(), this.realZeroToOneInclusive()]
   }
 
   realZeroTo(max: number, inclusive?: boolean) {
@@ -29,7 +28,7 @@ export class Random extends BaseRandom {
   }
 
   vec2(min = 0, max = 1) {
-    return new Vector2(this.real(min, max), this.real(min, max))
+    return vector(this.real(min, max), this.real(min, max))
   }
 }
 

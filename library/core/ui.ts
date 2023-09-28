@@ -3,7 +3,7 @@ import { SketchParams } from "core/sketch"
 import { Renderer } from "pixi.js"
 import { Spector } from "spectorjs"
 import Stats from "stats.js"
-import { MathUtils } from "threejs-math"
+import { clamp } from "utils/helpers"
 
 const minWidth = 800
 const minHeight = 800
@@ -43,8 +43,8 @@ function initResizeUI(defaultParams: SketchParams, renderer: Renderer, resizeSke
 
   const inputHandler = () => {
     const newParams = {
-      width: MathUtils.clamp(getParam("width"), minWidth, defaultParams.width),
-      height: MathUtils.clamp(getParam("height"), minHeight, defaultParams.height),
+      width: clamp(getParam("width"), minWidth, defaultParams.width),
+      height: clamp(getParam("height"), minHeight, defaultParams.height),
       resolution: Math.max(getParam("resolution"), 1),
     }
     renderer.resolution = newParams.resolution

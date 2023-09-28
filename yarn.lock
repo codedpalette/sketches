@@ -239,6 +239,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@flatten-js/core@npm:^1.4.4":
+  version: 1.4.4
+  resolution: "@flatten-js/core@npm:1.4.4"
+  dependencies:
+    "@flatten-js/interval-tree": ^1.0.21
+  checksum: e1f6e851c7e666b88fa0eccff797f2b00fafd2704fd62be1f7b9286669b26eae769457d8b40abf53dc76cd8e4866e9966584c6274639a7da207f12abf8b21b3c
+  languageName: node
+  linkType: hard
+
+"@flatten-js/interval-tree@npm:^1.0.21":
+  version: 1.1.1
+  resolution: "@flatten-js/interval-tree@npm:1.1.1"
+  checksum: 40ba1c3f22905ad0e8b23d3fffbde1fdabfd9945577365a4b2b20adb84db7d4aa5679bfc11b94fb7214f1fe0e0bcd3064e36d7ea2ce5455bfc83cae14492b192
+  languageName: node
+  linkType: hard
+
 "@humanwhocodes/config-array@npm:^0.11.10":
   version: 0.11.10
   resolution: "@humanwhocodes/config-array@npm:0.11.10"
@@ -483,6 +499,17 @@ __metadata:
   peerDependencies:
     "@pixi/core": 7.2.4
   checksum: 77acfb113d1d95159c4960873fd559b63ec1b45e6cbf7a4e942171b035357411fa4930d329d8a805b2818998d3ff866d8e22a17fb793b3377226ff3495e08baa
+  languageName: node
+  linkType: hard
+
+"@pixi/graphics-smooth@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "@pixi/graphics-smooth@npm:1.1.0"
+  peerDependencies:
+    "@pixi/core": ^7.2.0
+    "@pixi/display": ^7.2.0
+    "@pixi/graphics": ^7.2.0
+  checksum: 2393334ef848e4741c97e707ed18f98c276cecfa8e76a69de39f97c158b7b1a6990b5eedb57445e1b899c02c43afb18a58c6bb77fac07222918037eda5c137ec
   languageName: node
   linkType: hard
 
@@ -4878,6 +4905,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "root-workspace-0b6124@workspace:."
   dependencies:
+    "@flatten-js/core": ^1.4.4
+    "@pixi/graphics-smooth": ^1.1.0
     "@types/culori": ^2.0.1
     "@types/stats.js": ^0.17.0
     "@typescript-eslint/eslint-plugin": ^6.2.1
@@ -4899,7 +4928,6 @@ __metadata:
     simplex-noise: ^4.0.1
     spectorjs: ^0.9.29
     stats.js: ^0.17.0
-    threejs-math: ^0.147.0
     typescript: ^5.1.6
     vite: ^4.4.2
     vite-plugin-electron: ^0.12.0
@@ -5408,13 +5436,6 @@ __metadata:
   version: 0.2.0
   resolution: "text-table@npm:0.2.0"
   checksum: b6937a38c80c7f84d9c11dd75e49d5c44f71d95e810a3250bd1f1797fc7117c57698204adf676b71497acc205d769d65c16ae8fa10afad832ae1322630aef10a
-  languageName: node
-  linkType: hard
-
-"threejs-math@npm:^0.147.0":
-  version: 0.147.0
-  resolution: "threejs-math@npm:0.147.0"
-  checksum: 314c12491f919cbb5974a382ac2a0fbfe0a04de7b144bc64d8edad5c06efbe7337e6b536b59cae9ae7b03063f56b24852d606f8b85dfa6408ebeed18f0c05c1b
   languageName: node
   linkType: hard
 
