@@ -6,8 +6,12 @@ export interface ShaderQuad {
   update: (time: number) => void
 }
 
+// TODO: Add noise functions as preamble with vite-plugin-glsl and glsl-noise
+const preamble = /*glsl*/ `#define PI 3.1415926535897932384626433832795`
+
 const shadertoyVert = /*glsl*/ `#version 300 es
   precision mediump float;
+  ${preamble}
 
   uniform mat3 translationMatrix;
   uniform mat3 projectionMatrix;
@@ -26,6 +30,7 @@ const shadertoyVert = /*glsl*/ `#version 300 es
 
 const shadertoyFrag = (mainGlsl: string) => /*glsl*/ `#version 300 es
   precision mediump float;
+  ${preamble}
 
   uniform float time;
   uniform vec2 resolution;
