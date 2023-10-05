@@ -19,7 +19,7 @@ export interface SketchEnv {
   params: SketchParams
 }
 
-export type UpdateFn = (deltaTime: number, totalTime: number) => void
+export type UpdateFn = (totalTime: number, deltaTime: number) => void
 export type Sketch = { container: Container; update?: UpdateFn }
 export type SketchFactory = (env: SketchEnv) => Sketch
 
@@ -93,7 +93,7 @@ function updateTime(timestamp: number, timer: { startTime: number; prevTime: num
   const totalSeconds = (timestamp - timer.startTime) / 1000
   const deltaSeconds = (timestamp - (timer.prevTime || timer.startTime)) / 1000
   timer.prevTime = timestamp
-  update && update(deltaSeconds, totalSeconds)
+  update && update(totalSeconds, deltaSeconds)
 }
 
 function checkRecording(timer: { frameRecordCounter: number }) {
