@@ -10,6 +10,7 @@
     "noEmit": true, // Because we're using Vite for building
     "isolatedModules": true, // Because esbuild only performs transpilation without type information
     "useDefineForClassFields": true, // https://vitejs.dev/guide/features.html#usedefineforclassfields
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "types": ["vite-plugin-glsl/ext"]
   }
 }

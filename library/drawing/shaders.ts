@@ -1,4 +1,7 @@
 import { SketchParams } from "core/sketch"
+import snoise2 from "glsl-noise/simplex/2d.glsl"
+import snoise3 from "glsl-noise/simplex/3d.glsl"
+import snoise4 from "glsl-noise/simplex/4d.glsl"
 import { Container, Geometry, Mesh, Shader } from "pixi.js"
 
 export interface ShaderQuad {
@@ -6,12 +9,17 @@ export interface ShaderQuad {
   update: (time: number) => void
 }
 
-// TODO: Add noise functions as preamble with vite-plugin-glsl and glsl-noise
-const preamble = /*glsl*/ `#define PI 3.1415926535897932384626433832795`
+export const glslNoise2d = snoise2
+export const glslNoise3d = snoise3
+export const glslNoise4d = snoise4
 
-const quadVert = /*glsl*/ `#version 300 es
-  precision mediump float;
-  ${preamble}
+const preamble = /*glsl*/ `#version 300 es  
+precision mediump float;
+#define PI 3.1415926535897932384626433832795
+${glslNoise3d} //TODO: Add multiple noise functions (resolve duplicates)
+`
+
+const quadVert = /*glsl*/ `${preamble}
 
   uniform mat3 translationMatrix;
   uniform mat3 projectionMatrix;
@@ -28,9 +36,7 @@ const quadVert = /*glsl*/ `#version 300 es
   }
 `
 
-const quadFrag = (mainGlsl: string) => /*glsl*/ `#version 300 es
-  precision mediump float;
-  ${preamble}
+const quadFrag = (mainGlsl: string) => /*glsl*/ `${preamble}
 
   uniform float time;
   uniform vec2 resolution;

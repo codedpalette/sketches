@@ -22,6 +22,7 @@
     "@pixi/graphics-smooth": "^1.1.0",
     "canvas-capture": "^2.1.1",
     "culori": "^3.2.0",
+    "glsl-noise": "^0.0.0",
     "pixi.js": "^7.2.4",
     "random-js": "^2.1.0",
     "simplex-noise": "^4.0.1",
@@ -46,6 +47,7 @@
     "typescript": "^5.1.6",
     "vite": "^4.4.2",
     "vite-plugin-electron": "^0.12.0",
+    "vite-plugin-glsl": "^1.1.2",
     "vite-plugin-node-polyfills": "^0.9.0",
     "vite-tsconfig-paths": "^4.2.0"
   },
