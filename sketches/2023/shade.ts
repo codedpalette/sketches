@@ -2,33 +2,29 @@ import { point, Segment, segment, vector } from "@flatten-js/core"
 import { run, SketchFactory } from "core/sketch"
 import { formatHex } from "culori"
 import { drawBackground } from "drawing/helpers"
-import { shadertoy } from "drawing/shaders"
+import { shaderQuad } from "drawing/shaders"
 import { ColorSource, Container, Graphics, NoiseFilter } from "pixi.js"
 
+const shaderFrag = /*glsl*/ `
+  vec2 uv = (normCoord + 1.0)/2.0;    
+  vec3 col = 0.5 + 0.5*cos(time+uv.xyx+vec3(0,2,4));    
+  fragColor = vec4(col,0.5);`
 const formatHsl = (hsl: [number, number, number]) => formatHex({ mode: "hsl", h: hsl[0], s: hsl[1], l: hsl[2] })
 const sketch: SketchFactory = ({ random, params }) => {
   const hue = random.real(0, 360)
   const bgColor = formatHsl([hue, random.real(0.2, 0.3), random.real(0.8, 0.9)])
 
-  const shader = shadertoy(
-    params,
-    /*glsl*/ `
-    vec2 uv = (normCoord + 1.0)/2.0;    
-    vec3 col = 0.5 + 0.5*cos(time+uv.xyx+vec3(0,2,4));    
-    fragColor = vec4(col,0.5);`
-  )
-
-  //shader.mesh.scale.set(0.5, 0.5)
-  shader.mesh.position.set(10, 10)
+  const quad = shaderQuad(params, shaderFrag)
+  quad.mesh.scale.set(0.5, 0.5)
   const container = new Container()
   container.addChild(drawBackground(bgColor, params))
   container.addChild(drawLines(random.realZeroTo(Math.PI / 2)))
-  container.addChild(shader.mesh)
+  container.addChild(quad.mesh)
   container.filters = [new NoiseFilter(random.real(0.1, 0.2), random.realZeroToOneInclusive())]
   return { container, update }
 
   function update(totalTime: number) {
-    shader.update(totalTime)
+    quad.update(totalTime)
   }
 
   function drawLines(rotation: number) {
