@@ -66,7 +66,7 @@ const sketch: SketchFactory = ({ random, params }) => {
       const radius = map(Math.pow(yNorm, 1 / 3), 0, 1, 20, 30)
       const color = {
         h: mainHue + random.minmax(10),
-        s: map(n, 0, 1, 85, 100),
+        s: map(n, -1, 1, 85, 100),
         v: map(Math.abs(yNorm - 0.5) * 2, 0, 1, 100, 50),
         a: random.real(0.5, 1),
       }

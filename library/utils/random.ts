@@ -32,6 +32,6 @@ export class Random extends BaseRandom {
   }
 }
 
-export const noise2d = (random: Random) => createNoise2D(() => random.realZeroToOneExclusive())
-export const noise3d = (random: Random) => createNoise3D(() => random.realZeroToOneExclusive())
-export const noise4d = (random: Random) => createNoise4D(() => random.realZeroToOneExclusive())
+export const noise2d = (random: Random) => createNoise2D(() => random.realZeroToOneExclusive()) // [-1, 1]
+export const noise3d = (random: Random) => createNoise3D(() => random.realZeroToOneExclusive()) // [-1, 1]
+export const noise4d = (random: Random) => createNoise4D(() => random.realZeroToOneExclusive()) // [-1, 1]
