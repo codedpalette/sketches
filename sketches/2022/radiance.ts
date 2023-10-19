@@ -4,8 +4,8 @@ import { converter, formatCss } from "culori"
 import { Color, Container, Graphics, Sprite } from "pixi.js"
 
 const oklab = converter("oklab")
-const sketch: SketchFactory = ({ random, params }) => {
-  const gradientCenter = vector(random.minmax(params.width * 0.4), random.minmax(params.height * 0.4))
+const sketch: SketchFactory = ({ random, bbox }) => {
+  const gradientCenter = vector(random.minmax(bbox.width * 0.4), random.minmax(bbox.height * 0.4))
   const gradientRotation = Math.atan2(gradientCenter.y, gradientCenter.x) + random.minmax(Math.PI / 8)
   const palette = [random.color(), random.color(), random.color()] // TODO: Generate palette
   const paletteCss = palette.map((color) => formatCss(oklab(new Color(color).toHex())) as string)
@@ -22,18 +22,18 @@ const sketch: SketchFactory = ({ random, params }) => {
   function drawBackground() {
     // TODO: Refactor gradient function
     // TODO: Antialias gradient border
-    const canvas = new OffscreenCanvas(params.width, params.height)
+    const canvas = new OffscreenCanvas(bbox.width, bbox.height)
     const ctx = canvas.getContext("2d") as OffscreenCanvasRenderingContext2D
     const gradient = ctx.createConicGradient(
       gradientRotation + Math.PI,
-      params.width / 2 + gradientCenter.x,
-      params.height / 2 + gradientCenter.y
+      bbox.width / 2 + gradientCenter.x,
+      bbox.height / 2 + gradientCenter.y
     )
     gradient.addColorStop(0, paletteCss[0])
     gradient.addColorStop(random.real(0.3, 0.7), paletteCss[1])
     gradient.addColorStop(1, paletteCss[1])
     ctx.fillStyle = gradient
-    ctx.fillRect(0, 0, params.width, params.height)
+    ctx.fillRect(0, 0, bbox.width, bbox.height)
 
     const sprite = Sprite.from(canvas)
     sprite.anchor.set(0.5, 0.5)
@@ -41,7 +41,7 @@ const sketch: SketchFactory = ({ random, params }) => {
   }
 
   function drawRays() {
-    const triangleHeight = Math.hypot(params.width, params.height)
+    const triangleHeight = Math.hypot(bbox.width, bbox.height)
     const rotationStep = 0.25
     const triangleContainer = new Container().setTransform(gradientCenter.x, gradientCenter.y)
     const triangleTemplate = new Graphics()

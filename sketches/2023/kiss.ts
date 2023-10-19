@@ -5,10 +5,10 @@ import { BlurFilter, Container, Graphics, IPointData } from "pixi.js"
 import { map } from "utils/helpers"
 import { noise2d } from "utils/random"
 
-const sketch: SketchFactory = ({ random, params }) => {
+const sketch: SketchFactory = ({ random, bbox }) => {
   const noise = noise2d(random)
   const xBound = 2
-  const scaleFactor = (params.width * 0.5) / xBound
+  const scaleFactor = (bbox.width * 0.5) / xBound
   const mainHue = random.real(0, 360)
   const lip = (a: number, b: number, sign: boolean) => (x: number) =>
     Math.sqrt(a / Math.exp(Math.pow(x * x - b, 2))) * (sign ? 1 : -1)
@@ -25,22 +25,22 @@ const sketch: SketchFactory = ({ random, params }) => {
     const backHue = ((mainHue + 180) % 360) + random.real(-20, 20)
     const backColor = { h: backHue, s: random.real(10, 30), v: random.real(70, 90) }
     const backContainer = new Container()
-    backContainer.addChild(drawBackground(backColor, params))
+    backContainer.addChild(drawBackground(backColor, bbox))
 
-    const boundsDiagonal = Math.hypot(params.width, params.height)
+    const boundsDiagonal = Math.hypot(bbox.width, bbox.height)
     for (let i = 0; i < 20; i++) {
       const { x, y, radius, color, numVertices } =
         i < 10
           ? {
-              x: random.real(-params.width / 4, params.width / 4),
-              y: random.real(-params.height / 4, params.height / 4),
+              x: random.real(-bbox.width / 4, bbox.width / 4),
+              y: random.real(-bbox.height / 4, bbox.height / 4),
               radius: random.real(boundsDiagonal * 0.25, boundsDiagonal * 0.5),
               color: { h: backHue, s: random.real(10, 30), v: random.real(70, 90), a: random.real(0.3, 0.7) },
               numVertices: random.integer(5, 15),
             }
           : {
-              x: random.real(params.width / 4, params.width / 2) * random.sign(),
-              y: random.real(params.height / 4, params.height / 2) * random.sign(),
+              x: random.real(bbox.width / 4, bbox.width / 2) * random.sign(),
+              y: random.real(bbox.height / 4, bbox.height / 2) * random.sign(),
               radius: random.real(boundsDiagonal * 0.1, boundsDiagonal * 0.2),
               color: { h: backHue, s: random.real(30, 50), v: random.real(50, 70), a: random.real(0.1, 0.3) },
               numVertices: random.integer(15, 25),
@@ -79,14 +79,11 @@ const sketch: SketchFactory = ({ random, params }) => {
 
   function texture() {
     const textureContainer = new Container()
-    const textureCount = (params.width * params.height) / 500
+    const textureCount = (bbox.width * bbox.height) / 500
     for (let i = 0; i < textureCount; i++) {
       const strokeColor = gray(random.real(100, 150))
       const alpha = 0.05
-      const [x, y] = [
-        random.real(-params.width * 0.7, params.width * 0.7),
-        random.real(-params.height * 0.7, params.height * 0.7),
-      ]
+      const [x, y] = [random.minmax(bbox.width * 0.7), random.minmax(bbox.height * 0.7)]
       const rotation = random.real(0, Math.PI * 2)
 
       Graphics.curves.adaptive = true

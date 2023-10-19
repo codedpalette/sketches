@@ -1,3 +1,4 @@
+import { Box, box } from "@flatten-js/core"
 import { CanvasCapture } from "canvas-capture"
 import { initUI } from "core/ui"
 import { Container, Renderer } from "pixi.js"
@@ -16,7 +17,7 @@ export interface SketchParams {
 
 export interface SketchEnv {
   random: Random
-  params: SketchParams
+  bbox: Box
 }
 
 export type UpdateFn = (totalTime: number, deltaTime: number) => void
@@ -25,6 +26,8 @@ export type SketchFactory = (env: SketchEnv) => Sketch
 
 export function run(sketchFactory: SketchFactory, view?: HTMLCanvasElement) {
   const sketch = { container: new Container() } as Sketch
+  sketch.container.interactiveChildren = false
+
   const randomSeed = createEntropy()
   let mersenneTwister = MersenneTwister.seedWithArray(randomSeed)
   let random = new Random(mersenneTwister)
@@ -42,7 +45,8 @@ export function run(sketchFactory: SketchFactory, view?: HTMLCanvasElement) {
 
   const runFactory = () => {
     const params = { width: renderer.screen.width, height: renderer.screen.height, resolution: renderer.resolution }
-    const { container, update } = sketchFactory({ random, params })
+    const bbox = box(-params.width / 2, -params.height / 2, params.width / 2, params.height / 2)
+    const { container, update } = sketchFactory({ random, bbox })
 
     sketch.container.removeChildren().forEach((obj) => obj.destroy(true))
     sketch.container.setTransform(params.width / 2, params.height / 2, 1, -1).addChild(container)
