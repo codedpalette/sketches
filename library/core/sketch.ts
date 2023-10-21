@@ -16,6 +16,7 @@ export interface SketchParams {
 }
 
 export interface SketchEnv {
+  renderer: Renderer
   random: Random
   bbox: Box
 }
@@ -46,7 +47,7 @@ export function run(sketchFactory: SketchFactory, view?: HTMLCanvasElement) {
   const runFactory = () => {
     const params = { width: renderer.screen.width, height: renderer.screen.height, resolution: renderer.resolution }
     const bbox = box(-params.width / 2, -params.height / 2, params.width / 2, params.height / 2)
-    const { container, update } = sketchFactory({ random, bbox })
+    const { container, update } = sketchFactory({ renderer, random, bbox })
 
     sketch.container.removeChildren().forEach((obj) => obj.destroy(true))
     sketch.container.setTransform(params.width / 2, params.height / 2, 1, -1).addChild(container)

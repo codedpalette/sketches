@@ -1,17 +1,17 @@
-import { line, Point, point, Segment, segment, vector } from "@flatten-js/core"
+import { line, point, Segment, segment, vector } from "@flatten-js/core"
 import { run, SketchFactory } from "core/sketch"
 import { formatHex } from "culori"
-import { drawBackground } from "drawing/helpers"
-import { ColorSource, Container, Graphics, NoiseFilter, Sprite } from "pixi.js"
+import { drawBackground, renderGraphics } from "drawing/helpers"
+import { ColorSource, Container, FXAAFilter, Graphics, NoiseFilter, Sprite } from "pixi.js"
 import { map } from "utils/helpers"
 import { noise3d } from "utils/random"
 
 const formatHsl = (hsl: [number, number, number]) => formatHex({ mode: "hsl", h: hsl[0], s: hsl[1], l: hsl[2] })
-const sketch: SketchFactory = ({ random, bbox }) => {
+const sketch: SketchFactory = ({ renderer, random, bbox }) => {
   const noise = noise3d(random)
   const hue = random.real(0, 360)
   const bgColor = formatHsl([hue, random.real(0.2, 0.3), random.real(0.8, 0.9)])
-  const numLayers = random.integer(2, 4)
+  const numLayers = 1 //random.integer(2, 4)
   const startingRotation = random.realZeroTo(Math.PI * 2)
 
   const container = new Container()
@@ -19,15 +19,13 @@ const sketch: SketchFactory = ({ random, bbox }) => {
   for (let i = 1; i <= numLayers; i++) {
     container.addChild(drawLayer(i))
   }
-  container.filters = [new NoiseFilter(random.real(0.1, 0.2), random.realZeroToOneInclusive())]
+  container.filters = [new NoiseFilter(random.real(0.1, 0.2), random.realZeroToOneInclusive()), new FXAAFilter()]
   return { container }
-
-  //TODO: Fix visuals
-  //TODO: Optimize
 
   function drawLayer(layerNum: number) {
     const container = new Container()
     const rotation = startingRotation + layerNum * ((Math.PI / numLayers) * random.real(0.8, 1.2))
+    // TODO: calculate noiseFactor and lineSpacing
 
     const mask = drawMask(layerNum)
     container.mask = mask
@@ -39,7 +37,8 @@ const sketch: SketchFactory = ({ random, bbox }) => {
   }
 
   function drawMask(layerNum: number) {
-    const noiseFactor = random.real(0.001, 0.01)
+    // TODO: NoiseAlphaFilter
+    const noiseFactor = 0.001 //random.real(0.001, 0.01)
     const cutoff = random.real(0.25, 0.5)
 
     const canvas = new OffscreenCanvas(bbox.width, bbox.height)
@@ -64,17 +63,20 @@ const sketch: SketchFactory = ({ random, bbox }) => {
 
   function drawLines(rotation: number) {
     const c = new Container()
-    const lineSpacing = random.real(5, 15)
+    const lineSpacing = random.real(15, 25)
     const strokeDiv = lineSpacing / 5
+    const lineNormal = vector(0, 1).rotate(rotation)
+    const lineEq = line(point(0, 0), lineNormal)
 
     const sat = random.real(0.5, 1)
     const bri = random.real(0.1, 0.3)
     const lineColor = formatHsl([(hue + 180) % 360, sat, bri])
 
-    const lineNormal = vector(0, 1).rotate(rotation)
-    const lineEq = line(point(0, 0), lineNormal)
-    let factor = 0
+    const templateGraphics = new Graphics().lineStyle(1, lineColor).lineTo(1, 0)
+    templateGraphics.finishPoly()
+    const template = renderGraphics(templateGraphics, renderer)
 
+    let factor = 0
     for (;;) {
       const translateVector = lineNormal.multiply(lineSpacing * factor)
       const lineEqOffset = lineEq.translate(translateVector)
@@ -82,7 +84,7 @@ const sketch: SketchFactory = ({ random, bbox }) => {
       if (pt1 == undefined) break
 
       const lineSegment = segment(pt0, pt1)
-      c.addChild(drawLine(lineSegment, lineColor, strokeDiv))
+      c.addChild(...drawLine(lineSegment, lineColor, strokeDiv, template))
 
       if (factor == 0) factor = 1
       else if (factor > 0) factor = -factor
@@ -91,22 +93,34 @@ const sketch: SketchFactory = ({ random, bbox }) => {
     return c
   }
 
-  function drawLine(segment: Segment, lineColor: ColorSource, strokeDiv: number) {
-    const c = new Container()
-    const step = random.real(0.005, 0.01) * segment.length
+  function drawLine(segment: Segment, lineColor: ColorSource, strokeDiv: number, template: Sprite) {
+    // TODO: Rewrite to shader
+    const sprites: Sprite[] = []
+    const step = random.real(0.01, 0.02) * segment.length
+    const noiseScale = 0.005
 
-    let pt = segment.start
+    let chunkStart = segment.start
     for (let i = step; i < segment.length; i += step) {
-      const n = noise(pt.x / 100, pt.y / 100, 0)
+      const n = noise(chunkStart.x * noiseScale, chunkStart.y * noiseScale, 0)
       const alpha = map(n, -1, 1, 0.6, 1)
-      const offset = random.minmax(0.5) * Math.SQRT2
+      const offset = random.minmax(0.5) * Math.SQRT2 * strokeDiv // TODO: Fix offset
       const thickness = map(n, -1, 1, 2, 2 + strokeDiv)
 
-      const g = c.addChild(new Graphics()).lineStyle(thickness, lineColor, alpha).moveTo(pt.x, pt.y)
-      pt = segment.pointAtLength(Math.min(i + step, segment.length))?.translate(vector(-offset, offset)) as Point
-      g.lineTo(pt.x, pt.y)
+      const chunkEnd = segment.pointAtLength(i + step)?.translate(vector(-offset, offset)) || segment.end
+      const chunkVector = vector(chunkStart, chunkEnd)
+      const chunkSprite = new Sprite(template.texture).setTransform(
+        chunkStart.x,
+        chunkStart.y,
+        chunkVector.length,
+        thickness,
+        chunkVector.slope
+      )
+      chunkSprite.pivot = template.pivot
+      chunkSprite.alpha = alpha
+      sprites.push(chunkSprite)
+      chunkStart = chunkEnd
     }
-    return c
+    return sprites
   }
 }
 
