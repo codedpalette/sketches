@@ -1,13 +1,14 @@
 import { line, point, Segment, segment, vector } from "@flatten-js/core"
 import { run, SketchFactory } from "core/sketch"
 import { formatHex } from "culori"
-import { drawBackground, renderGraphics } from "drawing/helpers"
-import { ColorSource, Container, FXAAFilter, Graphics, NoiseFilter, Sprite } from "pixi.js"
+import { drawBackground } from "drawing/helpers"
+import { renderLines } from "drawing/mesh"
+import { ColorSource, Container, FXAAFilter, NoiseFilter, Sprite } from "pixi.js"
 import { map } from "utils/helpers"
 import { noise3d } from "utils/random"
 
 const formatHsl = (hsl: [number, number, number]) => formatHex({ mode: "hsl", h: hsl[0], s: hsl[1], l: hsl[2] })
-const sketch: SketchFactory = ({ renderer, random, bbox }) => {
+const sketch: SketchFactory = ({ random, bbox }) => {
   const noise = noise3d(random)
   const hue = random.real(0, 360)
   const bgColor = formatHsl([hue, random.real(0.2, 0.3), random.real(0.8, 0.9)])
@@ -27,9 +28,9 @@ const sketch: SketchFactory = ({ renderer, random, bbox }) => {
     const rotation = startingRotation + layerNum * ((Math.PI / numLayers) * random.real(0.8, 1.2))
     // TODO: calculate noiseFactor and lineSpacing
 
-    const mask = drawMask(layerNum)
-    container.mask = mask
-    container.addChild(mask)
+    // const mask = drawMask(layerNum)
+    // container.mask = mask
+    // container.addChild(mask)
 
     const lines = drawLines(rotation % Math.PI)
     container.addChild(lines)
@@ -72,10 +73,11 @@ const sketch: SketchFactory = ({ renderer, random, bbox }) => {
     const bri = random.real(0.1, 0.3)
     const lineColor = formatHsl([(hue + 180) % 360, sat, bri])
 
-    const templateGraphics = new Graphics().lineStyle(1, lineColor).lineTo(1, 0)
-    templateGraphics.finishPoly()
-    const template = renderGraphics(templateGraphics, renderer)
+    // const templateGraphics = new Graphics().lineStyle(1, lineColor).lineTo(1, 0)
+    // templateGraphics.finishPoly()
+    // const template = renderGraphics(templateGraphics, renderer)
 
+    const segments: Segment[] = []
     let factor = 0
     for (;;) {
       const translateVector = lineNormal.multiply(lineSpacing * factor)
@@ -84,12 +86,15 @@ const sketch: SketchFactory = ({ renderer, random, bbox }) => {
       if (pt1 == undefined) break
 
       const lineSegment = segment(pt0, pt1)
-      c.addChild(...drawLine(lineSegment, lineColor, strokeDiv, template))
+      segments.push(lineSegment)
+      //c.addChild(...drawLine(lineSegment, lineColor, strokeDiv, template))
 
       if (factor == 0) factor = 1
       else if (factor > 0) factor = -factor
       else factor = -factor + 1
     }
+
+    c.addChild(renderLines(segments, strokeDiv, lineColor))
     return c
   }
 
