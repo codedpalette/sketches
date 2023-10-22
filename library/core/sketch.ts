@@ -37,7 +37,7 @@ export function run(sketchFactory: SketchFactory, view?: HTMLCanvasElement) {
   const renderer = new Renderer({
     ...defaultParams,
     view,
-    antialias: false,
+    antialias: false, // Use FXAAFilter if needed
     autoDensity: true,
     background: "white",
   })

@@ -37,7 +37,7 @@ const sketch: SketchFactory = ({ random, bbox }) => {
     return container
   }
 
-  function drawMask(layerNum: number) {
+  function _drawMask(layerNum: number) {
     // TODO: NoiseAlphaFilter
     const noiseFactor = 0.001 //random.real(0.001, 0.01)
     const cutoff = random.real(0.25, 0.5)
@@ -94,11 +94,11 @@ const sketch: SketchFactory = ({ random, bbox }) => {
       else factor = -factor + 1
     }
 
-    c.addChild(renderLines(segments, strokeDiv, lineColor))
+    c.addChild(renderLines(segments, strokeDiv * 2, lineColor))
     return c
   }
 
-  function drawLine(segment: Segment, lineColor: ColorSource, strokeDiv: number, template: Sprite) {
+  function _drawLine(segment: Segment, lineColor: ColorSource, strokeDiv: number, template: Sprite) {
     // TODO: Rewrite to shader
     const sprites: Sprite[] = []
     const step = random.real(0.01, 0.02) * segment.length
