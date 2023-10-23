@@ -1,5 +1,5 @@
 import { run, SketchFactory } from "core/sketch"
-import { drawBackground, gray } from "drawing/helpers"
+import { drawBackground } from "drawing/helpers"
 import { fromPolar } from "geometry/helpers"
 import { BlurFilter, Container, Graphics, IPointData } from "pixi.js"
 import { map } from "utils/helpers"
@@ -17,8 +17,8 @@ const sketch: SketchFactory = ({ random, bbox }) => {
 
   const container = new Container()
   container.angle = random.real(-15, 15)
-  background()
-  polygons()
+  container.addChild(background())
+  container.addChild(polygons())
   return { container }
 
   function background() {
@@ -47,13 +47,12 @@ const sketch: SketchFactory = ({ random, bbox }) => {
             }
       backContainer.addChild(new Graphics().beginFill(color).drawPolygon(randomPolygon(numVertices, radius, { x, y })))
     }
-    backContainer.addChild(texture())
-    container.addChild(backContainer)
+    return backContainer
   }
 
   function polygons() {
     const polygons = new Container()
-    const numPolygons = 3000
+    const numPolygons = 2000
     for (let i = 0; i < numPolygons; i++) {
       const [x, y] = [random.real(-xBound, xBound), random.real(-xBound / 2, xBound / 2)]
       if (y > upper(x) || y < lower(x)) {
@@ -63,7 +62,7 @@ const sketch: SketchFactory = ({ random, bbox }) => {
       const yNorm = y / (y > 0 ? upper(x) : lower(x))
       const n = noise(x, y)
       const center = { x: x * scaleFactor, y: y * scaleFactor }
-      const radius = map(Math.pow(yNorm, 1 / 3), 0, 1, 20, 30)
+      const radius = map(Math.pow(yNorm, 1 / 3), 0, 1, 30, 40)
       const color = {
         h: mainHue + random.minmax(10),
         s: map(n, -1, 1, 85, 100),
@@ -74,36 +73,7 @@ const sketch: SketchFactory = ({ random, bbox }) => {
       polygons.addChild(new Graphics().beginFill(color).drawPolygon(randomPolygon(numVertices, radius, center)))
     }
     polygons.filters = [new BlurFilter(1, 2)]
-    container.addChild(polygons)
-  }
-
-  function texture() {
-    const textureContainer = new Container()
-    const textureCount = (bbox.width * bbox.height) / 500
-    for (let i = 0; i < textureCount; i++) {
-      const strokeColor = gray(random.real(100, 150))
-      const alpha = 0.05
-      const [x, y] = [random.minmax(bbox.width * 0.7), random.minmax(bbox.height * 0.7)]
-      const rotation = random.real(0, Math.PI * 2)
-
-      Graphics.curves.adaptive = true
-      const curveContainer = textureContainer.addChild(new Container().setTransform(x, y, 1, 1, rotation))
-      curveContainer.addChild(new Graphics().beginFill(strokeColor, alpha).drawCircle(0, 0, 3))
-      curveContainer.addChild(
-        new Graphics()
-          .lineStyle(2, strokeColor, alpha)
-          .moveTo(random.real(60, 220), 0)
-          .bezierCurveTo(
-            0,
-            random.real(-50, 50),
-            random.real(-50, 50),
-            random.real(60, 120),
-            random.real(60, 120),
-            random.real(60, 220)
-          )
-      )
-    }
-    return textureContainer
+    return polygons
   }
 
   function randomPolygon(numVertices: number, radius: number, center: IPointData): IPointData[] {
