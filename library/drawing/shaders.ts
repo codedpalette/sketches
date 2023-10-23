@@ -1,3 +1,7 @@
+import glslNoise from "glsl/snoise.glsl"
+
+export { glslNoise }
+
 export type ShaderProgram = {
   preamble?: string
   main?: string
@@ -6,8 +10,6 @@ export type ShaderProgram = {
 const globalPreamble = /*glsl*/ `#version 300 es  
 precision highp float;
 #define PI 3.1415926535897932384626433832795`
-
-//TODO: Noise functions preambles (resolve duplicates)
 
 export const vertexTemplate = (program: ShaderProgram = {}) => /*glsl*/ `${globalPreamble}
   in vec2 aPosition;
@@ -18,9 +20,9 @@ export const vertexTemplate = (program: ShaderProgram = {}) => /*glsl*/ `${globa
 
   void main() {
     vPosition = aPosition;
-    gl_Position = vec4(aPosition, 0., 1.);
+    vec2 position = aPosition;
     ${program.main ?? ""}
-    gl_Position = vec4((projectionMatrix * translationMatrix * vec3(gl_Position.xy, 1.0)).xy, 0.0, 1.0);        
+    gl_Position = vec4((projectionMatrix * translationMatrix * vec3(position.xy, 1.0)).xy, 0.0, 1.0);        
   }
 `
 

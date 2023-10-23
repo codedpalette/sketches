@@ -2953,13 +2953,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glsl-noise@npm:^0.0.0":
-  version: 0.0.0
-  resolution: "glsl-noise@npm:0.0.0"
-  checksum: 07986663451963c90f8177f0a7d79a897ce27ad47841bfae6833647803ce7b8b65c8c18b8aecc576f1fc8e67ae6c8b5e5e1501b604cf3b1e9855c639e739e2c3
-  languageName: node
-  linkType: hard
-
 "gopd@npm:^1.0.1":
   version: 1.0.1
   resolution: "gopd@npm:1.0.1"
@@ -4943,7 +4936,6 @@ __metadata:
     eslint-plugin-import: ^2.28.0
     eslint-plugin-simple-import-sort: ^10.0.0
     eslint-plugin-unused-imports: ^3.0.0
-    glsl-noise: ^0.0.0
     husky: ^8.0.3
     lint-staged: ^13.2.3
     pixi.js: ^7.2.4

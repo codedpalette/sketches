@@ -39,7 +39,6 @@ export function run(sketchFactory: SketchFactory, view?: HTMLCanvasElement) {
     view,
     antialias: false, // Use FXAAFilter if needed
     autoDensity: true,
-    background: "white",
   })
   const canvas = renderer.view as HTMLCanvasElement
   !canvas.isConnected && document.body.appendChild(canvas)

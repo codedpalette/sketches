@@ -1,9 +1,9 @@
 import { Segment } from "@flatten-js/core"
-import { fragTemplate, vertexTemplate } from "drawing/shaders"
+import { fragTemplate, ShaderProgram, vertexTemplate } from "drawing/shaders"
 import { Attribute, Buffer, Color, ColorSource, Geometry, Mesh, Shader, TYPES } from "pixi.js"
 
 // https://wwwtyro.net/2019/11/18/instanced-lines.html
-export function renderLines(segments: Segment[], width: number, color: ColorSource) {
+export function renderLines(segments: Segment[], width: number, color: ColorSource, fragShaderExt: ShaderProgram = {}) {
   // prettier-ignore
   const segmentInstanceGeometry = [
     0, -0.5,
@@ -32,21 +32,26 @@ export function renderLines(segments: Segment[], width: number, color: ColorSour
   const vertexShader = vertexTemplate({
     preamble: /*glsl*/ `
       in vec2 aSegmentStart, aSegmentEnd;
+      out float instanceId;
       uniform float width;
     `,
     main: /*glsl*/ `
       vec2 xBasis = aSegmentEnd - aSegmentStart;
       vec2 yBasis = normalize(vec2(-xBasis.y, xBasis.x));
       vec2 point = aSegmentStart + xBasis * aPosition.x + yBasis * width * aPosition.y;
-      gl_Position.xy = point;
+      position = point;
+      instanceId = float(gl_InstanceID);
     `,
   })
   const fragShader = fragTemplate({
     preamble: /*glsl*/ `
+      in float instanceId;
       uniform vec4 color;
+      ${fragShaderExt.preamble ?? ""}
     `,
     main: /*glsl*/ `
       fragColor = color;
+      ${fragShaderExt.main ?? ""}
     `,
   })
   const shader = Shader.from(vertexShader, fragShader, { width, color: new Color(color) })
