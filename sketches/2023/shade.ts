@@ -1,18 +1,17 @@
 import { line, point, Segment, segment, vector } from "@flatten-js/core"
 import { run, SketchFactory } from "core/sketch"
 import { formatHex } from "culori"
+import { noiseAlphaFilter } from "drawing/filters"
 import { drawBackground } from "drawing/helpers"
 import { renderLines } from "drawing/meshes"
 import { glslNoise, ShaderProgram } from "drawing/shaders"
-import { Container, FXAAFilter, NoiseFilter, Sprite } from "pixi.js"
-import { noise3d } from "random"
+import { Container, FXAAFilter, NoiseFilter } from "pixi.js"
 
 const formatHsl = (hsl: [number, number, number]) => formatHex({ mode: "hsl", h: hsl[0], s: hsl[1], l: hsl[2] })
-const sketch: SketchFactory = ({ random, bbox }) => {
-  const noise = noise3d(random)
+const sketch: SketchFactory = ({ renderer, random, bbox }) => {
   const hue = random.real(0, 360)
   const bgColor = formatHsl([hue, random.real(0.2, 0.3), random.real(0.8, 0.9)])
-  const numLayers = 1 //random.integer(2, 4)
+  const numLayers = 2 //random.integer(2, 4)
   const startingRotation = random.realZeroTo(Math.PI * 2)
   const lineShader: ShaderProgram = {
     preamble: glslNoise,
@@ -41,46 +40,19 @@ const sketch: SketchFactory = ({ random, bbox }) => {
   function drawLayer(layerNum: number) {
     const container = new Container()
     const rotation = startingRotation + layerNum * ((Math.PI / numLayers) * random.real(0.8, 1.2))
+    const noiseScale = random.real(0.5, 10)
+    const lineSpacing = random.real(5, 15)
     // TODO: calculate noiseFactor and lineSpacing
 
-    // const mask = drawMask(layerNum)
-    // container.mask = mask
-    // container.addChild(mask)
-
-    const lines = drawLines(rotation % Math.PI)
+    const lines = drawLines(rotation % Math.PI, lineSpacing)
     container.addChild(lines)
+    container.filterArea = renderer.screen
+    container.filters = [noiseAlphaFilter(noiseScale, random)]
     return container
   }
 
-  function _drawMask(layerNum: number) {
-    // TODO: NoiseAlphaFilter
-    const noiseFactor = 0.001 //random.real(0.001, 0.01)
-    const cutoff = random.real(0.25, 0.5)
-
-    const canvas = new OffscreenCanvas(bbox.width, bbox.height)
-    const ctx = canvas.getContext("2d") as OffscreenCanvasRenderingContext2D
-    const imageData = ctx.getImageData(0, 0, bbox.width, bbox.height)
-    const pixels = imageData.data
-
-    let i = 0
-    for (let y = 0; y < bbox.height; y++) {
-      for (let x = 0; x < bbox.width; x++) {
-        const n = noise(x * noiseFactor, y * noiseFactor, layerNum * 1000)
-        pixels[i++] = pixels[i++] = pixels[i++] = Math.abs(n) > cutoff ? 255 : 0
-        pixels[i++] = 255
-      }
-    }
-    ctx.putImageData(imageData, 0, 0)
-
-    const sprite = Sprite.from(canvas)
-    sprite.anchor.set(0.5, 0.5)
-    return sprite
-  }
-
-  function drawLines(rotation: number) {
-    const c = new Container()
-    const lineSpacing = random.real(15, 25)
-    const lineWidth = (lineSpacing * 2) / 5
+  function drawLines(rotation: number, lineSpacing: number) {
+    const lineWidth = (lineSpacing * 2) / 3
     const lineNormal = vector(0, 1).rotate(rotation)
     const lineEq = line(point(0, 0), lineNormal)
 
@@ -104,8 +76,7 @@ const sketch: SketchFactory = ({ random, bbox }) => {
       else factor = -factor + 1
     }
 
-    c.addChild(renderLines(segments, lineWidth, lineColor, lineShader))
-    return c
+    return renderLines(segments, lineWidth, lineColor, lineShader)
   }
 }
 
