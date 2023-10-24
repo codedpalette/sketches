@@ -2,10 +2,10 @@ import { line, point, Segment, segment, vector } from "@flatten-js/core"
 import { run, SketchFactory } from "core/sketch"
 import { formatHex } from "culori"
 import { drawBackground } from "drawing/helpers"
-import { renderLines } from "drawing/mesh"
+import { renderLines } from "drawing/meshes"
 import { glslNoise, ShaderProgram } from "drawing/shaders"
 import { Container, FXAAFilter, NoiseFilter, Sprite } from "pixi.js"
-import { noise3d } from "utils/random"
+import { noise3d } from "random"
 
 const formatHsl = (hsl: [number, number, number]) => formatHex({ mode: "hsl", h: hsl[0], s: hsl[1], l: hsl[2] })
 const sketch: SketchFactory = ({ random, bbox }) => {

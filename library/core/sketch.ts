@@ -2,9 +2,9 @@ import { Box, box } from "@flatten-js/core"
 import { CanvasCapture } from "canvas-capture"
 import { initUI } from "core/ui"
 import { Container, Renderer } from "pixi.js"
+import { Random } from "random"
 import { createEntropy, MersenneTwister19937 as MersenneTwister } from "random-js"
 import Stats from "stats.js"
-import { Random } from "utils/random"
 
 const recordingFPS = 60
 const defaultParams = { resolution: 1, width: 1262, height: 1262 }

@@ -3,7 +3,7 @@ import { SketchParams } from "core/sketch"
 import { Renderer } from "pixi.js"
 import { Spector } from "spectorjs"
 import Stats from "stats.js"
-import { clamp } from "utils/helpers"
+import { clamp } from "utils"
 
 const minWidth = 800
 const minHeight = 800

@@ -1,9 +1,9 @@
 import { run, SketchFactory } from "core/sketch"
 import { drawBackground } from "drawing/helpers"
-import { fromPolar } from "geometry/helpers"
+import { fromPolar } from "geometry"
 import { BlurFilter, Container, Graphics, IPointData } from "pixi.js"
-import { map } from "utils/helpers"
-import { noise2d } from "utils/random"
+import { noise2d } from "random"
+import { map } from "utils"
 
 const sketch: SketchFactory = ({ random, bbox }) => {
   const noise = noise2d(random)
