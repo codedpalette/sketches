@@ -5,6 +5,7 @@ import { BlurFilter, Container, Graphics, IPointData } from "pixi.js"
 import { noise2d } from "random"
 import { map } from "utils"
 
+//TODO: Add comments
 const sketch: SketchFactory = ({ random, bbox }) => {
   const noise = noise2d(random)
   const xBound = 2

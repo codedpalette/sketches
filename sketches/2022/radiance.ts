@@ -3,6 +3,7 @@ import { run, SketchFactory } from "core/sketch"
 import { converter, formatCss } from "culori"
 import { Color, Container, Graphics, Sprite } from "pixi.js"
 
+//TODO: Add comments
 const oklab = converter("oklab")
 const sketch: SketchFactory = ({ random, bbox }) => {
   const gradientCenter = vector(random.minmax(bbox.width * 0.4), random.minmax(bbox.height * 0.4))

@@ -4,6 +4,7 @@ import { Container, FXAAFilter, Graphics } from "pixi.js"
 import { noise2d } from "random"
 import { map } from "utils"
 
+//TODO: Add comments, finish
 const sketch: SketchFactory = ({ random }) => {
   const noise = noise2d(random)
   const container = new Container()

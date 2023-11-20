@@ -1,12 +1,13 @@
 import { line, point, Segment, segment, vector } from "@flatten-js/core"
 import { run, SketchFactory } from "core/sketch"
 import { formatHex } from "culori"
-import { noiseAlphaFilter } from "drawing/filters"
+import { NoiseAlphaFilter } from "drawing/filters"
 import { drawBackground } from "drawing/helpers"
 import { renderLines } from "drawing/meshes"
 import { glslNoise, ShaderProgram } from "drawing/shaders"
 import { Container, FXAAFilter, NoiseFilter } from "pixi.js"
 
+//TODO: Add comments
 const formatHsl = (hsl: [number, number, number]) => formatHex({ mode: "hsl", h: hsl[0], s: hsl[1], l: hsl[2] })
 const sketch: SketchFactory = ({ renderer, random, bbox }) => {
   const hue = random.real(0, 360)
@@ -47,7 +48,7 @@ const sketch: SketchFactory = ({ renderer, random, bbox }) => {
     const lines = drawLines(rotation % Math.PI, lineSpacing)
     container.addChild(lines)
     container.filterArea = renderer.screen
-    container.filters = [noiseAlphaFilter(noiseScale, random)]
+    container.filters = [new NoiseAlphaFilter(noiseScale, random)]
     return container
   }
 

@@ -3,8 +3,8 @@ import glslNoise from "glsl/snoise.glsl"
 export { glslNoise }
 
 export type ShaderProgram = {
-  preamble?: string
-  main?: string
+  preamble?: string // Code that goes outside of main function (attribute and uniform definitions, function dependencies)
+  main?: string // Code that extends main function, can override local variables and varyings
 }
 
 const globalPreamble = /*glsl*/ `#version 300 es  
@@ -12,7 +12,13 @@ const globalPreamble = /*glsl*/ `#version 300 es
   #define PI 3.1415926535897932384626433832795
 `
 
-export const vertexTemplate = (program: ShaderProgram = {}) => /*glsl*/ `${globalPreamble}
+/**
+ * Template for vertex shader program. Defines attributes and uniforms necessary for Pixi.js interop
+ * and sets the `gl_Position` variable
+ * @param program {@link ShaderProgram} to extend this template
+ * @returns {string} vertex glsl code
+ */
+export const vertexTemplate = (program: ShaderProgram = {}): string => /*glsl*/ `${globalPreamble}
   in vec2 aPosition;
   uniform mat3 projectionMatrix;
   uniform mat3 translationMatrix;
@@ -27,7 +33,13 @@ export const vertexTemplate = (program: ShaderProgram = {}) => /*glsl*/ `${globa
   }
 `
 
-export const fragTemplate = (program: ShaderProgram = {}) => /*glsl*/ `${globalPreamble}
+/**
+ * Template for fragment shader program. Defines varyings passed from {@link vertexTemplate}
+ * and sets the `fragColor` variable
+ * @param program {@link ShaderProgram} to extend this template
+ * @returns {string} fragment glsl code
+ */
+export const fragTemplate = (program: ShaderProgram = {}): string => /*glsl*/ `${globalPreamble}
   in vec2 vPosition;
   out vec4 fragColor;
   ${program.preamble ?? ""}
@@ -38,7 +50,14 @@ export const fragTemplate = (program: ShaderProgram = {}) => /*glsl*/ `${globalP
   }
 `
 
-export const filterVertTemplate = (program: ShaderProgram = {}) => /*glsl*/ `${globalPreamble}
+/**
+ * Template for vertex shader program to be used with Pixi.js Filters.
+ * Defines attributes and uniforms necessary for Pixi.js interop
+ * and sets the `gl_Position` variable
+ * @param program {@link ShaderProgram} to extend this template
+ * @returns {string} vertex glsl code
+ */
+export const filterVertTemplate = (program: ShaderProgram = {}): string => /*glsl*/ `${globalPreamble}
   in vec2 aVertexPosition;
   uniform mat3 projectionMatrix;
   uniform vec4 inputSize;
@@ -55,7 +74,14 @@ export const filterVertTemplate = (program: ShaderProgram = {}) => /*glsl*/ `${g
 
 `
 
-export const filterFragTemplate = (program: ShaderProgram = {}) => /*glsl*/ `${globalPreamble}
+/**
+ * Template for fragment shader program to be used with Pixi.js Filters.
+ * Defines varyings passed from {@link filterVertTemplate}
+ * and sets the `fragColor` variable
+ * @param program {@link ShaderProgram} to extend this template
+ * @returns {string} fragment glsl code
+ */
+export const filterFragTemplate = (program: ShaderProgram = {}): string => /*glsl*/ `${globalPreamble}
   in vec2 vTextureCoord;
   uniform sampler2D uSampler;
   out vec4 fragColor;
