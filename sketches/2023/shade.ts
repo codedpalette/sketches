@@ -6,21 +6,24 @@ import { drawBackground } from "drawing/helpers"
 import { renderLines } from "drawing/meshes"
 import { glslNoise, ShaderProgram } from "drawing/shaders"
 import { Container, FXAAFilter, NoiseFilter } from "pixi.js"
+import { map } from "utils"
 
-//TODO: Add comments
 const formatHsl = (hsl: [number, number, number]) => formatHex({ mode: "hsl", h: hsl[0], s: hsl[1], l: hsl[2] })
 const sketch: SketchFactory = ({ renderer, random, bbox }) => {
-  const hue = random.real(0, 360)
-  const bgColor = formatHsl([hue, random.real(0.2, 0.3), random.real(0.8, 0.9)])
-  const numLayers = 2 //random.integer(2, 4)
+  const mainHue = random.real(0, 360)
+  const bgColor = formatHsl([mainHue, random.real(0.2, 0.3), random.real(0.8, 0.9)])
+  const numLayers = random.integer(2, 4)
   const startingRotation = random.realZeroTo(Math.PI * 2)
+  // Fragment shader to add variability to line segments. It varies line width, offset and alpha based on noise values
   const lineShader: ShaderProgram = {
-    preamble: glslNoise,
+    preamble: /*glsl*/ `
+      ${glslNoise}
+      const float widthNoiseScale = 10.0;
+      const float offsetNoiseScale = 100.0;
+      const float alphaNoiseScale = 1000.0;
+    `,
     main: /*glsl*/ `
-      vec2 noisePoint = vec2(vPosition.x, instanceId);
-      float widthNoiseScale = 10.0;
-      float offsetNoiseScale = 100.0;
-      float alphaNoiseScale = 1000.0;
+      vec2 noisePoint = vec2(vPosition.x, instanceId);      
       float width = snoise(noisePoint * widthNoiseScale) * .25 + .5; // [0.25, 0.75]
       float offset = snoise(noisePoint * offsetNoiseScale) * .25; // [-0.25, 0.25]
       float alphaFactor = abs(snoise(noisePoint * alphaNoiseScale)) * .4 + .6; // [0.6, 1]
@@ -41,9 +44,8 @@ const sketch: SketchFactory = ({ renderer, random, bbox }) => {
   function drawLayer(layerNum: number) {
     const container = new Container()
     const rotation = startingRotation + layerNum * ((Math.PI / numLayers) * random.real(0.8, 1.2))
-    const noiseScale = random.real(0.5, 10)
-    const lineSpacing = random.real(5, 15)
-    // TODO: calculate noiseFactor and lineSpacing
+    const noiseScale = random.real(1, 10)
+    const lineSpacing = map(noiseScale, 1, 10, 10, 5)
 
     const lines = drawLines(rotation % Math.PI, lineSpacing)
     container.addChild(lines)
@@ -54,12 +56,12 @@ const sketch: SketchFactory = ({ renderer, random, bbox }) => {
 
   function drawLines(rotation: number, lineSpacing: number) {
     const lineWidth = (lineSpacing * 2) / 3
-    const lineNormal = vector(0, 1).rotate(rotation)
-    const lineEq = line(point(0, 0), lineNormal)
+    const lineNormal = vector(0, 1).rotate(rotation) // Normal vector to line
+    const lineEq = line(point(0, 0), lineNormal) // Equation of a line passing through point (0, 0) with a normal vector
 
     const sat = random.real(0.5, 1)
     const bri = random.real(0.1, 0.3)
-    const lineColor = formatHsl([(hue + 180) % 360, sat, bri])
+    const lineColor = formatHsl([(mainHue + 180) % 360, sat, bri])
 
     const segments: Segment[] = []
     let factor = 0
@@ -67,13 +69,14 @@ const sketch: SketchFactory = ({ renderer, random, bbox }) => {
       const translateVector = lineNormal.multiply(lineSpacing * factor)
       const lineEqOffset = lineEq.translate(translateVector)
       const [pt0, pt1] = lineEqOffset.intersect(bbox)
+      // If we don't have two intersection points it means that we translated line outside of bounding box, finishing loop
       if (pt1 == undefined) break
 
       const lineSegment = segment(pt0, pt1)
       segments.push(lineSegment)
 
-      if (factor == 0) factor = 1
-      else if (factor > 0) factor = -factor
+      // To generate lines above and below center point we iterate factor in sequence 0, 1, -1, 2, -2, 3, -3, ...
+      if (factor > 0) factor = -factor
       else factor = -factor + 1
     }
 

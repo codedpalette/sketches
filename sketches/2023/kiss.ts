@@ -5,16 +5,16 @@ import { BlurFilter, Container, Graphics, IPointData } from "pixi.js"
 import { noise2d } from "random"
 import { map } from "utils"
 
-//TODO: Add comments
 const sketch: SketchFactory = ({ random, bbox }) => {
   const noise = noise2d(random)
-  const xBound = 2
-  const scaleFactor = (bbox.width * 0.5) / xBound
-  const mainHue = random.real(0, 360)
+  // Define lip functions
   const lip = (a: number, b: number, sign: boolean) => (x: number) =>
     Math.sqrt(a / Math.exp(Math.pow(x * x - b, 2))) * (sign ? 1 : -1)
   const upper = lip(random.real(0.5, 1), random.real(0.5, 1), true)
   const lower = lip(random.real(0.5, 1), random.real(0, 0.5), false)
+  const xBound = 2 // lip function defined in range [-xBound, xBound]
+  const scaleFactor = (bbox.width * 0.5) / xBound
+  const mainHue = random.real(0, 360)
 
   const container = new Container()
   container.angle = random.real(-15, 15)
@@ -28,25 +28,30 @@ const sketch: SketchFactory = ({ random, bbox }) => {
     const backContainer = new Container()
     backContainer.addChild(drawBackground(backColor, bbox))
 
-    const boundsDiagonal = Math.hypot(bbox.width, bbox.height)
-    for (let i = 0; i < 20; i++) {
+    const bboxDiagonal = Math.hypot(bbox.width, bbox.height)
+    const numPolygons = 20
+    for (let i = 0; i < numPolygons; i++) {
       const { x, y, radius, color, numVertices } =
-        i < 10
+        i < numPolygons / 2
           ? {
               x: random.real(-bbox.width / 4, bbox.width / 4),
               y: random.real(-bbox.height / 4, bbox.height / 4),
-              radius: random.real(boundsDiagonal * 0.25, boundsDiagonal * 0.5),
+              radius: random.real(bboxDiagonal * 0.25, bboxDiagonal * 0.5),
               color: { h: backHue, s: random.real(10, 30), v: random.real(70, 90), a: random.real(0.3, 0.7) },
               numVertices: random.integer(5, 15),
             }
           : {
               x: random.real(bbox.width / 4, bbox.width / 2) * random.sign(),
               y: random.real(bbox.height / 4, bbox.height / 2) * random.sign(),
-              radius: random.real(boundsDiagonal * 0.1, boundsDiagonal * 0.2),
+              radius: random.real(bboxDiagonal * 0.1, bboxDiagonal * 0.2),
               color: { h: backHue, s: random.real(30, 50), v: random.real(50, 70), a: random.real(0.1, 0.3) },
               numVertices: random.integer(15, 25),
             }
-      backContainer.addChild(new Graphics().beginFill(color).drawPolygon(randomPolygon(numVertices, radius, { x, y })))
+      backContainer
+        .addChild(new Graphics())
+        .beginFill(color)
+        .drawPolygon(randomPolygon(numVertices, radius))
+        .setTransform(x, y)
     }
     return backContainer
   }
@@ -55,8 +60,10 @@ const sketch: SketchFactory = ({ random, bbox }) => {
     const polygons = new Container()
     const numPolygons = 2000
     for (let i = 0; i < numPolygons; i++) {
+      // Generate point between lip curves
       const [x, y] = [random.real(-xBound, xBound), random.real(-xBound / 2, xBound / 2)]
       if (y > upper(x) || y < lower(x)) {
+        // If point outside curves - retry
         i--
         continue
       }
@@ -71,18 +78,20 @@ const sketch: SketchFactory = ({ random, bbox }) => {
         a: random.real(0.5, 1),
       }
       const numVertices = random.integer(3, 9)
-      polygons.addChild(new Graphics().beginFill(color).drawPolygon(randomPolygon(numVertices, radius, center)))
+      polygons
+        .addChild(new Graphics())
+        .beginFill(color)
+        .drawPolygon(randomPolygon(numVertices, radius))
+        .setTransform(center.x, center.y)
     }
     polygons.filters = [new BlurFilter(1, 2)]
     return polygons
   }
 
-  function randomPolygon(numVertices: number, radius: number, center: IPointData): IPointData[] {
+  function randomPolygon(numVertices: number, radius: number): IPointData[] {
+    // Define vertices as random points on a circle with a specified radius
     const thetas = Array.from({ length: numVertices }, (_) => random.real(0, 2 * Math.PI)).sort()
-    return thetas.map((theta) => {
-      const { x, y } = fromPolar(radius, theta)
-      return { x: x + center.x, y: y + center.y }
-    })
+    return thetas.map((theta) => fromPolar(radius, theta))
   }
 }
 
