@@ -1,6 +1,6 @@
 import { line, point, Segment, segment, vector } from "@flatten-js/core"
 import { run, SketchFactory } from "core/sketch"
-import { formatHex } from "culori"
+import { formatHsl } from "drawing/color"
 import { NoiseAlphaFilter } from "drawing/filters"
 import { drawBackground } from "drawing/helpers"
 import { renderLines } from "drawing/meshes"
@@ -8,9 +8,8 @@ import { glslNoise, ShaderProgram } from "drawing/shaders"
 import { Container, FXAAFilter, NoiseFilter } from "pixi.js"
 import { map } from "utils"
 
-const formatHsl = (hsl: [number, number, number]) => formatHex({ mode: "hsl", h: hsl[0], s: hsl[1], l: hsl[2] })
 const sketch: SketchFactory = ({ renderer, random, bbox }) => {
-  const mainHue = random.real(0, 360)
+  const mainHue = random.realZeroTo(360)
   const bgColor = formatHsl([mainHue, random.real(0.2, 0.3), random.real(0.8, 0.9)])
   const numLayers = random.integer(2, 4)
   const startingRotation = random.realZeroTo(Math.PI * 2)

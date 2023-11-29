@@ -14,7 +14,7 @@ const sketch: SketchFactory = ({ random, bbox }) => {
   const lower = lip(random.real(0.5, 1), random.real(0, 0.5), false)
   const xBound = 2 // lip function defined in range [-xBound, xBound]
   const scaleFactor = (bbox.width * 0.5) / xBound
-  const mainHue = random.real(0, 360)
+  const mainHue = random.realZeroTo(360)
 
   const container = new Container()
   container.angle = random.real(-15, 15)

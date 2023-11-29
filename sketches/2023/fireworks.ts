@@ -1,37 +1,53 @@
+import { point, ray, vector } from "@flatten-js/core"
 import { run, SketchFactory } from "core/sketch"
+import { formatHsl } from "drawing/color"
+import { renderCanvas } from "drawing/helpers"
 import { fromPolar } from "geometry"
-import { Container, FXAAFilter, Graphics } from "pixi.js"
+import { BlurFilter, Container, Graphics, NoiseFilter } from "pixi.js"
 import { noise2d } from "random"
 import { map } from "utils"
 
-//TODO: Add comments, finish
-const sketch: SketchFactory = ({ random }) => {
+const sketch: SketchFactory = ({ random, bbox }) => {
   const noise = noise2d(random)
   const container = new Container()
-  container.addChild(drawVortex())
-  container.filters = [new FXAAFilter()]
+  container.addChild(drawBackground(), drawStars())
+
+  const baseTheta = random.realZeroTo(2 * Math.PI) // Polar angle for the first vortex
+  const mainHue = random.realZeroTo(360)
+  const numVortices = 3
+  const hypotenuse = Math.hypot(bbox.width / 2, bbox.height / 2)
+  for (let i = 0; i < numVortices; i++) {
+    const hue = mainHue + random.real(-30, 30)
+    const r = random.real(hypotenuse / 4, hypotenuse / 2)
+    const theta = (2 * Math.PI * i) / numVortices + baseTheta
+    const { x, y } = fromPolar(r, theta)
+    container.addChild(drawVortex(hue)).setTransform(x, y)
+  }
   return { container }
 
+  // Vortex simulation using Rankine vortex model
   // https://en.wikipedia.org/wiki/Rankine_vortex
-  function drawVortex() {
-    const particleCount = 100
-    const thetaStep = 0.01
-
-    const maxRadius = random.real(300, 500)
-    const minRadius = random.real(20, 50)
-    const trailLength = random.real(15, 30) * 2
-
-    const vortexCoreRadius = maxRadius * random.real(0.25, 0.75)
-    const gamma = random.real(0.2, 0.4)
-
+  function drawVortex(hue: number) {
+    const particleCount = 300
+    const thetaStep = 0.005 // Increment step for polar angle theta
+    const maxRadius = random.real(300, 500) // Outer radius of a vortex
+    const minRadius = random.real(20, 50) // Inner radius of a vortex
+    const gamma = random.real(4, 8) // Circulation strength of a Rankine vortex
     const c = new Container()
+
+    const sat = random.real(0.25, 1)
+    const bri = random.real(0.4, 0.6)
+    const briPeriod = (maxRadius - minRadius) * random.real(0.25, 0.5) // Period of sine wave modulating brightness change
+
     for (let i = 0; i < particleCount; i++) {
+      const g = c.addChild(new Graphics())
+      const trailLength = random.real(75, 150)
+      // Particle's current polar coordinates
       let r = map(random.realZeroToOneInclusive(), 0, 1, minRadius, maxRadius)
       let theta = random.real(0, 2 * Math.PI)
-      //const g = c.addChild(new Graphics())
+
       for (let j = 0; j < trailLength; j++) {
-        const rotationalVelocity =
-          (gamma / (2 * Math.PI)) * (r <= vortexCoreRadius ? r / Math.pow(vortexCoreRadius, 2) : 1 / r)
+        const rotationalVelocity = (gamma / (2 * Math.PI)) * (r <= maxRadius ? r / Math.pow(maxRadius, 2) : 1 / r)
         const rStep = rotationalVelocity / thetaStep
 
         const { x: x0, y: y0 } = fromPolar(r, theta)
@@ -39,13 +55,66 @@ const sketch: SketchFactory = ({ random }) => {
 
         const lineThickness = (1 + noise(i * 100, j) + j / trailLength) * 2
         const alpha = j / (trailLength * 2) + 0.5
-        c.addChild(new Graphics()).lineStyle(lineThickness, "white", alpha).moveTo(x0, y0).lineTo(x1, y1)
+
+        // Convert particle's radius vector to a sine wave phase value
+        const briTheta = map((r - minRadius) % briPeriod, 0, briPeriod, 0, 2 * Math.PI)
+        // Use it to modulate brightness with offset in [-0.25, 0.25]
+        const briOffset = Math.sin(briTheta) / 4
+        const color = formatHsl([hue, sat, bri + briOffset])
+        g.lineStyle(lineThickness, color, alpha).moveTo(x0, y0).lineTo(x1, y1)
 
         theta += thetaStep
         r -= rStep
       }
     }
     return c
+  }
+
+  function drawBackground() {
+    const backgroundContainer = new Container()
+    backgroundContainer.addChild(
+      renderCanvas((ctx) => {
+        // Background is a linear gradient starting in one of the corners or in one of the 4 "directions" (north, east, south, west)
+        // Since all of these points can be viewed from the center with 45 degrees rotation steps,
+        // it's easier to start with polar coordinates
+        const thetaStart = (Math.PI / 4) * random.integer(0, 7)
+        const thetaEnd = thetaStart + Math.PI
+        // Shoot rays from center with a specified rotation and find their intersections with bbox
+        const rayStart = ray(point(0, 0), vector(0, 1).rotate(thetaStart))
+        const rayEnd = ray(point(0, 0), vector(0, 1).rotate(thetaEnd))
+        const ptStart = rayStart.intersect(bbox)[0]
+        const ptEnd = rayEnd.intersect(bbox)[0]
+        const [x0, y0, x1, y1] = [ptStart.x, ptStart.y, ptEnd.x, ptEnd.y]
+
+        const gradient = ctx.createLinearGradient(
+          x0 + bbox.width / 2,
+          -y0 + bbox.height / 2,
+          x1 + bbox.width / 2,
+          -y1 + bbox.height / 2
+        )
+        const startColor = random.real(0, 10)
+        const endColor = random.real(30, 40)
+        gradient.addColorStop(0, `rgb(${startColor} ${startColor} ${startColor})`)
+        gradient.addColorStop(1, `rgb(${endColor} ${endColor} ${endColor})`)
+        ctx.fillStyle = gradient
+        ctx.fillRect(0, 0, bbox.width, bbox.height)
+      }, bbox)
+    )
+    backgroundContainer.filters = [new NoiseFilter(random.real(0.125, 0.25), random.realZeroToOneExclusive())]
+    return backgroundContainer
+  }
+
+  function drawStars() {
+    const container = new Container()
+    const numStars = random.real(200, 300)
+    for (let i = 0; i < numStars; i++) {
+      const g = container
+        .addChild(new Graphics().beginFill("white", random.real(0.5, 1)))
+        .setTransform(random.minmax(bbox.width / 2), random.minmax(bbox.height / 2))
+      g.drawCircle(0, 0, random.real(2, 4))
+    }
+    container.filters = [new BlurFilter(1, 1)]
+    return container
   }
 }
 

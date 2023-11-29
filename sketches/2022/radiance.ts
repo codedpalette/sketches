@@ -1,13 +1,14 @@
-import { vector } from "@flatten-js/core"
+import { box, vector } from "@flatten-js/core"
 import { run, SketchFactory } from "core/sketch"
 import { converter, formatCss } from "culori"
-import { Color, Container, Graphics, Sprite } from "pixi.js"
+import { renderCanvas } from "drawing/helpers"
+import { Color, Container, Graphics } from "pixi.js"
 
 const oklab = converter("oklab")
 const sketch: SketchFactory = ({ random, bbox }) => {
   const gradientCenter = vector(random.minmax(bbox.width * 0.4), random.minmax(bbox.height * 0.4))
   const gradientRotation = Math.atan2(gradientCenter.y, gradientCenter.x) + random.minmax(Math.PI / 8)
-  const palette = [random.color(), random.color(), random.color()] // TODO: Change palette
+  const palette = [random.color(), random.color(), random.color()]
   const paletteCss = palette.map((color) => formatCss(oklab(new Color(color).toHex())) as string)
 
   const container = new Container()
@@ -16,23 +17,18 @@ const sketch: SketchFactory = ({ random, bbox }) => {
   return { container }
 
   function drawBackground() {
-    // TODO: Refactor
-    const canvas = new OffscreenCanvas(bbox.width, bbox.height)
-    const ctx = canvas.getContext("2d") as OffscreenCanvasRenderingContext2D
-    const gradient = ctx.createConicGradient(
-      gradientRotation + Math.PI,
-      bbox.width / 2 + gradientCenter.x,
-      bbox.height / 2 + gradientCenter.y
-    )
-    gradient.addColorStop(0, paletteCss[0])
-    gradient.addColorStop(random.real(0.3, 0.7), paletteCss[1])
-    gradient.addColorStop(1, paletteCss[1])
-    ctx.fillStyle = gradient
-    ctx.fillRect(0, 0, bbox.width, bbox.height)
-
-    const sprite = Sprite.from(canvas)
-    sprite.anchor.set(0.5, 0.5)
-    return sprite
+    return renderCanvas((ctx) => {
+      const gradient = ctx.createConicGradient(
+        -gradientRotation + Math.PI,
+        bbox.width / 2 + gradientCenter.x,
+        bbox.height / 2 - gradientCenter.y
+      )
+      gradient.addColorStop(0, paletteCss[0])
+      gradient.addColorStop(random.real(0.3, 0.7), paletteCss[1])
+      gradient.addColorStop(1, paletteCss[1])
+      ctx.fillStyle = gradient
+      ctx.fillRect(0, 0, bbox.width, bbox.height)
+    }, bbox)
   }
 
   function drawRays() {
@@ -60,8 +56,18 @@ const sketch: SketchFactory = ({ random, bbox }) => {
   }
 
   function drawCircle() {
-    // TODO: Gradient fill
-    return new Graphics().beginFill(palette[0]).drawCircle(gradientCenter.x, gradientCenter.y, random.real(50, 75))
+    const radius = random.real(50, 75)
+    const circleBbox = box(0, 0, radius * 2, radius * 2)
+    return renderCanvas((ctx) => {
+      const gradient = ctx.createLinearGradient(radius, 0, radius, radius * 2)
+      gradient.addColorStop(0, paletteCss[0])
+      gradient.addColorStop(1, paletteCss[1])
+      ctx.fillStyle = gradient
+
+      ctx.beginPath()
+      ctx.ellipse(radius, radius, radius, radius, 0, 0, 2 * Math.PI)
+      ctx.fill()
+    }, circleBbox).setTransform(gradientCenter.x, gradientCenter.y)
   }
 }
 
