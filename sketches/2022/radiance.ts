@@ -1,7 +1,7 @@
 import { vector } from "@flatten-js/core"
 import { run, SketchFactory } from "core/sketch"
 import { converter, formatCss } from "culori"
-import { Color, Container, FXAAFilter, Graphics, Sprite } from "pixi.js"
+import { Color, Container, Graphics, Sprite } from "pixi.js"
 
 const oklab = converter("oklab")
 const sketch: SketchFactory = ({ random, bbox }) => {
@@ -12,7 +12,6 @@ const sketch: SketchFactory = ({ random, bbox }) => {
 
   const container = new Container()
   container.addChild(drawBackground(), drawRays(), drawCircle())
-  container.filters = [new FXAAFilter()]
 
   return { container }
 

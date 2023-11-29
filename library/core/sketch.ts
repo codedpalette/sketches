@@ -47,7 +47,7 @@ export function run(sketchFactory: SketchFactory, view?: HTMLCanvasElement) {
   const renderer = new Renderer({
     ...defaultParams,
     view,
-    antialias: false, // Use FXAAFilter if needed
+    antialias: true,
     autoDensity: true, // To resize canvas CSS dimensions automatically when resizing renderer
   })
   const canvas = renderer.view as HTMLCanvasElement
