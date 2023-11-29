@@ -1,7 +1,7 @@
 import { point, ray, vector } from "@flatten-js/core"
 import { run, SketchFactory } from "core/sketch"
 import { formatHsl } from "drawing/color"
-import { renderCanvas } from "drawing/helpers"
+import { drawCanvas } from "drawing/helpers"
 import { fromPolar } from "geometry"
 import { BlurFilter, Container, Graphics, NoiseFilter } from "pixi.js"
 import { noise2d } from "random"
@@ -73,7 +73,7 @@ const sketch: SketchFactory = ({ random, bbox }) => {
   function drawBackground() {
     const backgroundContainer = new Container()
     backgroundContainer.addChild(
-      renderCanvas((ctx) => {
+      drawCanvas((ctx) => {
         // Background is a linear gradient starting in one of the corners or in one of the 4 "directions" (north, east, south, west)
         // Since all of these points can be viewed from the center with 45 degrees rotation steps,
         // it's easier to start with polar coordinates

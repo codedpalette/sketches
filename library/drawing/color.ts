@@ -9,3 +9,12 @@ import { ColorSource } from "pixi.js"
 export function formatHsl(hsl: [number, number, number]): ColorSource {
   return formatHex({ mode: "hsl", h: hsl[0], s: hsl[1], l: hsl[2] })
 }
+
+/**
+ * Helper function to create {@link ColorSource} from grayscale value
+ * @param gray grayscale value [0-255]
+ * @returns {ColorSource}
+ */
+export function gray(gray: number): ColorSource {
+  return { r: gray, g: gray, b: gray }
+}

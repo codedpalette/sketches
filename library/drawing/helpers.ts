@@ -14,21 +14,12 @@ export function drawBackground(color: ColorSource, bbox: Box): Graphics {
 }
 
 /**
- * Helper function to create {@link ColorSource} from grayscale value
- * @param gray grayscale value [0-255]
- * @returns {ColorSource}
- */
-export function gray(gray: number): ColorSource {
-  return { r: gray, g: gray, b: gray }
-}
-
-/**
  * Wrapper around HTML Canvas API to render it as Pixi.js {@link Sprite}
  * @param render Function taking {@link OffscreenCanvasRenderingContext2D} that does the actual drawing
  * @param bbox Bounding box defining canvas size
  * @returns {Sprite}
  */
-export function renderCanvas(render: (ctx: OffscreenCanvasRenderingContext2D) => void, bbox: Box): Sprite {
+export function drawCanvas(render: (ctx: OffscreenCanvasRenderingContext2D) => void, bbox: Box): Sprite {
   const canvas = new OffscreenCanvas(bbox.width, bbox.height)
   const ctx = canvas.getContext("2d") as OffscreenCanvasRenderingContext2D
   render(ctx)

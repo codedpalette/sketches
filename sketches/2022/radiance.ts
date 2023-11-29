@@ -1,7 +1,7 @@
 import { box, vector } from "@flatten-js/core"
 import { run, SketchFactory } from "core/sketch"
 import { converter, formatCss } from "culori"
-import { renderCanvas } from "drawing/helpers"
+import { drawCanvas } from "drawing/helpers"
 import { Color, Container, Graphics } from "pixi.js"
 
 const oklab = converter("oklab")
@@ -17,7 +17,7 @@ const sketch: SketchFactory = ({ random, bbox }) => {
   return { container }
 
   function drawBackground() {
-    return renderCanvas((ctx) => {
+    return drawCanvas((ctx) => {
       const gradient = ctx.createConicGradient(
         -gradientRotation + Math.PI,
         bbox.width / 2 + gradientCenter.x,
@@ -58,7 +58,7 @@ const sketch: SketchFactory = ({ random, bbox }) => {
   function drawCircle() {
     const radius = random.real(50, 75)
     const circleBbox = box(0, 0, radius * 2, radius * 2)
-    return renderCanvas((ctx) => {
+    return drawCanvas((ctx) => {
       const gradient = ctx.createLinearGradient(radius, 0, radius, radius * 2)
       gradient.addColorStop(0, paletteCss[0])
       gradient.addColorStop(1, paletteCss[1])

@@ -1,6 +1,7 @@
 import { Line, line, point, vector } from "@flatten-js/core"
 import { run, SketchFactory } from "core/sketch"
-import { drawBackground, gray } from "drawing/helpers"
+import { gray } from "drawing/color"
+import { drawBackground } from "drawing/helpers"
 import { Container, Graphics } from "pixi.js"
 import { noise3d } from "random"
 import { map } from "utils"
