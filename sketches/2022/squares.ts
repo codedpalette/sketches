@@ -14,8 +14,8 @@ const sketch: SketchFactory = ({ random, bbox }) => {
 
   const lines: Line[] = []
   for (let i = 0; i < 7; i++) {
-    const x = random.real(-bbox.width / 2, bbox.width / 2)
-    const y = random.real(-bbox.height / 2, bbox.height / 2)
+    const x = random.minmax(bbox.width / 2)
+    const y = random.minmax(bbox.height / 2)
     const theta = random.realZeroTo(Math.PI * 2)
     const lineNormal = vector(0, 1).rotate(theta)
     lines.push(line(point(x, y), lineNormal))
