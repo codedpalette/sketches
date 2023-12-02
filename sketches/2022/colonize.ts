@@ -6,7 +6,6 @@ import { fromPolar } from "geometry"
 import { Container, Graphics } from "pixi.js"
 import RBush, { BBox } from "rbush"
 import knn from "rbush-knn"
-import { map } from "utils"
 
 // Type for describing space colonization nodes
 type Node = {
@@ -154,13 +153,12 @@ const sketch: SketchFactory = ({ random, bbox }) => {
     const val = isDarkBackground ? 100 : 50
     const sat = isDarkBackground ? random.real(20, 100) : random.real(50, 100)
     const colorSource = { h: hue, s: sat, v: val }
-    const maxThickness = Math.max(...nodes.map((n) => n.thickness))
     for (const node of nodes) {
       if (node.parent) {
-        const alpha = map(node.thickness, 0, maxThickness, 0.3, 1)
-        const weight = map(node.thickness, 0, maxThickness, 1, 5)
-        //const sat = map(node.thickness, 0, maxThickness, 40, 100)
+        const alpha = Math.min(node.thickness / 7 + 0.4, 1)
+        const weight = node.thickness + 1
         g.lineStyle(weight, colorSource, alpha)
+          .beginFill(colorSource, alpha)
           .moveTo(node.position.x, node.position.y)
           .lineTo(node.parent.position.x, node.parent.position.y)
       }
