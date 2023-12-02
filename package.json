@@ -24,12 +24,15 @@
     "culori": "^3.2.0",
     "pixi.js": "^7.2.4",
     "random-js": "^2.1.0",
+    "rbush": "^3.0.1",
+    "rbush-knn": "https://github.com/mourner/rbush-knn.git",
     "simplex-noise": "^4.0.1",
     "spectorjs": "^0.9.29",
     "stats.js": "^0.17.0"
   },
   "devDependencies": {
     "@types/culori": "^2.0.1",
+    "@types/rbush": "^3.0.3",
     "@types/stats.js": "^0.17.0",
     "@typescript-eslint/eslint-plugin": "^6.2.1",
     "@typescript-eslint/parser": "^6.2.1",

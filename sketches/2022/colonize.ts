@@ -1,101 +1,171 @@
-import { box, PlanarSet, Point, point, vector } from "@flatten-js/core"
+import { Point, point, vector } from "@flatten-js/core"
 import { run, SketchFactory } from "core/sketch"
 import { gray } from "drawing/color"
 import { drawBackground } from "drawing/helpers"
+import { fromPolar } from "geometry"
 import { Container, Graphics } from "pixi.js"
+import RBush, { BBox } from "rbush"
+import knn from "rbush-knn"
 import { map } from "utils"
 
+// Type for describing space colonization nodes
+type Node = {
+  position: Point // node position
+  parent?: Node // reference to parent node
+  isTip: boolean // is this node a tip node (no children)
+  thickness: number // vein thickness
+}
+// Extend an RBush class to work with Node objects
+class NodeIndex extends RBush<Node> {
+  toBBox(item: Node): BBox {
+    return { minX: item.position.x, minY: item.position.y, maxX: item.position.x, maxY: item.position.y }
+  }
+  compareMinX(a: Node, b: Node): number {
+    return a.position.x - b.position.x
+  }
+  compareMinY(a: Node, b: Node): number {
+    return a.position.y - b.position.y
+  }
+}
+
 const sketch: SketchFactory = ({ random, bbox }) => {
-  const maxDist = (bbox.width * bbox.width + bbox.height * bbox.height) / 4
   // Only nodes within this distance around an attractor can be associated with that attractor.
   // Large attraction distances mean smoother and more subtle branch curves, but at a performance cost.
-  const attractionDist = 100 // TODO: Increase after optimization
+  const attractionDist = 100
   // The distance between nodes as the network grows.
   // Larger values mean better performance, but choppier and sharper branch curves.
-  const segmentLength = 20
+  const segmentLength = 5
   // An attractor may be removed if one or more nodes are within this distance around it.
-  const killDist = 50
+  const killDist = 5
   const attractorsCount = 1000
+
   const mainHue = random.realZeroTo(360)
+  const isDarkBackground = random.bool()
+  const numLayers = random.integer(2, 3)
+  const hypot = Math.hypot(bbox.width, bbox.height)
 
   const container = new Container()
   container.addChild(
-    drawBackground(random.bool() ? gray(random.realZeroTo(20)) : gray(255 - random.realZeroTo(20)), bbox)
+    drawBackground(isDarkBackground ? gray(random.realZeroTo(20)) : gray(255 - random.realZeroTo(20)), bbox)
   )
-  for (let i = 0; i < 3; i++) {
-    container.addChild(colonize((mainHue + 120 * i) % 360))
+  for (let i = 0; i < numLayers; i++) {
+    container.addChild(colonize((mainHue + (360 / numLayers) * i) % 360, i))
   }
   return { container }
 
-  function colonize(hue: number) {
+  function colonize(hue: number, layerNum: number) {
     // Focal points of some resource that promote growth
-    // Spatial index for faster lookup
-    const attractors = new PlanarSet()
+    const attractors: Point[] = []
     // Points through which lines are drawn to render branches
-    const nodes: Point[] = []
-
-    const g = new Graphics().beginFill("black")
+    const nodes: Node[] = []
+    // Spatial index for faster lookup
+    const nodeIndex = new NodeIndex()
 
     // Place random attractors
     for (let i = 0; i < attractorsCount; i++) {
       const attractor = point(random.minmax(bbox.width / 2), random.minmax(bbox.height / 2))
-      //g.drawCircle(attractor.x, attractor.y, 1)
-      attractors.add(attractor)
+      attractors.push(attractor)
     }
-    nodes.push(point(0, 0))
+    // Place starting nodes
+    const startingTheta = random.realZeroTo(2 * Math.PI)
+    for (let i = 0; i <= layerNum; i++) {
+      const r = layerNum == 0 ? 0 : (hypot * 0.5) / (layerNum + 1)
+      const theta = startingTheta + (2 * Math.PI * i) / (layerNum + 1)
+      const { x, y } = fromPolar(r, theta)
+      const startingNode: Node = {
+        position: point(x, y),
+        isTip: true,
+        thickness: 0,
+      }
+      nodes.push(startingNode)
+      nodeIndex.insert(startingNode)
+    }
 
-    while (attractors.size > 0) {
-      console.log(`Attractors left: ${attractors.size}`)
-      const newNodes: Point[] = []
+    while (attractors.length > 0) {
+      console.log(`Attractors left: ${attractors.length}, nodes: ${nodes.length}`)
 
-      // Associate nodes with nearby attractors to figure out where growth should occur
-      for (const node of nodes) {
-        const nodeAttractors = findAttractorsInRadius(node, attractors, attractionDist)
-        if (nodeAttractors.length > 0) {
-          const attractionVectors = nodeAttractors.map((attractor) => vector(node, attractor))
-          const averageVector = attractionVectors
-            .reduce((a, b) => a.add(b))
-            .multiply(1 / attractionVectors.length)
-            .normalize()
-          // Add small amount of random "jitter" to avoid getting stuck
-          // between two attractors and endlessly generating nodes in the same place
-          const segmentVector = averageVector.add(random.vec2(-1, 1)).multiply(segmentLength)
-          const newNode = node.translate(segmentVector)
-          drawNode(g, hue, node, newNode)
-          newNodes.push(newNode)
+      // Associate each attractor with the single closest node within the pre-defined attraction distance.
+      const mapNodeToAttractors = new Map<Node, Point[]>()
+      for (const attractor of attractors) {
+        const closestNode = knn(nodeIndex, attractor.x, attractor.y, 1, undefined, attractionDist).pop()
+        if (closestNode) {
+          const influencingAttractors = mapNodeToAttractors.get(closestNode) || []
+          mapNodeToAttractors.set(closestNode, [...influencingAttractors, attractor])
         }
       }
-      nodes.push(...newNodes)
+
+      // Grow the network by adding nodes
+      for (const node of nodes) {
+        const nodeAttractors = mapNodeToAttractors.get(node) || []
+        if (nodeAttractors.length > 0) {
+          const attractionVectors = nodeAttractors.map((attractor) => vector(node.position, attractor))
+          const attractionVectorsSum = attractionVectors.reduce((a, b) => a.add(b)).normalize()
+          // Add small amount of random "jitter" to avoid getting stuck
+          // between two attractors and endlessly generating nodes in the same place
+          const averageVector = attractionVectorsSum
+            .add(random.vec2(-1, 1))
+            .multiply(1 / attractionVectors.length)
+            .normalize()
+          const segmentVector = averageVector.multiply(segmentLength)
+
+          // Create a new node
+          node.isTip = false
+          const newPosition = node.position.translate(segmentVector)
+          const newNode: Node = {
+            position: newPosition,
+            parent: node,
+            isTip: true,
+            thickness: 0,
+          }
+          nodes.push(newNode)
+          nodeIndex.insert(newNode)
+        }
+
+        // Perform auxin flux canalization (line segment thickening)
+        if (node.isTip) {
+          let currentNode = node
+          while (currentNode.parent != null) {
+            // When there are multiple child nodes, use the thickest of them all
+            if (currentNode.parent.thickness < currentNode.thickness + 0.07) {
+              currentNode.parent.thickness = currentNode.thickness + 0.03
+            }
+            currentNode = currentNode.parent
+          }
+        }
+      }
 
       // Prune attractors when branches get too close.
-      const prevAttractorsSize = attractors.size
-      for (const node of newNodes) {
-        const reachedAttractors = findAttractorsInRadius(node, attractors, killDist)
-        reachedAttractors.forEach((attractor) => attractors.delete(attractor))
+      const prevAttractorsLength = attractors.length
+      for (const [attractorIdx, attractor] of attractors.entries()) {
+        const reachedNodes = knn(nodeIndex, attractor.x, attractor.y, Infinity, undefined, killDist)
+        if (reachedNodes.length > 0) {
+          attractors.splice(attractorIdx, 1)
+        }
       }
-      if (attractors.size < attractorsCount / 10 && attractors.size == prevAttractorsSize) break
+      // If we're stuck and there are less than 1% of attractors left - break early
+      if (attractors.length <= attractorsCount / 100 && attractors.length == prevAttractorsLength) break
+    }
+
+    return drawNodes(nodes, hue)
+  }
+
+  function drawNodes(nodes: Node[], hue: number): Graphics {
+    const g = new Graphics()
+    const val = isDarkBackground ? 100 : 50
+    const sat = isDarkBackground ? random.real(20, 100) : random.real(50, 100)
+    const colorSource = { h: hue, s: sat, v: val }
+    const maxThickness = Math.max(...nodes.map((n) => n.thickness))
+    for (const node of nodes) {
+      if (node.parent) {
+        const alpha = map(node.thickness, 0, maxThickness, 0.3, 1)
+        const weight = map(node.thickness, 0, maxThickness, 1, 5)
+        //const sat = map(node.thickness, 0, maxThickness, 40, 100)
+        g.lineStyle(weight, colorSource, alpha)
+          .moveTo(node.position.x, node.position.y)
+          .lineTo(node.parent.position.x, node.parent.position.y)
+      }
     }
     return g
-  }
-
-  function findAttractorsInRadius(node: Point, attractorIndex: PlanarSet, radius: number): Point[] {
-    // TODO: Try RBush
-    const searchBox = box(node.x - radius, node.y - radius, node.x + radius, node.y + radius)
-    const attractorsInBox = attractorIndex.search(searchBox) as Point[]
-    return attractorsInBox.filter((attractor) => attractor.distanceTo(node)[0] <= radius)
-  }
-
-  function drawNode(g: Graphics, hue: number, node: Point, newNode: Point) {
-    // TODO: Vein thickening and opacity blending
-    const avgVegMagSquared = newNode.x * newNode.x + newNode.y * newNode.y
-    const weight = map(avgVegMagSquared, 0, maxDist, 3, 1)
-    const alpha = map(avgVegMagSquared, 0, maxDist, 100, 20)
-    const bri = map(avgVegMagSquared, 0, maxDist, 70, 30)
-    const sat = map(avgVegMagSquared, 0, maxDist, 80, 40)
-    const colorSource = { h: hue, s: sat, v: bri, a: alpha }
-
-    g.lineStyle(weight, colorSource).beginFill(colorSource).moveTo(node.x, node.y).lineTo(newNode.x, newNode.y)
-    //.drawCircle(newNode.x, newNode.y, weight - 2)
   }
 }
 

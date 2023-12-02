@@ -907,6 +907,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/rbush@npm:^3.0.3":
+  version: 3.0.3
+  resolution: "@types/rbush@npm:3.0.3"
+  checksum: 5eabc6fcde3086724fe950c5aea82066a573049622fd768f0c1ca0d3b25aec7f4361380ae7b6da454540fe0e4710be818444d0ced73eb00be6b7559f5919534c
+  languageName: node
+  linkType: hard
+
 "@types/responselike@npm:^1.0.0":
   version: 1.0.0
   resolution: "@types/responselike@npm:1.0.0"
@@ -4678,6 +4685,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"quickselect@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "quickselect@npm:2.0.0"
+  checksum: ed2e78431050d223fb75da20ee98011aef1a03f7cb04e1a32ee893402e640be3cfb76d72e9dbe01edf3bb457ff6a62e5c2d85748424d1aa531f6ba50daef098c
+  languageName: node
+  linkType: hard
+
 "random-js@npm:^2.1.0":
   version: 2.1.0
   resolution: "random-js@npm:2.1.0"
@@ -4701,6 +4715,24 @@ __metadata:
     randombytes: ^2.0.5
     safe-buffer: ^5.1.0
   checksum: 33734bb578a868d29ee1b8555e21a36711db084065d94e019a6d03caa67debef8d6a1bfd06a2b597e32901ddc761ab483a85393f0d9a75838f1912461d4dbfc7
+  languageName: node
+  linkType: hard
+
+"rbush-knn@https://github.com/mourner/rbush-knn.git":
+  version: 3.0.1
+  resolution: "rbush-knn@https://github.com/mourner/rbush-knn.git#commit=cd195a33304860bbcb0b57931080af41034a7d27"
+  dependencies:
+    tinyqueue: ^2.0.3
+  checksum: b3dab351b00fc58515cdd5a862db06b5d81fa3a526cc3180b013fe9632887d4bba2ef4cbd98d9606d54c2b1fbdd27f201cadea1dfa726ae5de082b5e2cfa9c68
+  languageName: node
+  linkType: hard
+
+"rbush@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "rbush@npm:3.0.1"
+  dependencies:
+    quickselect: ^2.0.0
+  checksum: b7def5ba762ca01b6c7c032098ef61b86bd4fef4afb82e4a1d70a07a929b39e779290446c2d4730f577e8a1c8fd0dfd349605b5ea0229258d5f013debdffa65a
   languageName: node
   linkType: hard
 
@@ -4924,6 +4956,7 @@ __metadata:
     "@flatten-js/core": ^1.4.4
     "@pixi/graphics-smooth": ^1.1.0
     "@types/culori": ^2.0.1
+    "@types/rbush": ^3.0.3
     "@types/stats.js": ^0.17.0
     "@typescript-eslint/eslint-plugin": ^6.2.1
     "@typescript-eslint/parser": ^6.2.1
@@ -4941,6 +4974,8 @@ __metadata:
     pixi.js: ^7.2.4
     prettier: ^2.8.8
     random-js: ^2.1.0
+    rbush: ^3.0.1
+    rbush-knn: "https://github.com/mourner/rbush-knn.git"
     simplex-noise: ^4.0.1
     spectorjs: ^0.9.29
     stats.js: ^0.17.0
@@ -5469,6 +5504,13 @@ __metadata:
   dependencies:
     setimmediate: ^1.0.4
   checksum: ec37ae299066bef6c464dcac29c7adafba1999e7227a9bdc4e105a459bee0f0b27234a46bfd7ab4041da79619e06a58433472867a913d01c26f8a203f87cee70
+  languageName: node
+  linkType: hard
+
+"tinyqueue@npm:^2.0.3":
+  version: 2.0.3
+  resolution: "tinyqueue@npm:2.0.3"
+  checksum: 0b6bda46b680dca072f84aef1acd22a7085a2ff2aa8e222bb41045c61a056943805056d77d7f976587ed6a0597872beb5c416043f65f0314304432d6c178dd20
   languageName: node
   linkType: hard
 
