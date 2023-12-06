@@ -16,14 +16,14 @@
   // 	"description": "Log output to console"
   // }
   "Sketch": {
-    "prefix": "sketch",
     "scope": "typescript",
+    "prefix": "sketch",
     "body": [
-      "import { run, SketchFactory } from \"core/sketch\"",
+      "import { SketchFactory } from \"core/sketch\"",
       "import { drawBackground } from \"drawing/helpers\"",
       "import { Container, Graphics } from \"pixi.js\"",
       "",
-      "const sketch: SketchFactory = ({ random, bbox }) => {",
+      "export const sketch: SketchFactory = ({ random, bbox }) => {",
       "  const container = new Container()",
       "  container.addChild(drawBackground(\"white\", bbox))",
       "  container",
@@ -32,8 +32,6 @@
       "    .drawRect(-bbox.width / 4, -bbox.height / 4, bbox.width / 2, bbox.height / 2)",
       "  return { container }",
       "}",
-      "",
-      "run(sketch)",
       ""
     ]
   },

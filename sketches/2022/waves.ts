@@ -1,10 +1,10 @@
-import { run, SketchFactory } from "core/sketch"
+import { SketchFactory } from "core/sketch"
 import { drawBackground } from "drawing/helpers"
 import { Container, Graphics } from "pixi.js"
 import { noise2d } from "random"
 import { map } from "utils"
 
-const sketch: SketchFactory = ({ random, bbox }) => {
+export const sketch: SketchFactory = ({ random, bbox }) => {
   const noise = noise2d(random)
   const hue = random.real(0, 360)
   const numWaves = random.integer(15, 25)
@@ -56,5 +56,3 @@ const sketch: SketchFactory = ({ random, bbox }) => {
     }
   }
 }
-
-run(sketch)

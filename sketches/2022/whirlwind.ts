@@ -1,10 +1,10 @@
-import { run, SketchFactory } from "core/sketch"
+import { SketchFactory } from "core/sketch"
 import { gray } from "drawing/color"
 import { drawBackground } from "drawing/helpers"
 import { BlurFilter, Container, FXAAFilter, Graphics } from "pixi.js"
 import { map } from "utils"
 
-const sketch: SketchFactory = ({ random, bbox }) => {
+export const sketch: SketchFactory = ({ random, bbox }) => {
   const isDarkBackground = random.bool()
   const container = new Container()
   container.addChild(drawBackground(gray(isDarkBackground ? 20 : 240), bbox))
@@ -56,5 +56,3 @@ const sketch: SketchFactory = ({ random, bbox }) => {
     return x
   }
 }
-
-run(sketch)

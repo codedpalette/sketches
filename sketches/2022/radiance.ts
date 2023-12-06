@@ -1,11 +1,11 @@
 import { box, vector } from "@flatten-js/core"
-import { run, SketchFactory } from "core/sketch"
+import { SketchFactory } from "core/sketch"
 import { converter, formatCss } from "culori"
 import { drawCanvas } from "drawing/helpers"
 import { Color, Container, Graphics } from "pixi.js"
 
 const oklab = converter("oklab")
-const sketch: SketchFactory = ({ random, bbox }) => {
+export const sketch: SketchFactory = ({ random, bbox }) => {
   const gradientCenter = vector(random.minmax(bbox.width * 0.4), random.minmax(bbox.height * 0.4))
   const gradientRotation = Math.atan2(gradientCenter.y, gradientCenter.x) + random.minmax(Math.PI / 8)
   const palette = [random.color(), random.color(), random.color()]
@@ -70,5 +70,3 @@ const sketch: SketchFactory = ({ random, bbox }) => {
     }, circleBbox).setTransform(gradientCenter.x, gradientCenter.y)
   }
 }
-
-run(sketch)

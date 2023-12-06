@@ -1,11 +1,11 @@
-import { run, SketchFactory } from "core/sketch"
+import { SketchFactory } from "core/sketch"
 import { gray } from "drawing/color"
 import { drawBackground } from "drawing/helpers"
 import { BlurFilter, ColorSource, Container, Graphics, Sprite } from "pixi.js"
 import { noise2d } from "random"
 import { map } from "utils"
 
-const sketch: SketchFactory = ({ random, bbox, renderer }) => {
+export const sketch: SketchFactory = ({ random, bbox, renderer }) => {
   const noise = noise2d(random)
   const maxDepth = 5
   const stopBranchHeight = 10
@@ -91,5 +91,3 @@ const sketch: SketchFactory = ({ random, bbox, renderer }) => {
     return sprite
   }
 }
-
-run(sketch)

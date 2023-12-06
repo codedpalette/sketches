@@ -1,11 +1,11 @@
-import { run, SketchFactory } from "core/sketch"
+import { SketchFactory } from "core/sketch"
 import { drawBackground } from "drawing/helpers"
 import { fromPolar } from "geometry"
 import { BlurFilter, Container, Graphics, IPointData } from "pixi.js"
 import { noise2d } from "random"
 import { map } from "utils"
 
-const sketch: SketchFactory = ({ random, bbox }) => {
+export const sketch: SketchFactory = ({ random, bbox }) => {
   const noise = noise2d(random)
   // Define lip functions
   const lip = (a: number, b: number, sign: boolean) => (x: number) =>
@@ -94,5 +94,3 @@ const sketch: SketchFactory = ({ random, bbox }) => {
     return thetas.map((theta) => fromPolar(radius, theta))
   }
 }
-
-run(sketch)

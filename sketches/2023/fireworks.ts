@@ -1,5 +1,5 @@
 import { point, ray, vector } from "@flatten-js/core"
-import { run, SketchFactory } from "core/sketch"
+import { SketchFactory } from "core/sketch"
 import { formatHsl } from "drawing/color"
 import { drawCanvas } from "drawing/helpers"
 import { fromPolar } from "geometry"
@@ -7,7 +7,7 @@ import { BlurFilter, Container, Graphics, NoiseFilter } from "pixi.js"
 import { noise2d } from "random"
 import { map } from "utils"
 
-const sketch: SketchFactory = ({ random, bbox }) => {
+export const sketch: SketchFactory = ({ random, bbox }) => {
   const noise = noise2d(random)
   const container = new Container()
   container.addChild(drawBackground(), drawStars())
@@ -117,5 +117,3 @@ const sketch: SketchFactory = ({ random, bbox }) => {
     return container
   }
 }
-
-run(sketch)

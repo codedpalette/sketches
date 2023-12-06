@@ -1,12 +1,12 @@
 import { Circle, circle, point } from "@flatten-js/core"
-import { run, SketchFactory } from "core/sketch"
+import { SketchFactory } from "core/sketch"
 import { gray } from "drawing/color"
 import { drawBackground } from "drawing/helpers"
 import { fromPolar } from "geometry"
 import { Container, Graphics, IPointData } from "pixi.js"
 import { map } from "utils"
 
-const sketch: SketchFactory = ({ random, bbox }) => {
+export const sketch: SketchFactory = ({ random, bbox }) => {
   const backgroundColor = random.real(0, 20)
   const minVal = (backgroundColor / 255) * 100
   const mainHue = random.real(0, 360)
@@ -87,5 +87,3 @@ const sketch: SketchFactory = ({ random, bbox }) => {
     }
   }
 }
-
-run(sketch)

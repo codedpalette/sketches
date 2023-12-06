@@ -8,7 +8,8 @@
     "format": "prettier --write .",
     "ci": "yarn typecheck && yarn lint && yarn format",
     "start": "vite dev",
-    "build": "vite build && vite preview",
+    "build": "vite build",
+    "preview": "vite preview",
     "postinstall": "husky install"
   },
   "lint-staged": {
