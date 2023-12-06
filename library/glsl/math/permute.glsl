@@ -1,4 +1,4 @@
-#include "mod289.glsl"
+#include mod289
 
 /*
 original_author: [Stefan Gustavson, Ian McEwan]
