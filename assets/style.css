@@ -4,7 +4,7 @@ body {
   padding: 0;
 }
 
-body > canvas {
+canvas#sketch {
   display: block;
   position: fixed;
   top: 50%;
@@ -20,4 +20,14 @@ body > form {
   right: 0px;
   z-index: 10000;
   background: white;
+}
+
+select {
+  position: fixed;
+  top: 10px;
+  left: 20px;
+  width: 150px;
+  height: 40px;
+  font-size: 24px;
+  border-radius: 15px;
 }

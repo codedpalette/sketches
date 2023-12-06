@@ -81,8 +81,6 @@ export const sketch: SketchFactory = ({ random, bbox }) => {
     }
 
     while (attractors.length > 0) {
-      console.log(`Attractors left: ${attractors.length}, nodes: ${nodes.length}`)
-
       // Associate each attractor with the single closest node within the pre-defined attraction distance.
       const mapNodeToAttractors = new Map<Node, Point[]>()
       for (const attractor of attractors) {

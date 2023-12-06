@@ -51,6 +51,7 @@ export function run(sketchFactory: SketchFactory, view?: HTMLCanvasElement) {
     autoDensity: true, // To resize canvas CSS dimensions automatically when resizing renderer
   })
   const canvas = renderer.view as HTMLCanvasElement
+  canvas.id = "sketch"
   !canvas.isConnected && document.body.appendChild(canvas)
 
   // Closure to replace current sketch instance with a new one
@@ -86,7 +87,7 @@ export function run(sketchFactory: SketchFactory, view?: HTMLCanvasElement) {
     random = new Random(mersenneTwister)
     runFactory()
   }
-  const stats = process.env.NODE_ENV !== "production" ? initUI(defaultParams, renderer, resizeSketch) : undefined
+  const stats = !isProd() ? initUI(defaultParams, renderer, resizeSketch) : undefined
 
   // Start render loop
   const resetClock = renderLoop(renderer, sketch, stats)
@@ -117,6 +118,7 @@ function renderLoop(renderer: Renderer, sketch: Sketch, stats?: Stats) {
   }
   requestAnimationFrame(loop)
 
+  // TODO: Cancel animation frame
   const resetClock = () => (timer.startTime = timer.prevTime = 0)
   return resetClock
 }
@@ -147,4 +149,13 @@ function checkRecording(timer: { frameRecordCounter: number }) {
     ++timer.frameRecordCounter % recordingFPS == 0 &&
       console.log(`Recorded ${timer.frameRecordCounter / recordingFPS} seconds`)
   } else if (timer.frameRecordCounter != 0) timer.frameRecordCounter == 0
+}
+
+/**
+ * Helper method to check if running in production
+ * @returns {boolean}
+ */
+export function isProd(): boolean {
+  // TODO: Change this back after testing
+  return process.env.NODE_ENV !== "production"
 }
