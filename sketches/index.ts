@@ -2,40 +2,43 @@ import { isProd, run, SketchFactory } from "core/sketch"
 
 type SketchModule = {
   name: string
-  relativePath: string
+  dir: string
 }
 
 const modules: SketchModule[] = [
-  { name: "colonize", relativePath: "./2022/colonize" },
-  { name: "pillars", relativePath: "./2022/pillars" },
-  { name: "radiance", relativePath: "./2022/radiance" },
-  { name: "squares", relativePath: "./2022/squares" },
-  { name: "stars", relativePath: "./2022/stars" },
-  { name: "trees", relativePath: "./2022/trees" },
-  { name: "waves", relativePath: "./2022/waves" },
-  { name: "whirlwind", relativePath: "./2022/whirlwind" },
-  { name: "fireworks", relativePath: "./2023/fireworks" },
-  { name: "kiss", relativePath: "./2023/kiss" },
-  { name: "shade", relativePath: "./2023/shade" },
+  { name: "colonize", dir: "2022" },
+  { name: "pillars", dir: "2022" },
+  { name: "radiance", dir: "2022" },
+  { name: "squares", dir: "2022" },
+  { name: "stars", dir: "2022" },
+  { name: "trees", dir: "2022" },
+  { name: "waves", dir: "2022" },
+  { name: "whirlwind", dir: "2022" },
+  { name: "fireworks", dir: "2023" },
+  { name: "kiss", dir: "2023" },
+  { name: "shade", dir: "2023" },
 ]
 
 const baseGithubUrl = "https://github.com/monkeyroar/sketches/blob/master/sketches/"
 
 function resolveGithubUrl(module: SketchModule) {
-  return new URL(`${module.relativePath}.ts`, baseGithubUrl).href
+  return new URL(`./${module.dir}/${module.name}.ts`, baseGithubUrl).href
 }
 
 async function runSingle(module: SketchModule, canvas?: HTMLCanvasElement) {
-  const { sketch } = (await import(module.relativePath)) as { sketch: SketchFactory }
-  run(sketch, canvas)
+  const { sketch } = (await import(`./${module.dir}/${module.name}.ts`)) as { sketch: SketchFactory }
+  return run(sketch, canvas)
 }
 
-function runAll() {
+async function runAll() {
+  const container = document.createElement("div")
+  container.id = "canvas-container"
   const canvas = document.createElement("canvas")
-  document.body.appendChild(canvas)
+  container.appendChild(canvas)
 
   // Shuffle modules array
   modules.sort(() => Math.random() - 0.5)
+  let currentModule = modules[0]
 
   // Create sketch selector
   const select = document.createElement("select")
@@ -45,24 +48,25 @@ function runAll() {
     option.text = module.name
     select.appendChild(option)
   }
-  select.onchange = () => {
-    // const canvas = document.getElementsByTagName("canvas")
-    // for (let index = canvas.length - 1; index >= 0; index--) {
-    //   canvas[index].parentNode?.removeChild(canvas[index])
-    // }
-    // void runSingle(modules[+select.value])
-    const currentModule = modules[+select.value]
-    console.log(resolveGithubUrl(currentModule))
-    void runSingle(currentModule, canvas)
+  select.onchange = async () => {
+    loop.stop()
+    currentModule = modules[+select.value]
+    link.href = resolveGithubUrl(currentModule)
+    loop = await runSingle(currentModule, canvas)
   }
   document.body.appendChild(select)
-  // TODO: Add title and link to github
 
-  void runSingle(modules[0], canvas)
+  // Create link to github
+  const link = document.createElement("a")
+  link.href = resolveGithubUrl(currentModule)
+  link.textContent = "Link to sources"
+  container.appendChild(link)
+
+  let loop = await runSingle(currentModule, canvas)
 }
 
 if (isProd()) {
-  runAll()
+  void runAll()
 } else {
   const currentSketch = modules[0] // Change this when developing new sketches
   void runSingle(currentSketch)

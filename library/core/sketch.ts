@@ -7,7 +7,9 @@ import { createEntropy, MersenneTwister19937 as MersenneTwister } from "random-j
 import Stats from "stats.js"
 
 const recordingFPS = 60 // Used for canvas-capture recorder to count seconds of recording
-const defaultParams: SketchParams = { resolution: 1, width: 1262, height: 1262 }
+const defaultParams: SketchParams = isProd()
+  ? { resolution: 1, width: 1000, height: 1000 }
+  : { resolution: 1, width: 1250, height: 1250 }
 
 export interface SketchParams {
   readonly width: number // Renderer's view width
@@ -16,9 +18,9 @@ export interface SketchParams {
 }
 
 export interface SketchEnv {
-  renderer: Renderer
-  random: Random
-  bbox: Box
+  renderer: Renderer // Pixi.js Renderer instance
+  random: Random // RNG is passed as a part of env to enable repeatability of random values
+  bbox: Box // bounding box of a viewport
 }
 
 export type UpdateFn = (totalTime: number, deltaTime: number) => void
@@ -29,6 +31,7 @@ export type SketchFactory = (env: SketchEnv) => Sketch
  * Render a sketch and run update loop. Encapsulates all the necessary state initialization
  * @param sketchFactory function returning {@link Sketch} instance for given {@link SketchEnv}
  * @param [view] canvas element instance to render to, if omitted will create a new one and add it to page
+ * @returns object with `stop` method to stop render loop
  */
 export function run(sketchFactory: SketchFactory, view?: HTMLCanvasElement) {
   // Initialize object to hold current sketch instance
@@ -51,8 +54,6 @@ export function run(sketchFactory: SketchFactory, view?: HTMLCanvasElement) {
     autoDensity: true, // To resize canvas CSS dimensions automatically when resizing renderer
   })
   const canvas = renderer.view as HTMLCanvasElement
-  canvas.id = "sketch"
-  !canvas.isConnected && document.body.appendChild(canvas)
 
   // Closure to replace current sketch instance with a new one
   const runFactory = () => {
@@ -70,16 +71,6 @@ export function run(sketchFactory: SketchFactory, view?: HTMLCanvasElement) {
   }
   runFactory()
 
-  // Generate new sketch instance when user clicks on a canvas.
-  // We store how many random values were generated so far, so that when canvas is resized we could
-  // "replay" RNG from this point
-  const nextSketch = () => {
-    randomUseCount = mersenneTwister.getUseCount()
-    runFactory()
-    resetClock()
-  }
-  canvas.onclick = nextSketch
-
   // When resizing sketch we want RNG to repeat the same values
   // Which is why we need to recreate the state that was prior to last sketch run
   const resizeSketch = () => {
@@ -89,8 +80,21 @@ export function run(sketchFactory: SketchFactory, view?: HTMLCanvasElement) {
   }
   const stats = !isProd() ? initUI(defaultParams, renderer, resizeSketch) : undefined
 
+  // Generate new sketch instance when user clicks on a canvas.
+  // We store how many random values were generated so far, so that when canvas is resized we could
+  // "replay" RNG from this point
+  const nextSketch = () => {
+    loop.stop()
+    randomUseCount = mersenneTwister.getUseCount()
+    runFactory()
+    loop.stop = renderLoop(renderer, sketch, stats)
+  }
+  canvas.onclick = nextSketch
+
   // Start render loop
-  const resetClock = renderLoop(renderer, sketch, stats)
+  const loop = { stop: renderLoop(renderer, sketch, stats) }
+  !canvas.isConnected && document.body.appendChild(canvas.parentElement || canvas)
+  return loop
 }
 
 /**
@@ -99,7 +103,7 @@ export function run(sketchFactory: SketchFactory, view?: HTMLCanvasElement) {
  * @param renderer Pixi.js WebGL renderer
  * @param sketch object holding current sketch instance
  * @param [stats] {@link https://github.com/mrdoob/stats.js Stats.js} object for displaying performance charts
- * @returns closure to reset clock, used whenever sketch instance is recreated
+ * @returns closure to stop render loop, used whenever sketch instance is recreated
  */
 function renderLoop(renderer: Renderer, sketch: Sketch, stats?: Stats) {
   const timer = {
@@ -114,13 +118,12 @@ function renderLoop(renderer: Renderer, sketch: Sketch, stats?: Stats) {
     renderer.render(sketch.container)
     checkRecording(timer)
     stats?.end()
-    requestAnimationFrame(loop)
+    requestId = requestAnimationFrame(loop)
   }
-  requestAnimationFrame(loop)
+  let requestId = requestAnimationFrame(loop)
 
-  // TODO: Cancel animation frame
-  const resetClock = () => (timer.startTime = timer.prevTime = 0)
-  return resetClock
+  const stopLoop = () => cancelAnimationFrame(requestId)
+  return stopLoop
 }
 
 /**
@@ -156,6 +159,5 @@ function checkRecording(timer: { frameRecordCounter: number }) {
  * @returns {boolean}
  */
 export function isProd(): boolean {
-  // TODO: Change this back after testing
-  return process.env.NODE_ENV !== "production"
+  return process.env.NODE_ENV === "production"
 }

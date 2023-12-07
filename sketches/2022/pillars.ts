@@ -16,7 +16,7 @@ export const sketch: SketchFactory = ({ random, bbox }) => {
   }
   simulateAnt()
 
-  const columnWidth = 80
+  const columnWidth = 50
   const mainHue = random.realZeroTo(360)
   const mainSat = random.real(50, 100)
   const secondHue = (mainHue + 180) % 360

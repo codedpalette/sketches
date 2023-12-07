@@ -9,7 +9,7 @@ import { map } from "utils"
 export const sketch: SketchFactory = ({ random, bbox }) => {
   const noise = noise3d(random)
   const mainHue = random.realZeroTo(360)
-  const baseRadius = 40 // base rectangle size
+  const baseRadius = 35 // base rectangle size
   const radiusDiv = 20 // Rectangle size divergence
   const numRectangles = 10000 // How many rectangles to draw
 

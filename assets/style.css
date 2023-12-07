@@ -4,13 +4,27 @@ body {
   padding: 0;
 }
 
-canvas#sketch {
+body > canvas,
+#canvas-container {
   display: block;
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+body > canvas,
+#canvas-container canvas {
   outline: 1px solid black;
+}
+
+#canvas-container {
+  text-align: center;
+}
+
+#canvas-container a {
+  font-size: 25px;
+  font-family: monospace;
 }
 
 body > form {
