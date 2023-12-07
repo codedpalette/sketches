@@ -22,7 +22,7 @@ body > canvas,
   text-align: center;
 }
 
-#canvas-container a {
+#canvas-container p {
   font-size: 25px;
   font-family: monospace;
 }

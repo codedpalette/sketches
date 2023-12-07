@@ -56,11 +56,14 @@ async function runAll() {
   }
   document.body.appendChild(select)
 
-  // Create link to github
+  const p = document.createElement("p")
+  p.textContent = "Click on canvas to regenerate ⸱ "
+  container.appendChild(p)
+
   const link = document.createElement("a")
   link.href = resolveGithubUrl(currentModule)
   link.textContent = "Link to sources"
-  container.appendChild(link)
+  p.appendChild(link)
 
   let loop = await runSingle(currentModule, canvas)
 }
