@@ -6,6 +6,7 @@ import tsconfigPaths from "vite-tsconfig-paths"
 export default defineConfig(async () => {
   const glsl = (await import("vite-plugin-glsl")).default // https://github.com/UstymUkhman/vite-plugin-glsl/issues/16
   return {
+    base: "/sketches/",
     plugins: [
       glsl({
         root: "library/glsl",
