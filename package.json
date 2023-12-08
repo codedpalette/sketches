@@ -29,7 +29,8 @@
     "rbush-knn": "https://github.com/mourner/rbush-knn.git",
     "simplex-noise": "^4.0.1",
     "spectorjs": "https://github.com/BabylonJS/Spector.js",
-    "stats.js": "^0.17.0"
+    "stats.js": "^0.17.0",
+    "voronoijs": "^1.0.0"
   },
   "devDependencies": {
     "@types/culori": "^2.0.1",
