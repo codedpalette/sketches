@@ -28,7 +28,7 @@
     "rbush": "^3.0.1",
     "rbush-knn": "https://github.com/mourner/rbush-knn.git",
     "simplex-noise": "^4.0.1",
-    "spectorjs": "^0.9.29",
+    "spectorjs": "https://github.com/BabylonJS/Spector.js",
     "stats.js": "^0.17.0"
   },
   "devDependencies": {
