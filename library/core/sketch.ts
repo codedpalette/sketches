@@ -8,7 +8,7 @@ import Stats from "stats.js"
 
 const recordingFPS = 60 // Used for canvas-capture recorder to count seconds of recording
 const defaultParams: SketchParams = isProd()
-  ? { resolution: 1, width: 1000, height: 1000 }
+  ? adaptToScreen({ resolution: 1, width: 1000, height: 1000 })
   : { resolution: 1, width: 1250, height: 1250 }
 
 export interface SketchParams {
@@ -60,13 +60,18 @@ export function run(sketchFactory: SketchFactory, view?: HTMLCanvasElement) {
     // Calculate new SketchParams (if renderer was resized)
     const params = { width: renderer.screen.width, height: renderer.screen.height, resolution: renderer.resolution }
     // Calculate bounding box
-    const bbox = box(-params.width / 2, -params.height / 2, params.width / 2, params.height / 2)
+    const bbox = box(-params.width / 2, -params.height / 2, params.width / 2, params.height / 2).scale(
+      params.resolution,
+      params.resolution
+    )
     const { container, update } = sketchFactory({ renderer, random, bbox })
 
     // Destroy current sketch container and free associated memory
     sketch.container.removeChildren().forEach((obj) => obj.destroy(true))
     // Set transform matrix to translate (0, 0) to the viewport center and point Y-axis upwards
-    sketch.container.setTransform(params.width / 2, params.height / 2, 1, -1).addChild(container)
+    sketch.container
+      .setTransform(params.width / 2, params.height / 2, 1 / params.resolution, -1 / params.resolution)
+      .addChild(container)
     sketch.update = update
   }
   runFactory()
@@ -160,4 +165,20 @@ function checkRecording(timer: { frameRecordCounter: number }) {
  */
 export function isProd(): boolean {
   return process.env.NODE_ENV === "production"
+}
+
+/**
+ * Method to update parameters in production to adapt to smaller screen sizes, (like mobile)
+ * @param params {@link SketchParams} defined for desktop
+ * @returns {SketchParams} adapted for client screen size
+ */
+function adaptToScreen(params: SketchParams): SketchParams {
+  const screenWidth = screen.width
+  if (screenWidth > params.width) return params
+  const aspectRatio = params.width / params.height
+  return {
+    width: screenWidth,
+    height: screenWidth * aspectRatio,
+    resolution: params.width / screenWidth,
+  }
 }
