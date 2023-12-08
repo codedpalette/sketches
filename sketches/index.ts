@@ -6,6 +6,7 @@ type SketchModule = {
 }
 
 const modules: SketchModule[] = [
+  { name: "shards", dir: "2022" },
   { name: "colonize", dir: "2022" },
   { name: "pillars", dir: "2022" },
   { name: "radiance", dir: "2022" },
@@ -25,9 +26,9 @@ function resolveGithubUrl(module: SketchModule) {
   return new URL(`./${module.dir}/${module.name}.ts`, baseGithubUrl).href
 }
 
-async function runSingle(module: SketchModule, canvas?: HTMLCanvasElement) {
+async function importModule(module: SketchModule) {
   const { sketch } = (await import(`./${module.dir}/${module.name}.ts`)) as { sketch: SketchFactory }
-  return run(sketch, canvas)
+  return sketch
 }
 
 async function runAll() {
@@ -52,7 +53,8 @@ async function runAll() {
     loop.stop()
     currentModule = modules[+select.value]
     link.href = resolveGithubUrl(currentModule)
-    loop = await runSingle(currentModule, canvas)
+    const sketch = await importModule(currentModule)
+    loop = run(sketch, canvas)
   }
   document.body.appendChild(select)
 
@@ -65,12 +67,13 @@ async function runAll() {
   link.textContent = "Link to sources"
   p.appendChild(link)
 
-  let loop = await runSingle(currentModule, canvas)
+  const sketch = await importModule(currentModule)
+  let loop = run(sketch, canvas)
 }
 
 if (isProd()) {
   void runAll()
 } else {
-  const currentSketch = modules[0] // Change this when developing new sketches
-  void runSingle(currentSketch)
+  const { sketch } = await import("./2022/shards")
+  run(sketch)
 }

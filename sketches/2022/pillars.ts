@@ -75,8 +75,8 @@ export const sketch: SketchFactory = ({ random, bbox }) => {
   // - At a black square, turn 90° counter-clockwise, flip the color of the square, move forward one unit
   function simulateAnt() {
     const numSteps = 500000
-    let currX = random.integer(0, cellsWidth)
-    let currY = random.integer(0, cellsHeight)
+    let currX = random.integer(0, cellsWidth - 1)
+    let currY = random.integer(0, cellsHeight - 1)
     let currDirection = random.integer(0, 3)
 
     for (let i = 0; i < numSteps; i++) {
