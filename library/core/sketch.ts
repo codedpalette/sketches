@@ -94,7 +94,8 @@ export function run(sketchFactory: SketchFactory, view?: HTMLCanvasElement) {
     runFactory()
     loop.stop = renderLoop(renderer, sketch, stats)
   }
-  canvas.onclick = nextSketch
+  canvas.addEventListener("click", nextSketch)
+  canvas.addEventListener("touchend", nextSketch)
 
   // Start render loop
   const loop = { stop: renderLoop(renderer, sketch, stats) }
