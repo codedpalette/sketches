@@ -6,6 +6,7 @@ type SketchModule = {
 }
 
 const modules: SketchModule[] = [
+  { name: "curves", dir: "2022" },
   { name: "shards", dir: "2022" },
   { name: "colonize", dir: "2022" },
   { name: "pillars", dir: "2022" },
@@ -74,6 +75,6 @@ async function runAll() {
 if (isProd()) {
   void runAll()
 } else {
-  const { sketch } = await import("./2022/shards")
+  const { sketch } = await import("./2022/curves")
   run(sketch)
 }
