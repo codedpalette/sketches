@@ -31,7 +31,7 @@ In order to switch to a different sketch, go to `sketches/index.ts` and update t
 if (isProd()) {
   void runAll()
 } else {
-  const { sketch } = await import("./2022/curves") // Update path here
+  const { default: sketch } = (await import("./2022/curves")) as { default: SketchFactory } // Update path here
   run(sketch)
 }
 ```

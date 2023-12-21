@@ -1,5 +1,5 @@
 import { line, point, Segment, segment, vector } from "@flatten-js/core"
-import { SketchFactory } from "core/sketch"
+import { SketchEnv } from "core/sketch"
 import { formatHsl } from "drawing/color"
 import { NoiseAlphaFilter } from "drawing/filters"
 import { drawBackground } from "drawing/helpers"
@@ -8,7 +8,7 @@ import { glslNoise, ShaderProgram } from "drawing/shaders"
 import { Container, FXAAFilter, NoiseFilter } from "pixi.js"
 import { map } from "utils"
 
-export const sketch: SketchFactory = ({ renderer, random, bbox }) => {
+export default ({ random, bbox, renderer }: SketchEnv) => {
   const mainHue = random.realZeroTo(360)
   const bgColor = formatHsl([mainHue, random.real(0.2, 0.3), random.real(0.8, 0.9)])
   const numLayers = random.integer(2, 4)

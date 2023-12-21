@@ -7,9 +7,7 @@ import { createEntropy, MersenneTwister19937 as MersenneTwister } from "random-j
 import Stats from "stats.js"
 
 const recordingFPS = 60 // Used for canvas-capture recorder to count seconds of recording
-const defaultParams: SketchParams = isProd()
-  ? adaptToScreen({ resolution: 1, width: 1000, height: 1000 })
-  : { resolution: 1, width: 1250, height: 1250 }
+const defaultParams: SketchParams = { resolution: 1, width: 1250, height: 1250 } //TODO: Parse from canvas?
 
 export interface SketchParams {
   readonly width: number // Renderer's view width
@@ -166,20 +164,4 @@ function checkRecording(timer: { frameRecordCounter: number }) {
  */
 export function isProd(): boolean {
   return process.env.NODE_ENV === "production"
-}
-
-/**
- * Method to update parameters in production to adapt to smaller screen sizes, (like mobile)
- * @param params {@link SketchParams} defined for desktop
- * @returns {SketchParams} adapted for client screen size
- */
-function adaptToScreen(params: SketchParams): SketchParams {
-  const screenWidth = screen.width
-  if (screenWidth > params.width) return params
-  const aspectRatio = params.width / params.height
-  return {
-    width: screenWidth,
-    height: screenWidth * aspectRatio,
-    resolution: params.width / screenWidth,
-  }
 }

@@ -5,6 +5,7 @@ type SketchModule = {
   dir: string
 }
 
+// TODO: Remove it all after finishing site gallery
 const modules: SketchModule[] = [
   { name: "curves", dir: "2022" },
   { name: "shards", dir: "2022" },
@@ -28,7 +29,7 @@ function resolveGithubUrl(module: SketchModule) {
 }
 
 async function importModule(module: SketchModule) {
-  const { sketch } = (await import(`./${module.dir}/${module.name}.ts`)) as { sketch: SketchFactory }
+  const { default: sketch } = (await import(`./${module.dir}/${module.name}.ts`)) as { default: SketchFactory }
   return sketch
 }
 
@@ -75,6 +76,6 @@ async function runAll() {
 if (isProd()) {
   void runAll()
 } else {
-  const { sketch } = await import("./2022/curves")
+  const { default: sketch } = (await import("./2022/curves")) as { default: SketchFactory }
   run(sketch)
 }

@@ -19,11 +19,11 @@
     "scope": "typescript",
     "prefix": "sketch",
     "body": [
-      "import { SketchFactory } from \"core/sketch\"",
+      "import { SketchEnv } from \"core/sketch\"",
       "import { drawBackground } from \"drawing/helpers\"",
       "import { Container, Graphics } from \"pixi.js\"",
       "",
-      "export const sketch: SketchFactory = ({ random, bbox }) => {",
+      "export default ({ random, bbox }: SketchEnv) => {",
       "  const container = new Container()",
       "  container.addChild(drawBackground(\"white\", bbox))",
       "  container",

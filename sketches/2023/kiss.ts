@@ -1,11 +1,11 @@
-import { SketchFactory } from "core/sketch"
+import { SketchEnv } from "core/sketch"
 import { drawBackground } from "drawing/helpers"
 import { fromPolar } from "geometry"
 import { BlurFilter, Container, Graphics, IPointData } from "pixi.js"
 import { noise2d } from "random"
 import { map } from "utils"
 
-export const sketch: SketchFactory = ({ random, bbox }) => {
+export default ({ random, bbox }: SketchEnv) => {
   const noise = noise2d(random)
   // Define lip functions
   const lip = (a: number, b: number, sign: boolean) => (x: number) =>

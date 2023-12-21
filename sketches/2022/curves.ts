@@ -1,12 +1,12 @@
 import { Vector, vector } from "@flatten-js/core"
-import { SketchFactory } from "core/sketch"
+import { SketchEnv } from "core/sketch"
 import { gray } from "drawing/color"
 import { drawBackground } from "drawing/helpers"
 import { ColorSource, Container, Graphics } from "pixi.js"
 import { noise2d } from "random"
 import { map } from "utils"
 
-export const sketch: SketchFactory = ({ random, bbox }) => {
+export default ({ random, bbox }: SketchEnv) => {
   const noise = noise2d(random)
   const numCurves = 2000
   const flowFieldResolution = 100

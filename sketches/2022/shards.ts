@@ -1,11 +1,11 @@
-import { SketchFactory } from "core/sketch"
+import { SketchEnv } from "core/sketch"
 import { gray } from "drawing/color"
 import { drawBackground } from "drawing/helpers"
 import { Container, DEG_TO_RAD, Graphics } from "pixi.js"
 import { map } from "utils"
 import { BoundingBox, Site, Voronoi } from "voronoijs"
 
-export const sketch: SketchFactory = ({ random, bbox }) => {
+export default ({ random, bbox }: SketchEnv) => {
   const gradientDirection = random.bool()
   const numSites = random.integer(50, 250) // Number of Voronoi site objects
   const sites: Site[] = []

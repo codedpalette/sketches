@@ -1,9 +1,9 @@
-import { SketchFactory } from "core/sketch"
+import { SketchEnv } from "core/sketch"
 import { drawBackground } from "drawing/helpers"
 import { Container, Graphics } from "pixi.js"
 import { map } from "utils"
 
-export const sketch: SketchFactory = ({ random, bbox }) => {
+export default ({ random, bbox }: SketchEnv) => {
   const cellSize = 10
   const cells: boolean[][] = []
   const cellsWidth = Math.floor(bbox.width / cellSize)
