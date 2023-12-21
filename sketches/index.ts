@@ -76,6 +76,6 @@ async function runAll() {
 if (isProd()) {
   void runAll()
 } else {
-  const { default: sketch } = (await import("./2022/curves")) as { default: SketchFactory }
+  const { default: sketch } = (await import("./2023/shade")) as { default: SketchFactory }
   run(sketch)
 }

@@ -3,5 +3,14 @@
     "node_modules": true,
     ".husky": true,
     ".yarn": true
-  }
+  },
+  "cSpell.ignorePaths": [
+    "package-lock.json",
+    "yarn.lock",
+    "node_modules",
+    "vscode-extension",
+    ".git/objects",
+    ".vscode",
+    ".vscode-insiders"
+  ]
 }

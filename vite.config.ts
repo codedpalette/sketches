@@ -1,26 +1,28 @@
+import type { AddressInfo } from "node:net"
+
 import { defineConfig } from "vite"
 import { startup as electronStartup } from "vite-plugin-electron"
+import glsl from "vite-plugin-glsl"
 import { nodePolyfills } from "vite-plugin-node-polyfills"
 import tsconfigPaths from "vite-tsconfig-paths"
 
-export default defineConfig(async () => {
-  const glsl = (await import("vite-plugin-glsl")).default // https://github.com/UstymUkhman/vite-plugin-glsl/issues/16
+export default defineConfig(() => {
   return {
     base: "/sketches/",
     plugins: [
-      glsl({
-        root: "library/glsl",
-      }),
+      glsl({ root: "library/glsl" }),
       nodePolyfills(),
       tsconfigPaths(),
-      // https://github.com/electron-vite/vite-plugin-electron/blob/main/src/index.ts
+      // Simple plugin to start electron process
+      // Based on https://github.com/electron-vite/vite-plugin-electron but without restarts on hot reload
       {
         name: "start-electron",
         apply: "serve",
         configureServer(server) {
-          server.httpServer.once("listening", () => {
-            process.env.VITE_DEV_SERVER_URL = `http://localhost:${server.httpServer.address().port}`
-            electronStartup()
+          server.httpServer?.once("listening", () => {
+            const addressInfo = server.httpServer?.address() as AddressInfo
+            process.env.VITE_DEV_SERVER_URL = `http://localhost:${addressInfo.port}`
+            void electronStartup()
           })
         },
       },

@@ -1,8 +1,7 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { app, BrowserWindow } = require("electron")
+import { app, BrowserWindow } from "electron"
 
 process.env["ELECTRON_DISABLE_SECURITY_WARNINGS"] = "true"
-app.whenReady().then(() =>
+void app.whenReady().then(() =>
   new BrowserWindow({
     width: 1080,
     height: 1080,

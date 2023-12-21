@@ -2011,16 +2011,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:^24.6.2":
-  version: 24.6.5
-  resolution: "electron@npm:24.6.5"
+"electron@npm:^28.0.0":
+  version: 28.0.0
+  resolution: "electron@npm:28.0.0"
   dependencies:
     "@electron/get": ^2.0.0
     "@types/node": ^18.11.18
     extract-zip: ^2.0.1
   bin:
     electron: cli.js
-  checksum: 6a4f8e002a691f888d87def6a8e855470530901e1cdc27fd4230e212af0e0b5a7322fd5ccec32b60d63626238e294c6911eb4105f6a69fa305c3e85588737741
+  checksum: 5e0da4f3a8b6746cc597b20453cec89a346c9b64b6d3e3dbc7ba015c1e7d1dcaf43c2fc7c3115fc57f68853724049a6b21e40a82becb49df2d8207cbf6cbc3ea
   languageName: node
   linkType: hard
 
@@ -4962,7 +4962,7 @@ __metadata:
     "@typescript-eslint/parser": ^6.2.1
     canvas-capture: ^2.1.1
     culori: ^3.2.0
-    electron: ^24.6.2
+    electron: ^28.0.0
     eslint: ^8.44.0
     eslint-config-prettier: ^8.9.0
     eslint-import-resolver-typescript: ^3.5.5
@@ -4981,7 +4981,7 @@ __metadata:
     stats.js: ^0.17.0
     typescript: ^5.1.6
     vite: ^4.4.2
-    vite-plugin-electron: ^0.12.0
+    vite-plugin-electron: ^0.15.5
     vite-plugin-glsl: ^1.1.2
     vite-plugin-node-polyfills: ^0.9.0
     vite-tsconfig-paths: ^4.2.0
@@ -5767,10 +5767,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite-plugin-electron@npm:^0.12.0":
-  version: 0.12.0
-  resolution: "vite-plugin-electron@npm:0.12.0"
-  checksum: c9286023210a0f6766e11d12230bd1340569c3b3d6139e38c5752baf496dbc3ea955745ed41aeee16977beeadd403c84109899435b1ff8301fb25dea077d54bd
+"vite-plugin-electron@npm:^0.15.5":
+  version: 0.15.5
+  resolution: "vite-plugin-electron@npm:0.15.5"
+  peerDependencies:
+    tree-kill: "*"
+    vite-plugin-electron-renderer: "*"
+  peerDependenciesMeta:
+    tree-kill:
+      optional: true
+    vite-plugin-electron-renderer:
+      optional: true
+  checksum: ea45bb9c2b13da4f6dc9af753a8a557a0b4a7c0f0b4e279a8ce75573b1abbb94cd0ade612672b88338bfeb6f47b6c6b5fa57c4793b0ed8cef9fd57ef78c8ad30
   languageName: node
   linkType: hard
 

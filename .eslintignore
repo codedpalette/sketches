@@ -1,5 +1,4 @@
-# Ignore artifacts
 out
 dist
-
+.eslintrc.cjs
 node_modules/
