@@ -57,12 +57,12 @@ latest version of my sketches to [Github Pages](https://pages.github.com/) on ev
 - `sketches/` - Actual artworks code grouped by year
 - `typings/` - TypeScript [type declarations](https://www.typescriptlang.org/docs/handbook/2/type-declarations.html) for
 3rd party libraries that don't provide them
-- `.eslintignore`, `.eslintrc.js` - [ESLint](https://eslint.org/) linter configuration files
+- `.eslintignore`, `.eslintrc.cjs` - [ESLint](https://eslint.org/) linter configuration files
 - `.gitignore` - [gitignore](https://git-scm.com/docs/gitignore) file
 - `.prettierignore`, `.prettierrc` - [Prettier](https://prettier.io/) formatter configuration files
 - `.yarnrc.yml` - [Yarn Modern](https://yarnpkg.com/) configuration
 - `electron.js` - [Electron](https://www.electronjs.org/) runner, used for running sketches in dev mode
 - `index.html` - Main html file specifying TypeScript entry point and main CSS stylesheet
 - `tsconfig.json` - Configuration file for TypeScript compiler, for more info see [here](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html)
-- `vite.config.js` - [Vite](https://vitejs.dev/) bundler configuration file
+- `vite.config.ts` - [Vite](https://vitejs.dev/) bundler configuration file
 - `yarn.lock` - [Yarn lockfile](https://classic.yarnpkg.com/lang/en/docs/yarn-lock/) for consistent and reproducible builds
