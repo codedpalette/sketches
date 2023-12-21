@@ -1,4 +1,4 @@
-import { filterFragTemplate, filterVertTemplate, glslNoise } from "drawing/shaders"
+import { filterFragTemplate, filterVertTemplate, glslNoise3d } from "drawing/shaders"
 import { Filter } from "pixi.js"
 import { Random } from "random"
 
@@ -11,7 +11,7 @@ export class NoiseAlphaFilter extends Filter {
     preamble: /*glsl*/ `
       uniform float noiseScale;
       uniform float noiseOffset;
-      ${glslNoise}
+      ${glslNoise3d}
     `,
     main: /*glsl*/ `
       float n = snoise(vec3(vTextureCoord, noiseOffset) * noiseScale);
