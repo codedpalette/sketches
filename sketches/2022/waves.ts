@@ -1,8 +1,8 @@
-import { SketchEnv } from "core/sketch"
-import { drawBackground } from "drawing/helpers"
+import { SketchEnv } from "library/core/sketch"
+import { drawBackground } from "library/drawing/helpers"
+import { noise2d } from "library/random"
+import { map } from "library/utils"
 import { Container, Graphics } from "pixi.js"
-import { noise2d } from "random"
-import { map } from "utils"
 
 export default ({ random, bbox }: SketchEnv) => {
   const noise = noise2d(random)

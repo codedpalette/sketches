@@ -1,6 +1,6 @@
-import { filterFragTemplate, filterVertTemplate, glslNoise3d } from "drawing/shaders"
+import { filterFragTemplate, filterVertTemplate, glslNoise3d } from "library/drawing/shaders"
+import { Random } from "library/random"
 import { Filter } from "pixi.js"
-import { Random } from "random"
 
 /**
  * Pixi.js filter for setting pixel opacity based on a noise value

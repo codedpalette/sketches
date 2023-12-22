@@ -1,7 +1,7 @@
 import { box, vector } from "@flatten-js/core"
-import { SketchEnv } from "core/sketch"
 import { converter, formatCss } from "culori"
-import { drawCanvas } from "drawing/helpers"
+import { SketchEnv } from "library/core/sketch"
+import { drawCanvas } from "library/drawing/helpers"
 import { Color, Container, Graphics } from "pixi.js"
 
 const oklab = converter("oklab")

@@ -1,12 +1,12 @@
 import { line, point, Segment, segment, vector } from "@flatten-js/core"
-import { SketchEnv } from "core/sketch"
-import { formatHsl } from "drawing/color"
-import { NoiseAlphaFilter } from "drawing/filters"
-import { drawBackground } from "drawing/helpers"
-import { renderLines } from "drawing/meshes"
-import { glslNoise2d, ShaderProgram } from "drawing/shaders"
+import { SketchEnv } from "library/core/sketch"
+import { formatHsl } from "library/drawing/color"
+import { NoiseAlphaFilter } from "library/drawing/filters"
+import { drawBackground } from "library/drawing/helpers"
+import { renderLines } from "library/drawing/meshes"
+import { glslNoise2d, ShaderProgram } from "library/drawing/shaders"
+import { map } from "library/utils"
 import { Container, FXAAFilter, NoiseFilter } from "pixi.js"
-import { map } from "utils"
 
 export default ({ random, bbox, renderer }: SketchEnv) => {
   const mainHue = random.realZeroTo(360)

@@ -1,11 +1,11 @@
 import { point, ray, vector } from "@flatten-js/core"
-import { SketchEnv } from "core/sketch"
-import { formatHsl } from "drawing/color"
-import { drawCanvas } from "drawing/helpers"
-import { fromPolar } from "geometry"
+import { SketchEnv } from "library/core/sketch"
+import { formatHsl } from "library/drawing/color"
+import { drawCanvas } from "library/drawing/helpers"
+import { fromPolar } from "library/geometry"
+import { noise2d } from "library/random"
+import { map } from "library/utils"
 import { BlurFilter, Container, Graphics, NoiseFilter } from "pixi.js"
-import { noise2d } from "random"
-import { map } from "utils"
 
 export default ({ random, bbox }: SketchEnv) => {
   const noise = noise2d(random)

@@ -1,4 +1,4 @@
-import { isProd, run, SketchFactory } from "core/sketch"
+import { isProd, run, SketchFactory } from "library/core/sketch"
 
 type SketchModule = {
   name: string

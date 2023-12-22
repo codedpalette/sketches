@@ -1,8 +1,8 @@
-import { SketchEnv } from "core/sketch"
-import { gray } from "drawing/color"
-import { drawBackground } from "drawing/helpers"
+import { SketchEnv } from "library/core/sketch"
+import { gray } from "library/drawing/color"
+import { drawBackground } from "library/drawing/helpers"
+import { map } from "library/utils"
 import { BlurFilter, Container, FXAAFilter, Graphics } from "pixi.js"
-import { map } from "utils"
 
 export default ({ random, bbox }: SketchEnv) => {
   const isDarkBackground = random.bool()

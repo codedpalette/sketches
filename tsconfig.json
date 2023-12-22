@@ -1,7 +1,10 @@
 {
   "compilerOptions": {
     "strict": true,
-    "baseUrl": "library", // Base url for resolving library classes
+    "baseUrl": ".",
+    "paths": {
+      "library/*": ["./library/*"] // Path mapping for resolving library classes from sketches scripts
+    },
     "target": "ES2020", // Vite build target
     "module": "ESNext", // Needed for import.meta.url support
     "skipLibCheck": true, // Skip typechecking library files

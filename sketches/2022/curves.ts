@@ -1,10 +1,10 @@
 import { Vector, vector } from "@flatten-js/core"
-import { SketchEnv } from "core/sketch"
-import { gray } from "drawing/color"
-import { drawBackground } from "drawing/helpers"
+import { SketchEnv } from "library/core/sketch"
+import { gray } from "library/drawing/color"
+import { drawBackground } from "library/drawing/helpers"
+import { noise2d } from "library/random"
+import { map } from "library/utils"
 import { ColorSource, Container, Graphics } from "pixi.js"
-import { noise2d } from "random"
-import { map } from "utils"
 
 export default ({ random, bbox }: SketchEnv) => {
   const noise = noise2d(random)

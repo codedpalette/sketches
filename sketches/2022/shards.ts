@@ -1,8 +1,8 @@
-import { SketchEnv } from "core/sketch"
-import { gray } from "drawing/color"
-import { drawBackground } from "drawing/helpers"
+import { SketchEnv } from "library/core/sketch"
+import { gray } from "library/drawing/color"
+import { drawBackground } from "library/drawing/helpers"
+import { map } from "library/utils"
 import { Container, DEG_TO_RAD, Graphics } from "pixi.js"
-import { map } from "utils"
 import { BoundingBox, Site, Voronoi } from "voronoijs"
 
 export default ({ random, bbox }: SketchEnv) => {

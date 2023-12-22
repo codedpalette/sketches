@@ -1,6 +1,8 @@
 import type { AddressInfo } from "node:net"
 
+import { resolve } from "path"
 import { defineConfig } from "vite"
+import dts from "vite-plugin-dts"
 import { startup as electronStartup } from "vite-plugin-electron"
 import glsl from "vite-plugin-glsl"
 import { nodePolyfills } from "vite-plugin-node-polyfills"
@@ -10,6 +12,7 @@ export default defineConfig(() => {
   return {
     base: "/sketches/",
     plugins: [
+      dts({ rollupTypes: true }),
       glsl({ root: "library/glsl" }),
       nodePolyfills(),
       tsconfigPaths(),
@@ -34,6 +37,13 @@ export default defineConfig(() => {
         // https://subscription.packtpub.com/book/web-development/9781788628174/5/ch05lvl1sec48/enabling-sharedarraybuffers-in-chrome
         "Cross-Origin-Opener-Policy": "same-origin",
         "Cross-Origin-Embedder-Policy": "require-corp",
+      },
+    },
+    build: {
+      lib: {
+        entry: resolve(__dirname, "sketches/lib.ts"),
+        formats: ["es"],
+        fileName: "sketches",
       },
     },
   }
