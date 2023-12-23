@@ -1,8 +1,7 @@
+import { noise2d } from "library/core/random"
 import { SketchEnv } from "library/core/sketch"
 import { drawBackground } from "library/drawing/helpers"
-import { fromPolar } from "library/geometry"
-import { noise2d } from "library/random"
-import { map } from "library/utils"
+import { fromPolar, map } from "library/utils"
 import { BlurFilter, Container, Graphics, IPointData } from "pixi.js"
 
 export default ({ random, bbox }: SketchEnv) => {

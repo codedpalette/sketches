@@ -1,8 +1,8 @@
 import { Vector, vector } from "@flatten-js/core"
+import { noise2d } from "library/core/random"
 import { SketchEnv } from "library/core/sketch"
 import { gray } from "library/drawing/color"
 import { drawBackground } from "library/drawing/helpers"
-import { noise2d } from "library/random"
 import { map } from "library/utils"
 import { ColorSource, Container, Graphics } from "pixi.js"
 

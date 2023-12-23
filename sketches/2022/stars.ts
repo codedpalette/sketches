@@ -2,8 +2,7 @@ import { Circle, circle, point } from "@flatten-js/core"
 import { SketchEnv } from "library/core/sketch"
 import { gray } from "library/drawing/color"
 import { drawBackground } from "library/drawing/helpers"
-import { fromPolar } from "library/geometry"
-import { map } from "library/utils"
+import { fromPolar, map } from "library/utils"
 import { Container, Graphics, IPointData } from "pixi.js"
 
 export default ({ random, bbox }: SketchEnv) => {

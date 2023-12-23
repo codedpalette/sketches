@@ -1,6 +1,6 @@
+import { noise2d } from "library/core/random"
 import { SketchEnv } from "library/core/sketch"
 import { drawBackground } from "library/drawing/helpers"
-import { noise2d } from "library/random"
 import { map } from "library/utils"
 import { Container, Graphics } from "pixi.js"
 

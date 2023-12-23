@@ -1,3 +1,5 @@
+import { Point, point } from "@flatten-js/core"
+
 /**
  * Return resolved URL to a static asset.
  * For more information see https://vitejs.dev/guide/assets.html#new-url-url-import-meta-url
@@ -31,4 +33,14 @@ export function map(x: number, x0: number, x1: number, y0: number, y1: number): 
  */
 export function clamp(x: number, a: number, b: number): number {
   return Math.max(a, Math.min(x, b))
+}
+/**
+ * Convert a point from polar coordinates to cartesian
+ * @param r radius vector length
+ * @param theta radius vector angle from the X axis (in radians)
+ * @returns {Point}
+ */
+
+export function fromPolar(r: number, theta: number): Point {
+  return point(r * Math.cos(theta), r * Math.sin(theta))
 }

@@ -1,7 +1,7 @@
 import { Box, box } from "@flatten-js/core"
 import { CanvasCapture } from "canvas-capture"
+import { Random } from "library/core/random"
 import { initUI } from "library/core/ui"
-import { Random } from "library/random"
 import { Container, Renderer } from "pixi.js"
 import { createEntropy, MersenneTwister19937 as MersenneTwister } from "random-js"
 import Stats from "stats.js"

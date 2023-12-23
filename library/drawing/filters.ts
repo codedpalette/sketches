@@ -1,5 +1,5 @@
+import { Random } from "library/core/random"
 import { filterFragTemplate, filterVertTemplate, glslNoise3d } from "library/drawing/shaders"
-import { Random } from "library/random"
 import { Filter } from "pixi.js"
 
 /**

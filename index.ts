@@ -8,7 +8,7 @@ run(sketch)
 //   dir: string
 // }
 
-// // TODO: Remove it all after finishing site gallery
+// TODO: Remove it all after finishing site gallery
 // const modules: SketchModule[] = [
 //   { name: "curves", dir: "2022" },
 //   { name: "shards", dir: "2022" },
