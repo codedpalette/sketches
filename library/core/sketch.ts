@@ -1,167 +1,177 @@
 import { Box, box } from "@flatten-js/core"
-import { CanvasCapture } from "canvas-capture"
 import { Random } from "library/core/random"
-import { initUI } from "library/core/ui"
-import { Container, Renderer } from "pixi.js"
+import { UI } from "library/core/ui"
+import { Container, IRendererOptions, Renderer } from "pixi.js"
 import { createEntropy, MersenneTwister19937 as MersenneTwister } from "random-js"
-import Stats from "stats.js"
 
-const recordingFPS = 60 // Used for canvas-capture recorder to count seconds of recording
-const defaultParams: SketchParams = { resolution: 1, width: 1250, height: 1250 } //TODO: Parse from canvas?
-
-export interface SketchParams {
-  readonly width: number // Renderer's view width
-  readonly height: number // Renderer's view height
-  readonly resolution: number // Renderer's pixel ratio
-}
-
-export interface SketchEnv {
+export type UpdateFn = (totalTime: number, deltaTime: number) => void
+export type SketchRun = { container: Container; update?: UpdateFn }
+export type SketchEnv = {
   renderer: Renderer // Pixi.js Renderer instance
   random: Random // RNG is passed as a part of env to enable repeatability of random values
   bbox: Box // bounding box of a viewport
 }
+export type SketchFactory = (env: SketchEnv) => SketchRun
+export type RendererOptions = Partial<IRendererOptions> & { view?: HTMLCanvasElement }
+export type ResizeOptions = Required<Pick<RendererOptions, "width" | "height" | "resolution">>
 
-export type UpdateFn = (totalTime: number, deltaTime: number) => void
-export type Sketch = { container: Container; update?: UpdateFn }
-export type SketchFactory = (env: SketchEnv) => Sketch
+export const defaultSizeOptions: ResizeOptions = {
+  resolution: 1,
+  width: 1250,
+  height: 1250,
+}
+const defaultOptions: RendererOptions = {
+  ...defaultSizeOptions,
+  antialias: true,
+  autoDensity: true, // To resize canvas CSS dimensions automatically when resizing renderer
+}
+const recordingFPS = 60 // Used for canvas-capture recorder to count seconds of recording
 
-/**
- * Render a sketch and run update loop. Encapsulates all the necessary state initialization
- * @param sketchFactory function returning {@link Sketch} instance for given {@link SketchEnv}
- * @param [view] canvas element instance to render to, if omitted will create a new one and add it to page
- * @returns object with `stop` method to stop render loop
- */
-export function run(sketchFactory: SketchFactory, view?: HTMLCanvasElement) {
-  // Initialize object to hold current sketch instance
-  // Fields will be updated from user's interaction
-  const sketch = { container: new Container() } as Sketch
-  sketch.container.interactiveChildren = false // disables hit testing (increases performance)
-
+// TODO: Update jsdoc
+export class Sketch {
+  public readonly canvas: HTMLCanvasElement
   // Initialize random number generator
-  const randomSeed = createEntropy()
+  private readonly randomSeed = createEntropy()
   // Using [Mersenne twister](http://en.wikipedia.org/wiki/Mersenne_twister) algorithm for repeatability
-  let mersenneTwister = MersenneTwister.seedWithArray(randomSeed)
-  let random = new Random(mersenneTwister)
-  let randomUseCount = 0
+  private mersenneTwister = MersenneTwister.seedWithArray(this.randomSeed)
+  private random = new Random(this.mersenneTwister)
+  private randomUseCount = 0
 
-  // Initialize Pixi.js WebGL renderer
-  const renderer = new Renderer({
-    ...defaultParams,
-    view,
-    antialias: true,
-    autoDensity: true, // To resize canvas CSS dimensions automatically when resizing renderer
-  })
-  const canvas = renderer.view as HTMLCanvasElement
+  private renderer: Renderer
+  private ui?: Partial<UI>
+  private sketch?: SketchRun
 
-  // Closure to replace current sketch instance with a new one
-  const runFactory = () => {
-    // Calculate new SketchParams (if renderer was resized)
-    const params = { width: renderer.screen.width, height: renderer.screen.height, resolution: renderer.resolution }
-    // Calculate bounding box
-    const bbox = box(-params.width / 2, -params.height / 2, params.width / 2, params.height / 2).scale(
-      params.resolution,
-      params.resolution
-    )
-    const { container, update } = sketchFactory({ renderer, random, bbox })
+  private startTime = 0 // First recorded timestamp (in milliseconds)
+  private prevTime = 0 // Previous recorded timestamp (in milliseconds)
+  private frameRecordCounter = 0 // How many frames have passed since the beginning of a video recording
+  private requestId?: number // Current animation frame request id
 
+  /**
+   * Render a sketch and run update loop. Encapsulates all the necessary state initialization
+   * @param sketchFactory function returning {@link Sketch} instance for given {@link SketchEnv}
+   * @param [view] canvas element instance to render to, if omitted will create a new one and add it to page
+   */
+  constructor(private sketchFactory: SketchFactory, options?: RendererOptions) {
+    const canvasOptions = options?.view && { width: options.view.clientWidth, height: options.view.clientHeight }
+    // Initialize Pixi.js WebGL renderer
+    this.renderer = new Renderer({
+      ...defaultOptions,
+      ...canvasOptions,
+      ...options,
+    })
+    this.canvas = this.renderer.view as HTMLCanvasElement
+    this.runFactory()
+    // TODO: Disable click
+    this.canvas.onclick = () => this.nextSketch()
+    this.canvas.ontouchend = () => this.nextSketch()
+  }
+
+  run(ui?: Partial<UI>) {
+    this.ui = ui || this.ui
+    !this.canvas.isConnected && document.body.appendChild(this.canvas.parentElement || this.canvas)
+    if (this.sketch?.update || this.ui?.stats) {
+      this.renderLoop()
+    } else {
+      this.sketch?.container && this.renderer.render(this.sketch.container)
+    }
+  }
+
+  stop() {
+    this.startTime = this.prevTime = this.frameRecordCounter = 0
+    this.requestId && cancelAnimationFrame(this.requestId)
+  }
+
+  resize(options: ResizeOptions) {
+    this.renderer.resolution = options.resolution
+    this.renderer.resize(options.width, options.height)
+
+    // Some browsers have limits for WebGL drawbuffer dimensions. If we set renderer resolution too high,
+    // it may cause actual drawbuffer dimensions to be higher than these limits. In order to check for this
+    // we compare requested renderer dimensions to actual drawbuffer dimensions, and if they're higher,
+    // reset resolution to 1. See for example https://github.com/mrdoob/three.js/issues/5917 for more details.
+    const drawBufferWidth = this.renderer.gl.drawingBufferWidth
+    const drawBufferHeight = this.renderer.gl.drawingBufferHeight
+    if (this.renderer.width > drawBufferWidth || this.renderer.height > drawBufferHeight) {
+      this.renderer.resolution = 1
+      this.renderer.resize(options.width, options.height)
+    }
+
+    // When resizing sketch we want RNG to repeat the same values
+    // Which is why we need to recreate the state that was prior to last sketch run
+    this.mersenneTwister = MersenneTwister.seedWithArray(this.randomSeed).discard(this.randomUseCount)
+    this.random = new Random(this.mersenneTwister)
+    this.runFactory()
+  }
+
+  private nextSketch() {
+    // Generate new sketch instance when user clicks on a canvas.
+    // We store how many random values were generated so far, so that when canvas is resized we could
+    // "replay" RNG from this point
+    this.stop()
+    this.randomUseCount = this.mersenneTwister.getUseCount()
+    this.runFactory()
+    this.run()
+  }
+
+  // Method to replace current sketch instance with a new one
+  private runFactory() {
     // Destroy current sketch container and free associated memory
-    sketch.container.removeChildren().forEach((obj) => obj.destroy(true))
+    this.sketch?.container.destroy(true)
+
+    const renderer = this.renderer
+    const random = this.random
+    const { width, height } = renderer.screen
+    // Calculate bounding box
+    const bbox = box(-width / 2, -height / 2, width / 2, height / 2)
+
+    const newSketch = this.sketchFactory({ renderer, random, bbox })
+    const container = newSketch.container
+    container.interactiveChildren = false // disables hit testing (increases performance)
+
     // Set transform matrix to translate (0, 0) to the viewport center and point Y-axis upwards
-    sketch.container
-      .setTransform(params.width / 2, params.height / 2, 1 / params.resolution, -1 / params.resolution)
-      .addChild(container)
-    sketch.update = update
-  }
-  runFactory()
-
-  // When resizing sketch we want RNG to repeat the same values
-  // Which is why we need to recreate the state that was prior to last sketch run
-  const resizeSketch = () => {
-    mersenneTwister = MersenneTwister.seedWithArray(randomSeed).discard(randomUseCount)
-    random = new Random(mersenneTwister)
-    runFactory()
-  }
-  const stats = !isProd() ? initUI(defaultParams, renderer, resizeSketch) : undefined
-
-  // Generate new sketch instance when user clicks on a canvas.
-  // We store how many random values were generated so far, so that when canvas is resized we could
-  // "replay" RNG from this point
-  const nextSketch = () => {
-    loop.stop()
-    randomUseCount = mersenneTwister.getUseCount()
-    runFactory()
-    loop.stop = renderLoop(renderer, sketch, stats)
-  }
-  canvas.onclick = nextSketch
-  canvas.ontouchend = nextSketch
-
-  // Start render loop
-  const loop = { stop: renderLoop(renderer, sketch, stats) }
-  !canvas.isConnected && document.body.appendChild(canvas.parentElement || canvas)
-  return loop
-}
-
-/**
- * Start render loop. Also counts elapsed time to pass it to the {@link Sketch.update} function and
- * checks if {@link https://github.com/amandaghassaei/canvas-capture CanvasCapture} is recording
- * @param renderer Pixi.js WebGL renderer
- * @param sketch object holding current sketch instance
- * @param [stats] {@link https://github.com/mrdoob/stats.js Stats.js} object for displaying performance charts
- * @returns closure to stop render loop, used whenever sketch instance is recreated
- */
-function renderLoop(renderer: Renderer, sketch: Sketch, stats?: Stats) {
-  const timer = {
-    startTime: 0, // First recorded timestamp (in milliseconds)
-    prevTime: 0, // Previous recorded timestamp (in milliseconds)
-    frameRecordCounter: 0, // How many frames have passed since the beginning of a video recording
+    newSketch.container = new Container().setTransform(width / 2, height / 2, 1, -1)
+    newSketch.container.addChild(container)
+    this.sketch = newSketch
   }
 
-  const loop = (timestamp: number) => {
-    stats?.begin()
-    updateTime(timestamp, timer, sketch.update)
-    renderer.render(sketch.container)
-    checkRecording(timer)
-    stats?.end()
-    requestId = requestAnimationFrame(loop)
+  /**
+   * Start render loop. Also counts elapsed time to pass it to the {@link Sketch.update} function and
+   * checks if {@link https://github.com/amandaghassaei/canvas-capture CanvasCapture} is recording
+   */
+  private renderLoop() {
+    const loop = (timestamp: number) => {
+      this.ui?.stats?.begin()
+      this.updateTime(timestamp)
+      this.sketch?.container && this.renderer.render(this.sketch.container)
+      this.checkRecording()
+      this.ui?.stats?.end()
+      this.requestId = requestAnimationFrame(loop)
+    }
+    this.requestId = requestAnimationFrame(loop)
   }
-  let requestId = requestAnimationFrame(loop)
 
-  const stopLoop = () => cancelAnimationFrame(requestId)
-  return stopLoop
-}
+  /**
+   * Calculates delta time between frames and total elapsed time, passes it to the sketch's update function (if defined)
+   * @param timestamp current timestamp (in milliseconds)
+   */
+  private updateTime(timestamp: number) {
+    // If startTime isn't set - set it to the current timestamp
+    !this.startTime && (this.startTime = timestamp)
+    const totalSeconds = (timestamp - this.startTime) / 1000
+    const deltaSeconds = (timestamp - (this.prevTime || this.startTime)) / 1000
+    this.prevTime = timestamp
+    this.sketch?.update && this.sketch.update(totalSeconds, deltaSeconds)
+  }
 
-/**
- * Calculates delta time between frames and total elapsed time, passes it to the sketch's update function (if defined)
- * @param timestamp current timestamp (in milliseconds)
- * @param timer object holding first and previous timestamps
- * @param [update] sketch's update function (if defined)
- */
-function updateTime(timestamp: number, timer: { startTime: number; prevTime: number }, update?: UpdateFn) {
-  // If startTime isn't set - set it to the current timestamp
-  !timer.startTime && (timer.startTime = timestamp)
-  const totalSeconds = (timestamp - timer.startTime) / 1000
-  const deltaSeconds = (timestamp - (timer.prevTime || timer.startTime)) / 1000
-  timer.prevTime = timestamp
-  update && update(totalSeconds, deltaSeconds)
-}
-
-/**
- * Renders sketch as PNG/MP4 file. For more information see {@link https://github.com/amandaghassaei/canvas-capture#use}
- * @param timer object holding current recording's frame count
- */
-function checkRecording(timer: { frameRecordCounter: number }) {
-  CanvasCapture.checkHotkeys()
-  if (CanvasCapture.isRecording()) {
-    CanvasCapture.recordFrame()
-    ++timer.frameRecordCounter % recordingFPS == 0 &&
-      console.log(`Recorded ${timer.frameRecordCounter / recordingFPS} seconds`)
-  } else if (timer.frameRecordCounter != 0) timer.frameRecordCounter == 0
-}
-
-/**
- * Helper method to check if running in production
- * @returns {boolean}
- */
-export function isProd(): boolean {
-  return process.env.NODE_ENV === "production"
+  /**
+   * Renders sketch as PNG/MP4 file. For more information see {@link https://github.com/amandaghassaei/canvas-capture#use}
+   */
+  private checkRecording() {
+    this.ui?.capture?.checkHotkeys()
+    if (this.ui?.capture?.isRecording()) {
+      this.ui?.capture?.recordFrame()
+      ++this.frameRecordCounter % recordingFPS == 0 &&
+        console.log(`Recorded ${this.frameRecordCounter / recordingFPS} seconds`)
+    } else if (this.frameRecordCounter != 0) this.frameRecordCounter == 0
+  }
 }

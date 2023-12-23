@@ -1,29 +1,32 @@
 import { CanvasCapture } from "canvas-capture"
-import { SketchParams } from "library/core/sketch"
+import { ResizeOptions, Sketch } from "library/core/sketch"
 import { clamp } from "library/utils"
-import { Renderer } from "pixi.js"
 import { Spector } from "spectorjs"
 import Stats from "stats.js"
 
 const minWidth = 800
 const minHeight = 800
 
+export type UI = {
+  stats: Stats
+  capture: typeof CanvasCapture
+}
+
 /**
  * Initializes UI element for capturing canvas to file, profiling WebGL commands and resizing canvas
- * @param defaultParams default {@link SketchParams} to fallback to
- * @param renderer Pixi.js WebGL renderer
- * @param resizeSketch Sketch resize callback
- * @returns {Stats} {@link https://github.com/mrdoob/stats.js Stats.js} object
+ * @param defaultOptions default {@link ResizeOptions} to fallback to
+ * @param sketch {@link Sketch} instance to resize
+ * @returns {UI}
  */
-export function initUI(defaultParams: SketchParams, renderer: Renderer, resizeSketch: () => void): Stats {
-  const canvas = renderer.view as HTMLCanvasElement
+export function initUI(defaultOptions: ResizeOptions, sketch: Sketch): UI {
+  const canvas = sketch.canvas
   initCanvasCapture(canvas)
   initSpector(canvas)
-  initResizeUI(defaultParams, renderer, resizeSketch)
+  initResizeUI(defaultOptions, sketch)
 
   const stats = new Stats()
   document.body.appendChild(stats.dom)
-  return stats
+  return { stats, capture: CanvasCapture }
 }
 
 /**
@@ -54,37 +57,23 @@ function initSpector(canvas: HTMLCanvasElement) {
 
 /**
  * Initialize UI for canvas resize
- * @param defaultParams default {@link SketchParams} to fallback to
- * @param renderer Pixi.js WebGL renderer
- * @param resizeSketch Sketch resize callback
+ * @param defaultOptions default {@link ResizeOptions} to fallback to
+ * @param sketch {@link Sketch} instance to resize
  */
-function initResizeUI(defaultParams: SketchParams, renderer: Renderer, resizeSketch: () => void) {
+function initResizeUI(defaultOptions: ResizeOptions, sketch: Sketch) {
   const resizeForm = document.createElement("form")
   const getParam = (paramKey: string) => parseInt((<HTMLInputElement>document.getElementById(paramKey)).value) || 0
 
   const inputHandler = () => {
-    const newParams = {
-      width: clamp(getParam("width"), minWidth, defaultParams.width),
-      height: clamp(getParam("height"), minHeight, defaultParams.height),
+    const newOptions = {
+      width: clamp(getParam("width"), minWidth, defaultOptions.width),
+      height: clamp(getParam("height"), minHeight, defaultOptions.height),
       resolution: Math.max(getParam("resolution"), 1),
     }
-    renderer.resolution = newParams.resolution
-    renderer.resize(newParams.width, newParams.height)
-
-    // Some browsers have limits for WebGL drawbuffer dimensions. If we set renderer resolution too high,
-    // it may cause actual drawbuffer dimensions to be higher than these limits. In order to check for this
-    // we compare requested renderer dimensions to actual drawbuffer dimensions, and if they're higher,
-    // reset resolution to 1. See for example https://github.com/mrdoob/three.js/issues/5917 for more details.
-    const drawBufferWidth = renderer.gl.drawingBufferWidth
-    const drawBufferHeight = renderer.gl.drawingBufferHeight
-    if (renderer.width > drawBufferWidth || renderer.height > drawBufferHeight) {
-      renderer.resolution = 1
-      renderer.resize(newParams.width, newParams.height)
-    }
-    resizeSketch()
+    sketch.resize(newOptions)
   }
 
-  for (const [key, value] of Object.entries(defaultParams)) {
+  for (const [key, value] of Object.entries(defaultOptions)) {
     const labelElement = document.createElement("label")
     labelElement.textContent = `${key.charAt(0).toUpperCase() + key.slice(1)}:`
 

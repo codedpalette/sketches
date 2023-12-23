@@ -19,8 +19,8 @@
     "scope": "typescript",
     "prefix": "sketch",
     "body": [
-      "import { SketchEnv } from \"core/sketch\"",
-      "import { drawBackground } from \"drawing/helpers\"",
+      "import { SketchEnv } from \"library/core/sketch\"",
+      "import { drawBackground } from \"library/drawing/helpers\"",
       "import { Container, Graphics } from \"pixi.js\"",
       "",
       "export default ({ random, bbox }: SketchEnv) => {",
