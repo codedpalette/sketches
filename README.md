@@ -25,6 +25,7 @@ Run a dev server with hot reload (will open in an Electron window)
 yarn start
 ```
 
+TODO: Update instructions, describe development workflow
 In order to switch to a different sketch, go to `sketches/index.ts` and update the following import at the end of a file
 
 ```typescript
@@ -36,6 +37,7 @@ if (isProd()) {
 }
 ```
 
+TODO: Library mode
 Build a production bundle and open it in the browser (will show all sketches with a picker ui)
 
 ```bash
@@ -63,6 +65,8 @@ latest version of my sketches to [Github Pages](https://pages.github.com/) on ev
 - `.yarnrc.yml` - [Yarn Modern](https://yarnpkg.com/) configuration
 - `electron.js` - [Electron](https://www.electronjs.org/) runner, used for running sketches in dev mode
 - `index.html` - Main html file specifying TypeScript entry point and main CSS stylesheet
+- `index.ts` - TypeScript entry point for development workflow
+- `lib.ts` - TypeScript entry point for library mode
 - `tsconfig.json` - Configuration file for TypeScript compiler, for more info see [here](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html)
 - `vite.config.ts` - [Vite](https://vitejs.dev/) bundler configuration file
 - `yarn.lock` - [Yarn lockfile](https://classic.yarnpkg.com/lang/en/docs/yarn-lock/) for consistent and reproducible builds

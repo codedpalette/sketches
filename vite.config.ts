@@ -41,7 +41,7 @@ export default defineConfig(() => {
     },
     build: {
       lib: {
-        entry: resolve(__dirname, "sketches/lib.ts"),
+        entry: resolve(__dirname, "lib.ts"),
         formats: ["es"],
         fileName: "sketches",
       },
