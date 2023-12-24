@@ -40,7 +40,6 @@ export default ({ random, bbox }: SketchEnv) => {
   function drawCurve(x: number, y: number, fillPercent: number) {
     const { points = [], oppositePoints = [], visitedCells = [] } = generatePoints(x, y, fillPercent)
     if (points.length == 0) {
-      console.log("Empty")
       return
     }
     for (const visitedCell of visitedCells) {
