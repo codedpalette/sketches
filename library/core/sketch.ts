@@ -10,32 +10,43 @@ export const defaultSizeParams: SizeParams = { resolution: 1, width: 1250, heigh
 const defaultRenderParams: RenderParams = { antialias: true, resizeCSS: true, scaleBbox: false }
 const recordingFPS = 60 // Used for canvas-capture recorder to count seconds of recording
 
-// TODO: Update jsdoc
+/** Class that encapsulates all aspects of running a sketch that are separate from an actual artwork code */
 export class Sketch {
+  /** Canvas that this sketch renders to */
   public readonly canvas: HTMLCanvasElement
-  // Initialize random number generator
+  /** Seed for initializing random generator */
   private readonly randomSeed = createEntropy()
-  // Using [Mersenne twister](http://en.wikipedia.org/wiki/Mersenne_twister) algorithm for repeatability
+  /** Using [Mersenne twister](http://en.wikipedia.org/wiki/Mersenne_twister) algorithm for repeatability */
   private mersenneTwister = MersenneTwister.seedWithArray(this.randomSeed)
+  /** RNG instance */
   private random = new Random(this.mersenneTwister)
+  /** RNG use count (for repeatability of random numbers) */
   private randomUseCount = 0
 
+  /** Pixi.js {@link Renderer} */
   private renderer: Renderer
+  /** {@link UI} system */
   private ui?: Partial<UI>
+  /** Current sketch instance */
   private sketch?: SketchInstance
+  /** Sketch parameters */
   private params: SketchParams
 
-  private startTime = 0 // First recorded timestamp (in milliseconds)
-  private prevTime = 0 // Previous recorded timestamp (in milliseconds)
-  private frameRecordCounter = 0 // How many frames have passed since the beginning of a video recording
-  private requestId?: number // Current animation frame request id
+  /** First recorded timestamp (in milliseconds) */
+  private startTime = 0
+  /** Previous recorded timestamp (in milliseconds) */
+  private prevTime = 0
+  /** How many frames have passed since the beginning of a video recording */
+  private frameRecordCounter = 0
+  /** Current animation frame request id */
+  private requestId?: number
 
   /**
-   * Render a sketch and run update loop. Encapsulates all the necessary state initialization
-   * @param sketchFactory function returning {@link Sketch} instance for given {@link SketchEnv}
-   * @param [view] canvas element instance to render to, if omitted will create a new one and add it to page
+   * Create a new sketch instance
+   * @param {SketchFactory} sketchFactory function returning {@link SketchInstance} instance for given environment
+   * @param {SketchParams} params sketch parameters
    */
-  constructor(private sketchFactory: SketchFactory, params?: SketchParams) {
+  constructor(private sketchFactory: SketchFactory, params?: Partial<SketchParams>) {
     const canvasSizeParams = params?.view && { width: params.view.clientWidth, height: params.view.clientHeight }
     this.params = {
       ...defaultSizeParams,
@@ -55,6 +66,10 @@ export class Sketch {
     this.canvas.ontouchend = () => this.nextSketch()
   }
 
+  /**
+   * Render a sketch and run update loop if necessary
+   * @param {UI} ui UI system for this sketch
+   */
   run(ui?: Partial<UI>) {
     this.ui = ui || this.ui
     !this.canvas.isConnected && document.body.appendChild(this.canvas.parentElement || this.canvas)
@@ -65,11 +80,16 @@ export class Sketch {
     }
   }
 
+  /** Stop update loop and reset timer */
   stop() {
     this.startTime = this.prevTime = this.frameRecordCounter = 0
     this.requestId && cancelAnimationFrame(this.requestId)
   }
 
+  /**
+   * Resize renderer
+   * @param {SizeParams} params New size parameters for this sketch
+   */
   resize(params: SizeParams) {
     this.renderer.resolution = params.resolution
     this.renderer.resize(params.width, params.height)
@@ -92,17 +112,17 @@ export class Sketch {
     this.runFactory()
   }
 
+  /** Generate new sketch instance when user clicks on a canvas */
   private nextSketch() {
-    // Generate new sketch instance when user clicks on a canvas.
+    this.stop()
     // We store how many random values were generated so far, so that when canvas is resized we could
     // "replay" RNG from this point
-    this.stop()
     this.randomUseCount = this.mersenneTwister.getUseCount()
     this.runFactory()
     this.run()
   }
 
-  // Method to replace current sketch instance with a new one
+  /** Method to replace current sketch instance with a new one */
   private runFactory() {
     // Destroy current sketch container and free associated memory
     this.sketch?.container.destroy(true)
@@ -122,13 +142,13 @@ export class Sketch {
     container.interactiveChildren = false // disables hit testing (increases performance)
 
     // Set transform matrix to translate (0, 0) to the viewport center and point Y-axis upwards
-    newSketch.container = new Container().setTransform(width / 2, height / 2, 1, -1)
+    newSketch.container = new Container().setTransform(width / 2, height / 2, 1 / bboxScale, -1 / bboxScale)
     newSketch.container.addChild(container)
     this.sketch = newSketch
   }
 
   /**
-   * Start render loop. Also counts elapsed time to pass it to the {@link Sketch.update} function and
+   * Start render loop. Also counts elapsed time to pass it to the {@link SketchInstance.update} function and
    * checks if {@link https://github.com/amandaghassaei/canvas-capture CanvasCapture} is recording
    */
   private renderLoop() {

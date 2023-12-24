@@ -6,8 +6,8 @@ import { clamp } from "../utils"
 import { Sketch } from "./sketch"
 import { SizeParams } from "./types"
 
-const minWidth = 800
-const minHeight = 800
+const minWidth = 100
+const minHeight = 100
 
 export type UI = {
   stats: Stats
