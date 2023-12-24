@@ -1,8 +1,10 @@
 import { CanvasCapture } from "canvas-capture"
-import { ResizeOptions, Sketch } from "library/core/sketch"
-import { clamp } from "library/utils"
 import { Spector } from "spectorjs"
 import Stats from "stats.js"
+
+import { clamp } from "../utils"
+import { Sketch } from "./sketch"
+import { SizeParams } from "./types"
 
 const minWidth = 800
 const minHeight = 800
@@ -14,15 +16,15 @@ export type UI = {
 
 /**
  * Initializes UI element for capturing canvas to file, profiling WebGL commands and resizing canvas
- * @param defaultOptions default {@link ResizeOptions} to fallback to
+ * @param defaultParams default {@link ResizeOptions} to fallback to
  * @param sketch {@link Sketch} instance to resize
  * @returns {UI}
  */
-export function initUI(defaultOptions: ResizeOptions, sketch: Sketch): UI {
+export function initUI(defaultParams: SizeParams, sketch: Sketch): UI {
   const canvas = sketch.canvas
   initCanvasCapture(canvas)
   initSpector(canvas)
-  initResizeUI(defaultOptions, sketch)
+  initResizeUI(defaultParams, sketch)
 
   const stats = new Stats()
   document.body.appendChild(stats.dom)
@@ -57,23 +59,23 @@ function initSpector(canvas: HTMLCanvasElement) {
 
 /**
  * Initialize UI for canvas resize
- * @param defaultOptions default {@link ResizeOptions} to fallback to
+ * @param defaultParams default {@link ResizeOptions} to fallback to
  * @param sketch {@link Sketch} instance to resize
  */
-function initResizeUI(defaultOptions: ResizeOptions, sketch: Sketch) {
+function initResizeUI(defaultParams: SizeParams, sketch: Sketch) {
   const resizeForm = document.createElement("form")
   const getParam = (paramKey: string) => parseInt((<HTMLInputElement>document.getElementById(paramKey)).value) || 0
 
   const inputHandler = () => {
     const newOptions = {
-      width: clamp(getParam("width"), minWidth, defaultOptions.width),
-      height: clamp(getParam("height"), minHeight, defaultOptions.height),
+      width: clamp(getParam("width"), minWidth, defaultParams.width),
+      height: clamp(getParam("height"), minHeight, defaultParams.height),
       resolution: Math.max(getParam("resolution"), 1),
     }
     sketch.resize(newOptions)
   }
 
-  for (const [key, value] of Object.entries(defaultOptions)) {
+  for (const [key, value] of Object.entries(defaultParams)) {
     const labelElement = document.createElement("label")
     labelElement.textContent = `${key.charAt(0).toUpperCase() + key.slice(1)}:`
 

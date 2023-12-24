@@ -1,6 +1,6 @@
-import glslNoise2d from "library/glsl/noise2D.glsl"
-import glslNoise3d from "library/glsl/noise3D.glsl"
-import glslNoise4d from "library/glsl/noise4D.glsl"
+import glslNoise2d from "../glsl/noise2D.glsl"
+import glslNoise3d from "../glsl/noise3D.glsl"
+import glslNoise4d from "../glsl/noise4D.glsl"
 
 export { glslNoise2d, glslNoise3d, glslNoise4d }
 

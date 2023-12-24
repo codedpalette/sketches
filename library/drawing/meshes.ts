@@ -1,6 +1,7 @@
 import { Segment } from "@flatten-js/core"
-import { fragTemplate, ShaderProgram, vertexTemplate } from "library/drawing/shaders"
 import { Attribute, Buffer, Color, ColorSource, Geometry, Mesh, Shader, TYPES } from "pixi.js"
+
+import { fragTemplate, ShaderProgram, vertexTemplate } from "./shaders"
 
 /**
  * Render multiple line segments in a single draw call using instanced geometry.

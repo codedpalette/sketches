@@ -1,30 +1,13 @@
-import { Box, box } from "@flatten-js/core"
-import { Random } from "library/core/random"
-import { UI } from "library/core/ui"
-import { Container, IRendererOptions, Renderer } from "pixi.js"
+import { box } from "@flatten-js/core"
+import { Container, Renderer } from "pixi.js"
 import { createEntropy, MersenneTwister19937 as MersenneTwister } from "random-js"
 
-export type UpdateFn = (totalTime: number, deltaTime: number) => void
-export type SketchRun = { container: Container; update?: UpdateFn }
-export type SketchEnv = {
-  renderer: Renderer // Pixi.js Renderer instance
-  random: Random // RNG is passed as a part of env to enable repeatability of random values
-  bbox: Box // bounding box of a viewport
-}
-export type SketchFactory = (env: SketchEnv) => SketchRun
-export type RendererOptions = Partial<IRendererOptions> & { view?: HTMLCanvasElement }
-export type ResizeOptions = Required<Pick<RendererOptions, "width" | "height" | "resolution">>
+import { Random } from "./random"
+import { RenderParams, SizeParams, SketchFactory, SketchInstance, SketchParams } from "./types"
+import { UI } from "./ui"
 
-export const defaultSizeOptions: ResizeOptions = {
-  resolution: 1,
-  width: 1250,
-  height: 1250,
-}
-const defaultOptions: RendererOptions = {
-  ...defaultSizeOptions,
-  antialias: true,
-  autoDensity: true, // To resize canvas CSS dimensions automatically when resizing renderer
-}
+export const defaultSizeParams: SizeParams = { resolution: 1, width: 1250, height: 1250 }
+const defaultRenderParams: RenderParams = { antialias: true, resizeCSS: true, scaleBbox: false }
 const recordingFPS = 60 // Used for canvas-capture recorder to count seconds of recording
 
 // TODO: Update jsdoc
@@ -39,7 +22,8 @@ export class Sketch {
 
   private renderer: Renderer
   private ui?: Partial<UI>
-  private sketch?: SketchRun
+  private sketch?: SketchInstance
+  private params: SketchParams
 
   private startTime = 0 // First recorded timestamp (in milliseconds)
   private prevTime = 0 // Previous recorded timestamp (in milliseconds)
@@ -51,13 +35,18 @@ export class Sketch {
    * @param sketchFactory function returning {@link Sketch} instance for given {@link SketchEnv}
    * @param [view] canvas element instance to render to, if omitted will create a new one and add it to page
    */
-  constructor(private sketchFactory: SketchFactory, options?: RendererOptions) {
-    const canvasOptions = options?.view && { width: options.view.clientWidth, height: options.view.clientHeight }
+  constructor(private sketchFactory: SketchFactory, params?: SketchParams) {
+    const canvasSizeParams = params?.view && { width: params.view.clientWidth, height: params.view.clientHeight }
+    this.params = {
+      ...defaultSizeParams,
+      ...defaultRenderParams,
+      ...canvasSizeParams,
+      ...params,
+    }
     // Initialize Pixi.js WebGL renderer
     this.renderer = new Renderer({
-      ...defaultOptions,
-      ...canvasOptions,
-      ...options,
+      ...this.params,
+      autoDensity: this.params.resizeCSS,
     })
     this.canvas = this.renderer.view as HTMLCanvasElement
     this.runFactory()
@@ -81,9 +70,9 @@ export class Sketch {
     this.requestId && cancelAnimationFrame(this.requestId)
   }
 
-  resize(options: ResizeOptions) {
-    this.renderer.resolution = options.resolution
-    this.renderer.resize(options.width, options.height)
+  resize(params: SizeParams) {
+    this.renderer.resolution = params.resolution
+    this.renderer.resize(params.width, params.height)
 
     // Some browsers have limits for WebGL drawbuffer dimensions. If we set renderer resolution too high,
     // it may cause actual drawbuffer dimensions to be higher than these limits. In order to check for this
@@ -93,7 +82,7 @@ export class Sketch {
     const drawBufferHeight = this.renderer.gl.drawingBufferHeight
     if (this.renderer.width > drawBufferWidth || this.renderer.height > drawBufferHeight) {
       this.renderer.resolution = 1
-      this.renderer.resize(options.width, options.height)
+      this.renderer.resize(params.width, params.height)
     }
 
     // When resizing sketch we want RNG to repeat the same values
@@ -120,9 +109,13 @@ export class Sketch {
 
     const renderer = this.renderer
     const random = this.random
-    const { width, height } = renderer.screen
+    const {
+      screen: { width, height },
+      resolution,
+    } = renderer
+    const bboxScale = this.params.scaleBbox ? resolution : 1
     // Calculate bounding box
-    const bbox = box(-width / 2, -height / 2, width / 2, height / 2)
+    const bbox = box(-width / 2, -height / 2, width / 2, height / 2).scale(bboxScale, bboxScale)
 
     const newSketch = this.sketchFactory({ renderer, random, bbox })
     const container = newSketch.container

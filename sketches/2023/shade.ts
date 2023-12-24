@@ -1,5 +1,5 @@
 import { line, point, Segment, segment, vector } from "@flatten-js/core"
-import { SketchEnv } from "library/core/sketch"
+import { SketchEnv } from "library/core/types"
 import { formatHsl } from "library/drawing/color"
 import { NoiseAlphaFilter } from "library/drawing/filters"
 import { drawBackground } from "library/drawing/helpers"

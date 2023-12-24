@@ -1,6 +1,6 @@
 import { box, vector } from "@flatten-js/core"
 import { converter, formatCss } from "culori"
-import { SketchEnv } from "library/core/sketch"
+import { SketchEnv } from "library/core/types"
 import { drawCanvas } from "library/drawing/helpers"
 import { Color, Container, Graphics } from "pixi.js"
 

@@ -1,5 +1,5 @@
-export type { SketchFactory } from "library/core/sketch"
 export { Sketch } from "library/core/sketch"
+export * from "library/core/types"
 
 // Only finished artworks here
 export { default as colonize } from "sketches/2022/colonize"

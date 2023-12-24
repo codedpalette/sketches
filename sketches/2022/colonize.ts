@@ -1,5 +1,5 @@
 import { Point, point, vector } from "@flatten-js/core"
-import { SketchEnv } from "library/core/sketch"
+import { SketchEnv } from "library/core/types"
 import { gray } from "library/drawing/color"
 import { drawBackground } from "library/drawing/helpers"
 import { fromPolar } from "library/utils"

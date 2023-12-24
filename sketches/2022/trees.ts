@@ -1,5 +1,5 @@
 import { noise2d } from "library/core/random"
-import { SketchEnv } from "library/core/sketch"
+import { SketchEnv } from "library/core/types"
 import { gray } from "library/drawing/color"
 import { drawBackground } from "library/drawing/helpers"
 import { map } from "library/utils"
