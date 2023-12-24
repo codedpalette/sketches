@@ -4,6 +4,7 @@ import { resolve } from "path"
 import { defineConfig } from "vite"
 import dts from "vite-plugin-dts"
 import { startup as electronStartup } from "vite-plugin-electron"
+import { externalizeDeps } from "vite-plugin-externalize-deps"
 import glsl from "vite-plugin-glsl"
 import { nodePolyfills } from "vite-plugin-node-polyfills"
 import tsconfigPaths from "vite-tsconfig-paths"
@@ -12,6 +13,7 @@ export default defineConfig(() => {
   return {
     base: "/sketches/",
     plugins: [
+      externalizeDeps({ devDeps: true }),
       dts({ rollupTypes: true }),
       glsl({ root: "library/glsl" }),
       nodePolyfills(),

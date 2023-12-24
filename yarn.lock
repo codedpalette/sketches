@@ -5571,6 +5571,7 @@ __metadata:
     vite: ^4.4.2
     vite-plugin-dts: ^3.6.4
     vite-plugin-electron: ^0.15.5
+    vite-plugin-externalize-deps: ^0.8.0
     vite-plugin-glsl: ^1.1.2
     vite-plugin-node-polyfills: ^0.9.0
     vite-tsconfig-paths: ^4.2.0
@@ -6255,6 +6256,15 @@ __metadata:
     vite-plugin-electron-renderer:
       optional: true
   checksum: ea45bb9c2b13da4f6dc9af753a8a557a0b4a7c0f0b4e279a8ce75573b1abbb94cd0ade612672b88338bfeb6f47b6c6b5fa57c4793b0ed8cef9fd57ef78c8ad30
+  languageName: node
+  linkType: hard
+
+"vite-plugin-externalize-deps@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "vite-plugin-externalize-deps@npm:0.8.0"
+  peerDependencies:
+    vite: ^2.0.0 || ^3.0.0 || ^4.0.0 || ^5.0.0
+  checksum: 9932ce74acbe3390c4dc85c17a916bd00f8fdf3e77e6eac7eaf735247227c7fb17e427c7ae025bd25416d32f7f44f83f3ead195f903c71c0cd4b35f6d14855e1
   languageName: node
   linkType: hard
 
