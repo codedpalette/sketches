@@ -4,6 +4,8 @@ This is a repository for my generative art sketches. I'm using TypeScript with [
 works, with plans to add [Three.js](https://threejs.org/) (there are some unfinished 3D sketches on a `master_backup`
 branch, which I plan to rewrite) and pure WebGL API. You can preview them on my [Github Pages](https://monkeyroar.github.io/sketches/).
 
+**TODO:** Update link
+
 ## Installation
 
 I'm using [Yarn Modern](https://yarnpkg.com/) as a package manager, specifically for it's
@@ -19,30 +21,33 @@ yarn install
 
 ## Usage
 
+### Development
+
 Run a dev server with hot reload (will open in an Electron window)
 
 ```bash
 yarn start
 ```
 
-TODO: Update instructions, describe development workflow
-In order to switch to a different sketch, go to `sketches/index.ts` and update the following import at the end of a file
+In order to switch to a different sketch, go to `<root>/index.ts` and update the following import at the start of a file
 
 ```typescript
-if (isProd()) {
-  void runAll()
-} else {
-  const { default: sketch } = (await import("./2022/curves")) as { default: SketchFactory } // Update path here
-  run(sketch)
-}
+import { defaultSizeOptions, Sketch } from "library/core/sketch"
+import { initUI } from "library/core/ui"
+import factory from "path/to/sketch" // Update path here
 ```
 
-TODO: Library mode
-Build a production bundle and open it in the browser (will show all sketches with a picker ui)
+### Production
+
+Build a library bundle
 
 ```bash
-yarn run build && yarn run preview --open
+yarn build
 ```
+
+Entry point is `<root>/lib.ts`. It exports all finished artworks along with a `Sketch` class for embedding sketches in pages
+
+**TODO:** Generate JSDoc
 
 ## Directory structure
 
@@ -65,8 +70,8 @@ latest version of my sketches to [Github Pages](https://pages.github.com/) on ev
 - `.yarnrc.yml` - [Yarn Modern](https://yarnpkg.com/) configuration
 - `electron.js` - [Electron](https://www.electronjs.org/) runner, used for running sketches in dev mode
 - `index.html` - Main html file specifying TypeScript entry point and main CSS stylesheet
-- `index.ts` - TypeScript entry point for development workflow
-- `lib.ts` - TypeScript entry point for library mode
+- `index.ts` - TypeScript entry point for [development workflow](#development)
+- `lib.ts` - TypeScript entry point for [library mode](#production)
 - `tsconfig.json` - Configuration file for TypeScript compiler, for more info see [here](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html)
 - `vite.config.ts` - [Vite](https://vitejs.dev/) bundler configuration file
 - `yarn.lock` - [Yarn lockfile](https://classic.yarnpkg.com/lang/en/docs/yarn-lock/) for consistent and reproducible builds
