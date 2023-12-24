@@ -7,7 +7,7 @@ import { RenderParams, SizeParams, SketchFactory, SketchInstance, SketchParams }
 import { UI } from "./ui"
 
 export const defaultSizeParams: SizeParams = { resolution: 1, width: 1250, height: 1250 }
-const defaultRenderParams: RenderParams = { antialias: true, resizeCSS: true, scaleBbox: false }
+const defaultRenderParams: RenderParams = { antialias: true, resizeCSS: true, scaleBbox: false, clickable: true }
 const recordingFPS = 60 // Used for canvas-capture recorder to count seconds of recording
 
 /** Class that encapsulates all aspects of running a sketch that are separate from an actual artwork code */
@@ -40,6 +40,10 @@ export class Sketch {
   private frameRecordCounter = 0
   /** Current animation frame request id */
   private requestId?: number
+  /** Is canvas clickable */
+  private _clickable = false
+  /** Reference to click event listener */
+  private clickEventListener
 
   /**
    * Create a new sketch instance
@@ -60,10 +64,25 @@ export class Sketch {
       autoDensity: this.params.resizeCSS,
     })
     this.canvas = this.renderer.view as HTMLCanvasElement
+    this.clickEventListener = () => this.nextSketch()
+    this.clickable = this.params.clickable
     this.runFactory()
-    // TODO: Disable click
-    this.canvas.onclick = () => this.nextSketch()
-    this.canvas.ontouchend = () => this.nextSketch()
+  }
+
+  /** Is clicking to generate new sketch instance enabled */
+  get clickable() {
+    return this._clickable
+  }
+  /** Set to enable/disable clicking to generate new sketch instance */
+  set clickable(value) {
+    this._clickable = value
+    if (value) {
+      this.canvas.addEventListener("click", this.clickEventListener)
+      this.canvas.addEventListener("touchend", this.clickEventListener)
+    } else {
+      this.canvas.removeEventListener("click", this.clickEventListener)
+      this.canvas.removeEventListener("touchend", this.clickEventListener)
+    }
   }
 
   /**

@@ -55,6 +55,8 @@ export type RenderParams = {
   scaleBbox: boolean
   /** Whether or not to resize canvas css dimensions when resizing renderer*/
   resizeCSS: boolean
+  /** Enable/disable generating new sketches with a click on canvas */
+  clickable: boolean
 }
 
 export type SketchParams = SizeParams & RenderParams
