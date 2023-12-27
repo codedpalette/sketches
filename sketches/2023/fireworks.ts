@@ -6,7 +6,7 @@ import { drawCanvas } from "library/drawing/helpers"
 import { fromPolar, map } from "library/utils"
 import { BlurFilter, Container, Graphics, NoiseFilter } from "pixi.js"
 
-export default ({ random, bbox }: SketchEnv) => {
+export default ({ random, bbox, renderer }: SketchEnv) => {
   const noise = noise2d(random)
   const container = new Container()
   container.addChild(drawBackground(), drawStars())
@@ -112,7 +112,7 @@ export default ({ random, bbox }: SketchEnv) => {
         .setTransform(random.minmax(bbox.width / 2), random.minmax(bbox.height / 2))
       g.drawCircle(0, 0, random.real(2, 4))
     }
-    container.filters = [new BlurFilter(1, 1)]
+    container.filters = [new BlurFilter(1, 1, renderer.resolution)]
     return container
   }
 }
