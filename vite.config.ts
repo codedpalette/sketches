@@ -50,6 +50,11 @@ export default defineConfig(() => {
         formats: ["es"],
         fileName: "sketches",
       },
+      rollupOptions: {
+        output: {
+          inlineDynamicImports: true,
+        },
+      },
     },
   }
 })
