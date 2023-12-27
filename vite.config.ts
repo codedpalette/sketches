@@ -13,7 +13,10 @@ export default defineConfig(() => {
   return {
     base: "/sketches/",
     plugins: [
-      externalizeDeps({ devDeps: true }),
+      externalizeDeps({
+        devDeps: true, // Exclude dev dependencies
+        except: ["rbush-knn"], // Strange bug with 'import tinyqueue'
+      }),
       dts({ rollupTypes: true }),
       glsl({ root: "library/glsl" }),
       nodePolyfills(),
