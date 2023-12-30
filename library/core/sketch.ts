@@ -4,7 +4,7 @@ import { createEntropy, MersenneTwister19937 as MersenneTwister } from "random-j
 
 import { Random } from "./random"
 import { SketchRenderer } from "./renderer"
-import { Canvas, SizeParams, SketchFactory, SketchInstance } from "./types"
+import { SizeParams, SketchFactory, SketchInstance } from "./types"
 
 /** Class for wrapping sketch and controlling RNG state */
 export class Sketch implements SketchInstance {
@@ -35,17 +35,12 @@ export class Sketch implements SketchInstance {
   }
 
   /**
-   * Render this sketch
-   * @param copyTo Canvas to copy rendered image to (useful when sharing renderer between multiple sketches)
+   * Render this sketch and return render as ImageBitmap
    */
-  render(copyTo?: Canvas) {
+  async render(): Promise<ImageBitmap> {
     this.renderer.render(this)
-    if (copyTo) {
-      copyTo.width = this.renderer.canvas.width
-      copyTo.height = this.renderer.canvas.height
-      const context = copyTo.getContext("2d")
-      context?.drawImage(this.renderer.canvas, 0, 0)
-    }
+    const imageBitmap = await createImageBitmap(this.renderer.canvas)
+    return imageBitmap
   }
 
   /** Generate new sketch instance */

@@ -8,9 +8,9 @@ const defaultRenderParams: RenderParams = { antialias: true, resizeCSS: isBrowse
 settings.ADAPTER = isBrowser ? BrowserAdapter : WebWorkerAdapter
 
 /** Class for abstracting over framework renderers (only Pixi.js for now) */
-export class SketchRenderer {
+export class SketchRenderer<ICanvas extends Canvas = Canvas> {
   /** Internal canvas that this renderer renders to */
-  public readonly canvas: Canvas
+  public readonly canvas: ICanvas
   /** Pixi.js {@link Renderer} */
   public readonly renderer: Renderer
 
@@ -21,7 +21,7 @@ export class SketchRenderer {
       antialias: renderParams.antialias,
       autoDensity: renderParams.resizeCSS,
     })
-    this.canvas = this.renderer.view as Canvas
+    this.canvas = this.renderer.view as ICanvas
   }
 
   /**
