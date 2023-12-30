@@ -1,14 +1,15 @@
 import { CanvasCapture } from "canvas-capture"
+import { clamp } from "library/utils"
 import { Spector } from "spectorjs"
 import Stats from "stats.js"
 
-import { clamp } from "../utils"
 import { Sketch } from "./sketch"
 import { SizeParams } from "./types"
 
 const minWidth = 100
 const minHeight = 100
 
+/** Object holding reference to UI system */
 export type UI = {
   stats: Stats
   capture: typeof CanvasCapture
@@ -16,15 +17,15 @@ export type UI = {
 
 /**
  * Initializes UI element for capturing canvas to file, profiling WebGL commands and resizing canvas
- * @param defaultParams default {@link ResizeOptions} to fallback to
  * @param sketch {@link Sketch} instance to resize
+ * @param defaultParams default {@link SizeParams} to fallback to
  * @returns {UI}
  */
-export function initUI(defaultParams: SizeParams, sketch: Sketch): UI {
-  const canvas = sketch.canvas
+export function initUI(sketch: Sketch, defaultParams: Required<SizeParams>): UI {
+  const canvas = sketch.renderer.canvas as HTMLCanvasElement
   initCanvasCapture(canvas)
   initSpector(canvas)
-  initResizeUI(defaultParams, sketch)
+  initResizeUI(sketch, defaultParams)
 
   const stats = new Stats()
   document.body.appendChild(stats.dom)
@@ -59,10 +60,10 @@ function initSpector(canvas: HTMLCanvasElement) {
 
 /**
  * Initialize UI for canvas resize
- * @param defaultParams default {@link ResizeOptions} to fallback to
  * @param sketch {@link Sketch} instance to resize
+ * @param defaultParams default {@link SizeParams} to fallback to
  */
-function initResizeUI(defaultParams: SizeParams, sketch: Sketch) {
+function initResizeUI(sketch: Sketch, defaultParams: Required<SizeParams>) {
   const resizeForm = document.createElement("form")
   const getParam = (paramKey: string) => parseInt((<HTMLInputElement>document.getElementById(paramKey)).value) || 0
 
@@ -70,7 +71,7 @@ function initResizeUI(defaultParams: SizeParams, sketch: Sketch) {
     const newOptions = {
       width: clamp(getParam("width"), minWidth, defaultParams.width),
       height: clamp(getParam("height"), minHeight, defaultParams.height),
-      resolution: Math.max(getParam("resolution"), 1),
+      resolution: Math.max(getParam("resolution"), defaultParams.resolution),
     }
     sketch.resize(newOptions)
   }

@@ -35,28 +35,39 @@ export type SketchEnv = {
  */
 export type SketchFactory = (env: SketchEnv) => SketchInstance
 
-/** Parameters for controlling renderer's size */
+/** Parameters for controlling sketch's size */
 export type SizeParams = {
-  /** Actual framebuffer width (in pixels) */
+  /** Sketch's width (in pixels) */
   width: number
-  /** Actual framebuffer height (in pixels) */
+  /** Sketch's height (in pixels) */
   height: number
   /** Renderer's resolution / device pixel ratio */
-  resolution: number
+  resolution?: number
+}
+
+export type Canvas = HTMLCanvasElement | OffscreenCanvas
+
+/**
+ * Type guard to distinguish between HTML and offscreen canvas
+ * @param canvas {@link HTMLCanvasElement} or {@link OffscreenCanvas}
+ * @returns true if `canvas` is {@link HTMLCanvasElement}
+ */
+export function isHTMLCanvas(canvas: Canvas): canvas is HTMLCanvasElement {
+  return (canvas as HTMLCanvasElement).isConnected !== undefined
 }
 
 /** Parameters for controlling rendering process */
 export type RenderParams = {
-  /** Canvas element to render to */
-  view?: HTMLCanvasElement
   /** Enable WebGL antialiasing */
   antialias: boolean
-  /** Whether or not to scale bounding box when setting resolution */
-  scaleBbox: boolean
   /** Whether or not to resize canvas css dimensions when resizing renderer*/
   resizeCSS: boolean
-  /** Enable/disable generating new sketches with a click on canvas */
-  clickable: boolean
 }
 
-export type SketchParams = SizeParams & RenderParams
+/** Parameters for controlling sketch running */
+export type RunnerParams = {
+  /** Enable/disable generating new sketches with a click on canvas */
+  clickable: boolean
+  /** Enable/disable running an update loop */
+  updatable: boolean
+}

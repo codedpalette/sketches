@@ -32,8 +32,6 @@ yarn start
 In order to switch to a different sketch, go to `<root>/index.ts` and update the following import at the start of a file
 
 ```typescript
-import { defaultSizeParams, Sketch } from "library/core/sketch"
-import { initUI } from "library/core/ui"
 import factory from "path/to/sketch" // Update path here
 ```
 

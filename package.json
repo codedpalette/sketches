@@ -32,10 +32,9 @@
   },
   "dependencies": {
     "@flatten-js/core": "^1.4.4",
-    "@pixi/graphics-smooth": "^1.1.0",
     "canvas-capture": "^2.1.1",
     "culori": "^3.2.0",
-    "pixi.js": "^7.2.4",
+    "pixi.js": "npm:@pixi/webworker@latest",
     "random-js": "^2.1.0",
     "rbush": "^3.0.1",
     "rbush-knn": "https://github.com/mourner/rbush-knn.git",

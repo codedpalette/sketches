@@ -1,15 +1,24 @@
 import { SketchFactory } from "library/core/types"
 
+export { SketchRenderer } from "library/core/renderer"
+export { SketchRunner } from "library/core/runner"
 export { Sketch } from "library/core/sketch"
 export * from "library/core/types"
+
+/** Sketch module definition */
 export type SketchModule = {
+  /** Artwork title */
   name: string
+  /** Artwork year (specifies folder to load sketch from) */
   year: number
-  sketch?: SketchFactory
+}
+
+type SketchModuleImpl = {
+  default: SketchFactory
 }
 
 // Only finished artworks here
-const modules = [
+export const sketches = [
   { name: "colonize", year: 2022 },
   { name: "curves", year: 2022 },
   { name: "pillars", year: 2022 },
@@ -25,11 +34,12 @@ const modules = [
   { name: "shade", year: 2023 },
 ]
 
-async function loadModule(module: SketchModule): Promise<Required<SketchModule>> {
-  const { default: sketch } = (await import(`./sketches/${module.year}/${module.name}.ts`)) as {
-    default: SketchFactory
-  }
-  return { ...module, sketch }
+/**
+ * Dynamically load sketch module
+ * @param module {@link SketchModule} definition
+ * @returns {Promise<SketchFactory>}
+ */
+export async function loadModule(module: SketchModule): Promise<SketchFactory> {
+  const { default: sketch } = (await import(`./sketches/${module.year}/${module.name}.ts`)) as SketchModuleImpl
+  return sketch
 }
-
-export const sketches = Promise.all(modules.map((module) => loadModule(module)))

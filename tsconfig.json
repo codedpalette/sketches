@@ -16,5 +16,6 @@
     "useDefineForClassFields": true, // https://vitejs.dev/guide/features.html#usedefineforclassfields
     "forceConsistentCasingInFileNames": true,
     "types": ["vite-plugin-glsl/ext"]
-  }
+  },
+  "exclude": ["dist"]
 }
