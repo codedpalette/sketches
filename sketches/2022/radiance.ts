@@ -2,7 +2,7 @@ import { box, vector } from "@flatten-js/core"
 import { converter, formatCss } from "culori"
 import { SketchEnv } from "library/core/types"
 import { drawCanvas } from "library/drawing/helpers"
-import { Color, Container, Graphics } from "pixi.js"
+import { Color, Container, FXAAFilter, Graphics } from "pixi.js"
 
 const oklab = converter("oklab")
 export default ({ random, bbox }: SketchEnv) => {
@@ -13,6 +13,7 @@ export default ({ random, bbox }: SketchEnv) => {
 
   const container = new Container()
   container.addChild(drawBackground(), drawRays(), drawCircle())
+  container.filters = [new FXAAFilter()]
 
   return { container }
 

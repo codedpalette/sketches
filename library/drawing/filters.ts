@@ -26,12 +26,12 @@ export class NoiseAlphaFilter extends Filter {
    * @param noiseScale Scale factor for noise sampling coordinates (lower values mean smoother noise)
    * @param random {@link Random} instance for generating random noise sampling offset
    */
-  constructor(resolution: number, noiseScale = 1, random?: Random) {
+  constructor(noiseScale = 1, random?: Random, resolution?: number) {
     const uniforms = {
       noiseScale,
       noiseOffset: random?.realZeroToOneInclusive() ?? 0,
     }
     super(filterVertTemplate(), NoiseAlphaFilter.fragShader, uniforms)
-    this.resolution = resolution
+    this.resolution = resolution ?? null
   }
 }

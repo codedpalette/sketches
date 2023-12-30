@@ -49,7 +49,7 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
     const lines = drawLines(rotation % Math.PI, lineSpacing)
     container.addChild(lines)
     container.filterArea = renderer.screen
-    container.filters = [new NoiseAlphaFilter(renderer.resolution, noiseScale, random)]
+    container.filters = [new NoiseAlphaFilter(noiseScale, random, renderer.resolution)]
     return container
   }
 
