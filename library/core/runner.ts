@@ -38,7 +38,7 @@ export class SketchRunner {
     if (this.params.updatable && (this.sketch.update || this.ui)) {
       this.renderLoop()
     } else {
-      this.sketch.render()
+      void this.sketch.render()
     }
   }
 
@@ -63,7 +63,7 @@ export class SketchRunner {
     const loop = (timestamp: number) => {
       this.ui?.stats?.begin()
       this.updateTime(timestamp)
-      this.sketch.render()
+      void this.sketch.render()
       this.checkRecording()
       this.ui?.stats?.end()
       this.requestId = requestAnimationFrame(loop)
