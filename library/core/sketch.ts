@@ -35,12 +35,15 @@ export class Sketch implements SketchInstance {
   }
 
   /**
-   * Render this sketch and return render as ImageBitmap
+   * Render this sketch and optionally copy results to another canvas
+   * @param copyTo Canvas element to copy render results to
    */
-  async render(): Promise<ImageBitmap> {
+  render(copyTo?: HTMLCanvasElement) {
     this.renderer.render(this)
-    const imageBitmap = await createImageBitmap(this.renderer.canvas)
-    return imageBitmap
+    if (copyTo) {
+      const ctx = copyTo.getContext("2d")
+      ctx?.drawImage(this.renderer.canvas, 0, 0)
+    }
   }
 
   /** Generate new sketch instance */
