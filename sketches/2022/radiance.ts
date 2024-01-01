@@ -1,15 +1,14 @@
 import { box, vector } from "@flatten-js/core"
-import { converter, formatCss } from "culori"
+import { formatCss } from "culori"
 import { SketchEnv } from "library/core/types"
 import { drawCanvas } from "library/drawing/helpers"
 import { Color, Container, FXAAFilter, Graphics } from "pixi.js"
 
-const oklab = converter("oklab")
 export default ({ random, bbox }: SketchEnv) => {
   const gradientCenter = vector(random.minmax(bbox.width * 0.4), random.minmax(bbox.height * 0.4))
   const gradientRotation = Math.atan2(gradientCenter.y, gradientCenter.x) + random.minmax(Math.PI / 8)
   const palette = [random.color(), random.color(), random.color()]
-  const paletteCss = palette.map((color) => formatCss(oklab(new Color(color).toHex())) as string)
+  const paletteCss = palette.map((color) => formatCss(new Color(color).toHex()) as string)
 
   const container = new Container()
   container.addChild(drawBackground(), drawRays(), drawCircle())
@@ -24,6 +23,7 @@ export default ({ random, bbox }: SketchEnv) => {
         bbox.width / 2 + gradientCenter.x,
         bbox.height / 2 - gradientCenter.y
       )
+      gradient
       gradient.addColorStop(0, paletteCss[0])
       gradient.addColorStop(random.real(0.3, 0.7), paletteCss[1])
       gradient.addColorStop(1, paletteCss[1])
