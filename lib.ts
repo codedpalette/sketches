@@ -19,19 +19,19 @@ type SketchModuleImpl = {
 
 // Only finished artworks here
 export const sketches = [
-  { name: "colonize", year: 2022 },
-  { name: "curves", year: 2022 },
-  { name: "pillars", year: 2022 },
-  { name: "radiance", year: 2022 },
-  { name: "shards", year: 2022 },
-  { name: "squares", year: 2022 },
-  { name: "stars", year: 2022 },
-  { name: "trees", year: 2022 },
-  { name: "waves", year: 2022 },
-  { name: "whirlwind", year: 2022 },
   { name: "fireworks", year: 2023 },
   { name: "kiss", year: 2023 },
   { name: "shade", year: 2023 },
+  { name: "whirlwind", year: 2022 },
+  { name: "waves", year: 2022 },
+  { name: "trees", year: 2022 },
+  { name: "stars", year: 2022 },
+  { name: "squares", year: 2022 },
+  { name: "shards", year: 2022 },
+  { name: "radiance", year: 2022 },
+  { name: "pillars", year: 2022 },
+  { name: "curves", year: 2022 },
+  { name: "colonize", year: 2022 },
 ]
 
 /**
