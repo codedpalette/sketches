@@ -2,11 +2,12 @@ import { Box, box } from "@flatten-js/core"
 import { SketchEnv } from "library/core/types"
 import { drawBackground } from "library/drawing/helpers"
 import { map } from "library/utils"
-import { Container, IPointData, ParticleContainer, Sprite, Texture } from "pixi.js"
+import { Color, Container, IPointData, ParticleContainer, Sprite, Texture } from "pixi.js"
 
 export default ({ random, bbox }: SketchEnv) => {
   const container = new Container()
   container.addChild(drawBackground("black", bbox))
+  const color = new Color(random.color())
 
   const particleCount = 1e5
 
@@ -120,18 +121,26 @@ export default ({ random, bbox }: SketchEnv) => {
   }
 
   function plot(points: IPointData[], box: Box) {
+    let maxDistance = 0
+    const distances = []
+    for (let i = 0; i < points.length; i++) {
+      const point = points[i]
+      distances[i] = i == 0 ? 0 : Math.hypot(point.x - points[i - 1].x, point.y - points[i - 1].y)
+      maxDistance = Math.max(distances[i], maxDistance)
+    }
     const particleContainer = new ParticleContainer(particleCount, { vertices: true, tint: true })
-    for (const point of points) {
+    for (let i = 0; i < points.length; i++) {
+      const point = points[i]
       const particle = new Sprite(Texture.WHITE)
       particle.anchor.set(0.5)
       particle.scale.set(0.1)
       const x = map(point.x, box.xmin, box.xmax, bbox.xmin, bbox.xmax)
       const y = map(point.y, box.ymin, box.ymax, bbox.ymin, bbox.ymax)
       particle.position.set(x, y)
-      particle.alpha = 0.5
-      // TODO: Coloring
+      particle.alpha = map(distances[i], 0, maxDistance, 1, 0.5)
       particleContainer.addChild(particle)
     }
+    particleContainer.tint = color
     return particleContainer
   }
 }
