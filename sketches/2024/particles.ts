@@ -91,7 +91,6 @@ export default ({ random, bbox }: SketchEnv) => {
 
     if (!converging && lyapunov / particleCount > 0.1 && minDx < 1e-3 && minDy < 1e-3) {
       found = true
-      console.log(lyapunov / particleCount)
     }
   }
 
