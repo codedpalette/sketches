@@ -18,6 +18,7 @@ export class SketchRenderer<ICanvas extends Canvas = Canvas> {
     const renderParams = { ...defaultRenderParams, ...params }
     // Initialize Pixi.js WebGL renderer
     this.renderer = new Renderer({
+      view: renderParams.canvas,
       antialias: renderParams.antialias,
       autoDensity: renderParams.resizeCSS,
     })

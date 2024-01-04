@@ -57,11 +57,13 @@ export function isHTMLCanvas(canvas: Canvas): canvas is HTMLCanvasElement {
 }
 
 /** Parameters for controlling rendering process */
-export type RenderParams = {
+export type RenderParams<ICanvas extends Canvas = Canvas> = {
   /** Enable WebGL antialiasing */
   antialias: boolean
   /** Whether or not to resize canvas css dimensions when resizing renderer*/
   resizeCSS: boolean
+  /** Optional canvas for renderer to render onto */
+  canvas?: ICanvas
 }
 
 /** Parameters for controlling sketch running */

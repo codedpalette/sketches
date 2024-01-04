@@ -11,18 +11,26 @@ export class Sketch implements SketchInstance {
   /** Sketch size parameters */
   public readonly params: Required<SizeParams>
   /** Seed for initializing random generator */
-  private readonly randomSeed = createEntropy()
+  public readonly seed: number[]
   /** Using [Mersenne twister](http://en.wikipedia.org/wiki/Mersenne_twister) algorithm for repeatability */
-  private mersenneTwister = MersenneTwister.seedWithArray(this.randomSeed)
+  private mersenneTwister: MersenneTwister
   /** RNG instance */
-  private random = new Random(this.mersenneTwister)
+  private random: Random
   /** RNG use count (for repeatability of random numbers) */
   private randomUseCount = 0
   /** Current sketch instance */
   private sketch: SketchInstance
 
-  constructor(private sketchFactory: SketchFactory, public readonly renderer: SketchRenderer, params: SizeParams) {
+  constructor(
+    private sketchFactory: SketchFactory,
+    public readonly renderer: SketchRenderer,
+    params: SizeParams,
+    seed?: number[]
+  ) {
     this.params = { resolution: 1, ...params }
+    this.seed = seed || createEntropy()
+    this.mersenneTwister = MersenneTwister.seedWithArray(this.seed)
+    this.random = new Random(this.mersenneTwister)
     this.sketch = this.runFactory()
   }
 
@@ -39,10 +47,12 @@ export class Sketch implements SketchInstance {
    * @param copyTo Canvas element to copy render results to
    */
   render(copyTo?: HTMLCanvasElement) {
-    this.renderer.render(this)
     if (copyTo) {
-      const ctx = copyTo.getContext("2d")
-      ctx?.drawImage(this.renderer.canvas, 0, 0)
+      const copyRenderer = new SketchRenderer({ canvas: copyTo })
+      copyRenderer.render(this)
+      copyRenderer.destroy()
+    } else {
+      this.renderer.render(this)
     }
   }
 
@@ -64,7 +74,7 @@ export class Sketch implements SketchInstance {
     Object.assign(this.params, params)
     // When resizing sketch we want RNG to repeat the same values
     // Which is why we need to recreate the state that was prior to last sketch run
-    this.mersenneTwister = MersenneTwister.seedWithArray(this.randomSeed).discard(this.randomUseCount)
+    this.mersenneTwister = MersenneTwister.seedWithArray(this.seed).discard(this.randomUseCount)
     this.random = new Random(this.mersenneTwister)
     this.sketch = this.runFactory()
   }
