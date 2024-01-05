@@ -20,6 +20,13 @@ export default ({ random, bbox }: SketchEnv) => {
   }
   return { container }
 
+  /**
+   *
+   * @param yWave
+   * @param yNext
+   * @param waveNum
+   * @param waveAmp
+   */
   function fillWave(yWave: number, yNext: number, waveNum: number, waveAmp: number) {
     const skewAbs = random.real(Math.PI / 16, Math.PI / 4) // Skew factor absolute value
     const rectSize = random.real(10, 20)

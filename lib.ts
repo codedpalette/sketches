@@ -37,7 +37,7 @@ export const sketches = [
 /**
  * Dynamically load sketch module
  * @param module {@link SketchModule} definition
- * @returns {Promise<SketchFactory>}
+ * @returns promise with loaded sketch factory function
  */
 export async function loadModule(module: SketchModule): Promise<SketchFactory> {
   const { default: sketch } = (await import(`./sketches/${module.year}/${module.name}.ts`)) as SketchModuleImpl

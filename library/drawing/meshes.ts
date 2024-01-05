@@ -10,7 +10,7 @@ import { fragTemplate, ShaderProgram, vertexTemplate } from "./shaders"
  * @param width Uniform line width
  * @param color Uniform fill color
  * @param [fragShaderExt] Optional fragment {@link ShaderProgram} to customize rendering
- * @returns {Mesh}
+ * @returns Mesh
  */
 export function renderLines(
   segments: Segment[],

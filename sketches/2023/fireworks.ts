@@ -26,6 +26,10 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
 
   // Vortex simulation using Rankine vortex model
   // https://en.wikipedia.org/wiki/Rankine_vortex
+  /**
+   *
+   * @param hue
+   */
   function drawVortex(hue: number) {
     const particleCount = 300
     const thetaStep = 0.005 // Increment step for polar angle theta
@@ -69,6 +73,9 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
     return c
   }
 
+  /**
+   *
+   */
   function drawBackground() {
     const backgroundContainer = new Container()
     backgroundContainer.addChild(
@@ -103,6 +110,9 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
     return backgroundContainer
   }
 
+  /**
+   *
+   */
   function drawStars() {
     const container = new Container()
     const numStars = random.real(200, 300)

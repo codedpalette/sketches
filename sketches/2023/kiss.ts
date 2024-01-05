@@ -21,6 +21,9 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
   container.addChild(polygons())
   return { container }
 
+  /**
+   *
+   */
   function background() {
     const backHue = ((mainHue + 180) % 360) + random.real(-20, 20)
     const backColor = { h: backHue, s: random.real(10, 30), v: random.real(70, 90) }
@@ -55,6 +58,9 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
     return backContainer
   }
 
+  /**
+   *
+   */
   function polygons() {
     const polygons = new Container()
     const numPolygons = 2000
@@ -87,6 +93,11 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
     return polygons
   }
 
+  /**
+   *
+   * @param numVertices
+   * @param radius
+   */
   function randomPolygon(numVertices: number, radius: number): IPointData[] {
     // Define vertices as random points on a circle with a specified radius
     const thetas = Array.from({ length: numVertices }, (_) => random.real(0, 2 * Math.PI)).sort()

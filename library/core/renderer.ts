@@ -11,9 +11,15 @@ settings.ADAPTER = isBrowser ? BrowserAdapter : WebWorkerAdapter
 export class SketchRenderer<ICanvas extends Canvas = Canvas> {
   /** Internal canvas that this renderer renders to */
   public readonly canvas: ICanvas
-  /** Pixi.js {@link Renderer} */
+  /**
+   * Pixi.js {@link Renderer}
+   * @internal
+   */
   public readonly renderer: Renderer
 
+  /**
+   * @param params parameters overrides for this renderer
+   */
   constructor(params?: Partial<RenderParams>) {
     const renderParams = { ...defaultRenderParams, ...params }
     // Initialize Pixi.js WebGL renderer
@@ -28,6 +34,7 @@ export class SketchRenderer<ICanvas extends Canvas = Canvas> {
   /**
    * Render a sketch with this renderer
    * @param sketch {@link Sketch}
+   * @internal
    */
   render(sketch: Sketch) {
     this.resize(sketch.params)
@@ -41,7 +48,7 @@ export class SketchRenderer<ICanvas extends Canvas = Canvas> {
 
   /**
    * Resize renderer
-   * @param {SizeParams} params New size parameters for this renderer
+   * @param params New size parameters for this renderer
    */
   private resize(params: Required<SizeParams>) {
     this.renderer.resolution = params.resolution

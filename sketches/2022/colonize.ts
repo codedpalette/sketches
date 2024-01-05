@@ -52,6 +52,11 @@ export default ({ random, bbox }: SketchEnv) => {
   }
   return { container }
 
+  /**
+   *
+   * @param hue
+   * @param layerNum
+   */
   function colonize(hue: number, layerNum: number) {
     // Focal points of some resource that promote growth
     const attractors: Point[] = []
@@ -146,6 +151,11 @@ export default ({ random, bbox }: SketchEnv) => {
     return drawNodes(nodes, hue)
   }
 
+  /**
+   *
+   * @param nodes
+   * @param hue
+   */
   function drawNodes(nodes: Node[], hue: number): Graphics {
     const g = new Graphics()
     const val = isDarkBackground ? 100 : 50

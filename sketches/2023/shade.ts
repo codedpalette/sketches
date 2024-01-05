@@ -40,6 +40,10 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
   container.filters = [new NoiseFilter(random.real(0.1, 0.2), random.realZeroToOneInclusive()), new FXAAFilter()]
   return { container }
 
+  /**
+   *
+   * @param layerNum
+   */
   function drawLayer(layerNum: number) {
     const container = new Container()
     const rotation = startingRotation + layerNum * ((Math.PI / numLayers) * random.real(0.8, 1.2))
@@ -53,6 +57,11 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
     return container
   }
 
+  /**
+   *
+   * @param rotation
+   * @param lineSpacing
+   */
   function drawLines(rotation: number, lineSpacing: number) {
     const lineWidth = (lineSpacing * 2) / 3
     const lineNormal = vector(0, 1).rotate(rotation) // Normal vector to line

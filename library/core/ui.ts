@@ -19,7 +19,7 @@ export type UI = {
  * Initializes UI element for capturing canvas to file, profiling WebGL commands and resizing canvas
  * @param sketch {@link Sketch} instance to resize
  * @param defaultParams default {@link SizeParams} to fallback to
- * @returns {UI}
+ * @returns object holding references to ui elements
  */
 export function initUI(sketch: Sketch, defaultParams: Required<SizeParams>): UI {
   const canvas = sketch.renderer.canvas as HTMLCanvasElement

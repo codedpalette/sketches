@@ -5,7 +5,6 @@ import { filterFragTemplate, filterVertTemplate, glslNoise3d } from "./shaders"
 
 /**
  * Pixi.js filter for setting pixel opacity based on a noise value
- * @extends Filter
  */
 export class NoiseAlphaFilter extends Filter {
   private static fragShader = filterFragTemplate({
@@ -22,9 +21,9 @@ export class NoiseAlphaFilter extends Filter {
 
   /**
    * Creates {@link NoiseAlphaFilter}
-   * @param resolution Pixi.js Renderer's resolution/device pixel ratio
    * @param noiseScale Scale factor for noise sampling coordinates (lower values mean smoother noise)
    * @param random {@link Random} instance for generating random noise sampling offset
+   * @param resolution Pixi.js Renderer's resolution/device pixel ratio
    */
   constructor(noiseScale = 1, random?: Random, resolution?: number) {
     const uniforms = {

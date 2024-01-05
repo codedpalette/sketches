@@ -31,6 +31,11 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
 
   return { container }
 
+  /**
+   *
+   * @param noiseOffset
+   * @param color
+   */
   function landscape(noiseOffset: number, color: ColorSource) {
     const g = new Graphics().lineStyle(1, color).beginFill(color)
     const pointData = [{ x: -bbox.width / 2, y: -bbox.height / 2 }]
@@ -45,6 +50,10 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
     return g
   }
 
+  /**
+   *
+   * @param color
+   */
   function trees(color: ColorSource) {
     const container = new Container()
     const numTrees = random.integer(4, 7)
@@ -57,6 +66,13 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
     return container
   }
 
+  /**
+   *
+   * @param x
+   * @param y
+   * @param startBranchHeight
+   * @param color
+   */
   function tree(x: number, y: number, startBranchHeight: number, color: ColorSource) {
     const container = new Container()
     container.position.set(x, y)
@@ -64,6 +80,13 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
     return container
   }
 
+  /**
+   *
+   * @param height
+   * @param depth
+   * @param startBranchHeight
+   * @param color
+   */
   function branch(height: number, depth: number, startBranchHeight: number, color: ColorSource) {
     if (depth > maxDepth) return branchEnd()
     const container = new Container()
@@ -85,6 +108,9 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
     return container
   }
 
+  /**
+   *
+   */
   function branchEnd() {
     const sprite = new Sprite(random.bool() ? fruitTexture : leafTexture)
     sprite.anchor.set(0.5)

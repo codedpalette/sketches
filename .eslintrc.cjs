@@ -5,7 +5,7 @@ module.exports = {
     tsconfigRootDir: __dirname,
     project: true,
   },
-  plugins: ["@typescript-eslint", "import", "unused-imports", "simple-import-sort"],
+  plugins: ["@typescript-eslint", "import", "unused-imports", "simple-import-sort", "jsdoc"],
   extends: [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended-type-checked",
@@ -21,6 +21,10 @@ module.exports = {
         node: true,
       },
     },
+    {
+      files: ["./library/**"],
+      extends: ["plugin:jsdoc/recommended-typescript"],
+    },
   ],
   settings: {
     // https://github.com/import-js/eslint-plugin-import/tree/main#typescript
@@ -28,6 +32,7 @@ module.exports = {
   },
   rules: {
     "@typescript-eslint/member-ordering": "warn",
+    "jsdoc/require-jsdoc": ["warn", { publicOnly: true, require: { ClassDeclaration: true, MethodDefinition: true } }],
 
     // https://github.com/lydell/eslint-plugin-simple-import-sort/#example-configuration
     "simple-import-sort/imports": "warn",

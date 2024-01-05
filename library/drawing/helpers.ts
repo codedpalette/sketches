@@ -7,7 +7,7 @@ import { ColorSource, Graphics, Sprite } from "pixi.js"
  * there are no blank spaces in the corners.
  * @param color background color
  * @param bbox viewport bounding box
- * @returns {Graphics}
+ * @returns Graphics object with a background rect
  */
 export function drawBackground(color: ColorSource, bbox: Box): Graphics {
   return new Graphics().beginFill(color).drawRect(-bbox.width, -bbox.height, bbox.width * 2, bbox.height * 2)
@@ -17,7 +17,7 @@ export function drawBackground(color: ColorSource, bbox: Box): Graphics {
  * Wrapper around HTML Canvas API to render it as Pixi.js {@link Sprite}
  * @param render Function taking {@link OffscreenCanvasRenderingContext2D} that does the actual drawing
  * @param bbox Bounding box defining canvas size
- * @returns {Sprite}
+ * @returns Sprite
  */
 export function drawCanvas(render: (ctx: OffscreenCanvasRenderingContext2D) => void, bbox: Box): Sprite {
   const canvas = new OffscreenCanvas(bbox.width, bbox.height)

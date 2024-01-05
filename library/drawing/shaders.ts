@@ -18,7 +18,7 @@ const globalPreamble = /*glsl*/ `#version 300 es
  * Template for vertex shader program. Defines attributes and uniforms necessary for Pixi.js interop
  * and sets the `gl_Position` variable
  * @param program {@link ShaderProgram} to extend this template
- * @returns {string} vertex glsl code
+ * @returns vertex glsl code
  */
 export const vertexTemplate = (program: ShaderProgram = {}): string => /*glsl*/ `${globalPreamble}
   in vec2 aPosition;
@@ -39,7 +39,7 @@ export const vertexTemplate = (program: ShaderProgram = {}): string => /*glsl*/ 
  * Template for fragment shader program. Defines varyings passed from {@link vertexTemplate}
  * and sets the `fragColor` variable
  * @param program {@link ShaderProgram} to extend this template
- * @returns {string} fragment glsl code
+ * @returns fragment glsl code
  */
 export const fragTemplate = (program: ShaderProgram = {}): string => /*glsl*/ `${globalPreamble}
   in vec2 vPosition;
@@ -57,7 +57,7 @@ export const fragTemplate = (program: ShaderProgram = {}): string => /*glsl*/ `$
  * Defines attributes and uniforms necessary for Pixi.js interop
  * and sets the `gl_Position` variable
  * @param program {@link ShaderProgram} to extend this template
- * @returns {string} vertex glsl code
+ * @returns vertex glsl code
  */
 export const filterVertTemplate = (program: ShaderProgram = {}): string => /*glsl*/ `${globalPreamble}
   in vec2 aVertexPosition;
@@ -81,7 +81,7 @@ export const filterVertTemplate = (program: ShaderProgram = {}): string => /*gls
  * Defines varyings passed from {@link filterVertTemplate}
  * and sets the `fragColor` variable
  * @param program {@link ShaderProgram} to extend this template
- * @returns {string} fragment glsl code
+ * @returns fragment glsl code
  */
 export const filterFragTemplate = (program: ShaderProgram = {}): string => /*glsl*/ `${globalPreamble}
   in vec2 vTextureCoord;

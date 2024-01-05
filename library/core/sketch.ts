@@ -4,7 +4,7 @@ import { createEntropy, MersenneTwister19937 as MersenneTwister } from "random-j
 
 import { Random } from "./random"
 import { SketchRenderer } from "./renderer"
-import { SizeParams, SketchFactory, SketchInstance } from "./types"
+import { isHTMLCanvas, SizeParams, SketchFactory, SketchInstance } from "./types"
 
 /** Class for wrapping sketch and controlling RNG state */
 export class Sketch implements SketchInstance {
@@ -21,6 +21,12 @@ export class Sketch implements SketchInstance {
   /** Current sketch instance */
   private sketch: SketchInstance
 
+  /**
+   * @param sketchFactory function producing new sketch instances
+   * @param renderer renderer to use for this sketch
+   * @param params parameters object defining sketch size and render resolution
+   * @param seed RNG seed (useful for recreating state of another sketch object)
+   */
   constructor(
     private sketchFactory: SketchFactory,
     public readonly renderer: SketchRenderer,
@@ -34,26 +40,38 @@ export class Sketch implements SketchInstance {
     this.sketch = this.runFactory()
   }
 
+  /**
+   * @returns sketch instance container
+   */
   get container() {
     return this.sketch.container
   }
 
+  /**
+   * @returns sketch instance update function
+   */
   get update() {
     return this.sketch.update
   }
 
   /**
-   * Render this sketch and optionally copy results to another canvas
-   * @param copyTo Canvas element to copy render results to
+   * Render this sketch
    */
-  render(copyTo?: HTMLCanvasElement) {
-    if (copyTo) {
-      const copyRenderer = new SketchRenderer({ canvas: copyTo })
-      copyRenderer.render(this)
-      copyRenderer.destroy()
-    } else {
-      this.renderer.render(this)
-    }
+  render() {
+    this.renderer.render(this)
+  }
+
+  /**
+   * Render this sketch and export render result
+   * @returns renderer's canvas contents as blob
+   */
+  async export(): Promise<Blob> {
+    this.render()
+    const canvas = this.renderer.canvas
+    const blobPromise = isHTMLCanvas(canvas)
+      ? new Promise<Blob>((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(blob) : reject())))
+      : canvas.convertToBlob()
+    return await blobPromise
   }
 
   /** Generate new sketch instance */
@@ -84,7 +102,10 @@ export class Sketch implements SketchInstance {
     this.sketch.container.destroy(true)
   }
 
-  /** Method to generate new sketch instance */
+  /**
+   * Method to generate new sketch instance
+   * @returns sketch instance with wrapped container
+   */
   private runFactory(): SketchInstance {
     const renderer = this.renderer.renderer
     const random = this.random

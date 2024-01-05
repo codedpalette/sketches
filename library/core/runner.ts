@@ -22,6 +22,11 @@ export class SketchRunner {
   /** Runner params */
   private params: RunnerParams
 
+  /**
+   * @param sketch sketch to run
+   * @param ui UI system object
+   * @param params parameters overrides for this runner
+   */
   constructor(private sketch: Sketch, private ui?: UI, params?: Partial<RunnerParams>) {
     this.params = { ...defaultRunnerParams, ...params }
     if (this.params.clickable) {

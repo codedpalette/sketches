@@ -16,6 +16,9 @@ export default ({ random, bbox }: SketchEnv) => {
 
   return { container }
 
+  /**
+   *
+   */
   function drawBackground() {
     return drawCanvas((ctx) => {
       const gradient = ctx.createConicGradient(
@@ -32,6 +35,9 @@ export default ({ random, bbox }: SketchEnv) => {
     }, bbox)
   }
 
+  /**
+   *
+   */
   function drawRays() {
     const triangleHeight = Math.hypot(bbox.width, bbox.height)
     const rotationStep = 0.25
@@ -56,6 +62,9 @@ export default ({ random, bbox }: SketchEnv) => {
     return triangleContainer
   }
 
+  /**
+   *
+   */
   function drawCircle() {
     const radius = random.real(50, 75)
     const circleBbox = box(0, 0, radius * 2, radius * 2)

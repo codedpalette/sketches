@@ -15,6 +15,7 @@
     "isolatedModules": true, // Because esbuild only performs transpilation without type information
     "useDefineForClassFields": true, // https://vitejs.dev/guide/features.html#usedefineforclassfields
     "forceConsistentCasingInFileNames": true,
+    "stripInternal": true,
     "types": ["vite-plugin-glsl/ext"]
   },
   "exclude": ["dist"]
