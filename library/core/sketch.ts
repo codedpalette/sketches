@@ -4,10 +4,10 @@ import { createEntropy, MersenneTwister19937 as MersenneTwister } from "random-j
 
 import { Random } from "./random"
 import { SketchRenderer } from "./renderer"
-import { isHTMLCanvas, SizeParams, SketchFactory, SketchInstance } from "./types"
+import { Canvas, isHTMLCanvas, SizeParams, SketchFactory, SketchInstance } from "./types"
 
 /** Class for wrapping sketch and controlling RNG state */
-export class Sketch implements SketchInstance {
+export class Sketch<ICanvas extends Canvas = Canvas> {
   /** Sketch size parameters */
   public readonly params: Required<SizeParams>
   /** Seed for initializing random generator */
@@ -19,7 +19,7 @@ export class Sketch implements SketchInstance {
   /** RNG use count (for repeatability of random numbers) */
   private randomUseCount = 0
   /** Current sketch instance */
-  private sketch: SketchInstance
+  private sketch?: SketchInstance
 
   /**
    * @param sketchFactory function producing new sketch instances
@@ -29,7 +29,7 @@ export class Sketch implements SketchInstance {
    */
   constructor(
     private sketchFactory: SketchFactory,
-    public readonly renderer: SketchRenderer,
+    public readonly renderer: SketchRenderer<ICanvas>,
     params: SizeParams,
     seed?: number[]
   ) {
@@ -37,28 +37,23 @@ export class Sketch implements SketchInstance {
     this.seed = seed || createEntropy()
     this.mersenneTwister = MersenneTwister.seedWithArray(this.seed)
     this.random = new Random(this.mersenneTwister)
-    this.sketch = this.runFactory()
   }
 
   /**
-   * @returns sketch instance container
-   */
-  get container() {
-    return this.sketch.container
-  }
-
-  /**
-   * @returns sketch instance update function
+   * Wrapper for sketch update function
+   * @returns underlying sketch instance's update function
    */
   get update() {
-    return this.sketch.update
+    return this.sketch?.update
   }
 
   /**
    * Render this sketch
    */
   render() {
-    this.renderer.render(this)
+    const sketch = this.sketch || this.runFactory()
+    this.renderer.render(sketch, this.params)
+    this.sketch = sketch
   }
 
   /**
@@ -87,19 +82,23 @@ export class Sketch implements SketchInstance {
    * Resize this sketch
    * @param params new {@link SizeParams}
    */
-  resize(params: SizeParams) {
-    this.destroy()
+  resize(params: Partial<SizeParams>) {
+    const currentParams = this.params
     Object.assign(this.params, params)
-    // When resizing sketch we want RNG to repeat the same values
-    // Which is why we need to recreate the state that was prior to last sketch run
-    this.mersenneTwister = MersenneTwister.seedWithArray(this.seed).discard(this.randomUseCount)
-    this.random = new Random(this.mersenneTwister)
-    this.sketch = this.runFactory()
+    if (this.params.width !== currentParams.width || this.params.height !== currentParams.height) {
+      this.destroy()
+      // When resizing sketch we want RNG to repeat the same values
+      // Which is why we need to recreate the state that was prior to last sketch run
+      this.mersenneTwister = MersenneTwister.seedWithArray(this.seed).discard(this.randomUseCount)
+      this.random = new Random(this.mersenneTwister)
+      this.sketch = this.runFactory()
+    }
   }
 
   /** Destroy current sketch container and free associated memory */
   private destroy() {
-    this.sketch.container.destroy(true)
+    this.sketch?.container.destroy(true)
+    this.sketch = undefined
   }
 
   /**

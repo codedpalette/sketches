@@ -27,23 +27,19 @@ export class SketchRunner {
    * @param ui UI system object
    * @param params parameters overrides for this runner
    */
-  constructor(private sketch: Sketch, private ui?: UI, params?: Partial<RunnerParams>) {
+  constructor(private sketch: Sketch<HTMLCanvasElement>, private ui?: UI, params?: Partial<RunnerParams>) {
     this.params = { ...defaultRunnerParams, ...params }
-    if (this.params.clickable) {
-      ;["click", "touchend"].forEach((event) =>
-        this.sketch.renderer.canvas.addEventListener(event, () => this.nextSketch())
-      )
-    }
   }
 
   /**
-   * Render a sketch and run update loop if necessary
+   * Start render loop. Also counts elapsed time to pass it to the {@link SketchInstance.update} function and
+   * checks if {@link https://github.com/amandaghassaei/canvas-capture CanvasCapture} is recording
    */
   start() {
+    this.sketch.render()
+    this.toggleListeners(true)
     if (this.params.updatable && (this.sketch.update || this.ui)) {
       this.renderLoop()
-    } else {
-      void this.sketch.render()
     }
   }
 
@@ -51,6 +47,18 @@ export class SketchRunner {
   stop() {
     this.startTime = this.prevTime = this.frameRecordCounter = 0
     this.requestId && cancelAnimationFrame(this.requestId)
+    this.toggleListeners(false)
+  }
+
+  private clickListener = () => this.nextSketch()
+
+  private toggleListeners(add: boolean) {
+    if (this.params.clickable) {
+      const canvas = this.sketch.renderer.canvas
+      ;["click", "touchend"].forEach((event) =>
+        add ? canvas.addEventListener(event, this.clickListener) : canvas.removeEventListener(event, this.clickListener)
+      )
+    }
   }
 
   /** Generate new sketch instance when user clicks on a canvas */
@@ -60,15 +68,11 @@ export class SketchRunner {
     this.start()
   }
 
-  /**
-   * Start render loop. Also counts elapsed time to pass it to the {@link SketchInstance.update} function and
-   * checks if {@link https://github.com/amandaghassaei/canvas-capture CanvasCapture} is recording
-   */
   private renderLoop() {
     const loop = (timestamp: number) => {
       this.ui?.stats?.begin()
       this.updateTime(timestamp)
-      void this.sketch.render()
+      this.sketch.render()
       this.checkRecording()
       this.ui?.stats?.end()
       this.requestId = requestAnimationFrame(loop)

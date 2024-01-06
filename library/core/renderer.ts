@@ -1,7 +1,6 @@
 import { BrowserAdapter, Renderer, settings, WebWorkerAdapter } from "pixi.js"
 
-import { Sketch } from "./sketch"
-import { Canvas, RenderParams, SizeParams } from "./types"
+import { Canvas, RenderParams, SizeParams, SketchInstance } from "./types"
 
 const isBrowser = typeof window === "object"
 const defaultRenderParams: RenderParams = { antialias: true, resizeCSS: isBrowser }
@@ -33,11 +32,12 @@ export class SketchRenderer<ICanvas extends Canvas = Canvas> {
 
   /**
    * Render a sketch with this renderer
-   * @param sketch {@link Sketch}
+   * @param sketch {@link SketchInstance}
+   * @param params {@link SizeParams}
    * @internal
    */
-  render(sketch: Sketch) {
-    this.resize(sketch.params)
+  render(sketch: SketchInstance, params: Required<SizeParams>) {
+    this.resize(params)
     this.renderer.render(sketch.container)
   }
 
