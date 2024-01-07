@@ -24,6 +24,12 @@ module.exports = {
     {
       files: ["./library/**"],
       extends: ["plugin:jsdoc/recommended-typescript"],
+      rules: {
+        "jsdoc/require-jsdoc": [
+          "warn",
+          { publicOnly: true, require: { ClassDeclaration: true, MethodDefinition: true } },
+        ],
+      },
     },
   ],
   settings: {
@@ -32,7 +38,6 @@ module.exports = {
   },
   rules: {
     "@typescript-eslint/member-ordering": "warn",
-    "jsdoc/require-jsdoc": ["warn", { publicOnly: true, require: { ClassDeclaration: true, MethodDefinition: true } }],
 
     // https://github.com/lydell/eslint-plugin-simple-import-sort/#example-configuration
     "simple-import-sort/imports": "warn",

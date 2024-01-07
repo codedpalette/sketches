@@ -62,6 +62,8 @@ export type RenderParams<ICanvas extends Canvas = Canvas> = {
   antialias: boolean
   /** Whether or not to resize canvas css dimensions when resizing renderer*/
   resizeCSS: boolean
+  /** Should the renderer clear the canvas before render pass */
+  clearBefore: boolean
   /** Optional canvas for renderer to render onto */
   canvas?: ICanvas
 }

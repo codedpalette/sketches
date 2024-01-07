@@ -3,7 +3,7 @@ import { BrowserAdapter, Renderer, settings, WebWorkerAdapter } from "pixi.js"
 import { Canvas, RenderParams, SizeParams, SketchInstance } from "./types"
 
 const isBrowser = typeof window === "object"
-const defaultRenderParams: RenderParams = { antialias: true, resizeCSS: isBrowser }
+const defaultRenderParams: RenderParams = { antialias: true, resizeCSS: isBrowser, clearBefore: true }
 settings.ADAPTER = isBrowser ? BrowserAdapter : WebWorkerAdapter
 
 /** Class for abstracting over framework renderers (only Pixi.js for now) */
@@ -26,6 +26,7 @@ export class SketchRenderer<ICanvas extends Canvas = Canvas> {
       view: renderParams.canvas,
       antialias: renderParams.antialias,
       autoDensity: renderParams.resizeCSS,
+      clearBeforeRender: renderParams.clearBefore,
     })
     this.canvas = this.renderer.view as ICanvas
   }

@@ -9,7 +9,7 @@ export type ShaderProgram = {
   main?: string // Code that extends main function, can override local variables and varyings
 }
 
-const globalPreamble = /*glsl*/ `#version 300 es  
+export const globalPreamble = /*glsl*/ `#version 300 es  
   precision highp float;
   #define PI 3.1415926535897932384626433832795
 `

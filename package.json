@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@flatten-js/core": "^1.4.4",
+    "@tweenjs/tween.js": "^21.0.0",
     "canvas-capture": "^2.1.1",
     "culori": "^3.2.0",
     "pixi.js": "npm:@pixi/webworker@latest",
@@ -41,6 +42,7 @@
     "simplex-noise": "^4.0.1",
     "spectorjs": "https://github.com/BabylonJS/Spector.js",
     "stats.js": "^0.17.0",
+    "twgl.js": "^5.5.3",
     "voronoijs": "^1.0.0"
   },
   "devDependencies": {

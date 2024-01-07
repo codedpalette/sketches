@@ -934,6 +934,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tweenjs/tween.js@npm:^21.0.0":
+  version: 21.0.0
+  resolution: "@tweenjs/tween.js@npm:21.0.0"
+  checksum: 3c2498e9916a599a54d9f8e2bd2dfe0ceb249e3453d29c7b4287310f0fbe12f37d82e986263b411a672d50544dafdda7827b1707a7250023a6440351a741dddc
+  languageName: node
+  linkType: hard
+
 "@types/argparse@npm:1.0.38":
   version: 1.0.38
   resolution: "@types/argparse@npm:1.0.38"
@@ -5570,6 +5577,7 @@ __metadata:
   resolution: "sketches@workspace:."
   dependencies:
     "@flatten-js/core": ^1.4.4
+    "@tweenjs/tween.js": ^21.0.0
     "@types/culori": ^2.0.1
     "@types/rbush": ^3.0.3
     "@types/stats.js": ^0.17.0
@@ -5595,6 +5603,7 @@ __metadata:
     simplex-noise: ^4.0.1
     spectorjs: "https://github.com/BabylonJS/Spector.js"
     stats.js: ^0.17.0
+    twgl.js: ^5.5.3
     typescript: ^5.1.6
     vite: ^4.4.2
     vite-plugin-dts: ^3.6.4
@@ -6066,6 +6075,13 @@ __metadata:
   version: 0.0.1
   resolution: "tty-browserify@npm:0.0.1"
   checksum: 93b745d43fa5a7d2b948fa23be8d313576d1d884b48acd957c07710bac1c0d8ac34c0556ad4c57c73d36e11741763ef66b3fb4fb97b06b7e4d525315a3cd45f5
+  languageName: node
+  linkType: hard
+
+"twgl.js@npm:^5.5.3":
+  version: 5.5.3
+  resolution: "twgl.js@npm:5.5.3"
+  checksum: 400331007bdab0f7fa888b11bf4d34fa10b08d96b7064466c618e2be8cbea4ec7bfd21f841f87d42c26242af9d2f31f373426ad58ba8bd244060bb833866e0a4
   languageName: node
   linkType: hard
 
