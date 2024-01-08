@@ -6,7 +6,7 @@ import factory from "sketches/2024/screensaver"
 
 const defaultSizeParams = { resolution: 1, width: 1250, height: 1250 }
 const renderer = new SketchRenderer<HTMLCanvasElement>({ clearBefore: false })
-const sketch = new Sketch(factory, renderer, defaultSizeParams)
+const sketch = new Sketch(factory([23, 25, 28]), renderer, defaultSizeParams)
 const ui = initUI(sketch, defaultSizeParams)
 const runner = new SketchRunner(sketch, ui)
 document.body.appendChild(renderer.canvas)

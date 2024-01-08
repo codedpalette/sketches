@@ -1,7 +1,8 @@
 import * as TWEEN from "@tweenjs/tween.js"
 import { SketchEnv } from "lib"
-import { Random } from "library/core/random"
+import { noise3d, Random } from "library/core/random"
 import { globalPreamble } from "library/drawing/shaders"
+import { clamp } from "library/utils"
 import { Container } from "pixi.js"
 import {
   Arrays,
@@ -17,22 +18,20 @@ type Metaball = {
   radius: number
   position: [number, number]
   color: [number, number, number]
+  speed: number
 }
 
-export function screensaver(gl: WebGL2RenderingContext, random: Random) {
-  const numBalls = 100
+const vertShader = /*glsl*/ `${globalPreamble}
+  in vec2 a_position;
+  out vec2 uv;
 
-  const vertShader = /*glsl*/ `${globalPreamble}
-    in vec2 a_position;
-    out vec2 position;
+  void main() {
+    uv = a_position;
+    gl_Position = vec4(a_position, 0., 1.);
+  }
+`
 
-    void main() {
-      position = a_position;
-      gl_Position = vec4(a_position, 0., 1.);
-    }
-  `
-
-  const fragShader = /*glsl*/ `${globalPreamble}
+const fragShader = (numBalls: number) => /*glsl*/ `${globalPreamble}    
     #define N ${numBalls}
 
     struct Metaball {
@@ -41,90 +40,89 @@ export function screensaver(gl: WebGL2RenderingContext, random: Random) {
       vec3 color;
     };
 
-    in vec2 position;
-    uniform vec2 resolution;
+    in vec2 uv;    
     uniform float time;
     uniform Metaball balls[N];
-    out vec4 fragColor;
+    out vec4 fragColor;        
 
-    vec4 BallSDF(Metaball ball, vec2 uv) {
-      float sdf = ball.radius / length(uv - ball.position);
-      return vec4(ball.color * sdf, sdf);
-    }
-
-    void mainImage(out vec4 fragColor, in vec2 uv) {          
-      vec4 total = vec4(0.);
+    void main() {      
+      vec4 color = vec4(0.);      
       for(int i = 0; i < N; i++) {
-        Metaball ball = balls[i];        
-        float sdf = length(uv - ball.position) - ball.radius;
-        if (sdf < 0.) {
-          total.rgb += ball.color;
-        } else if (sdf < 0.25) {
-          total.rgb += ball.color * (ball.radius / (sdf + ball.radius));
-        }
-        //vec4 sdf = BallSDF(balls[i], uv);
-        //float threshold = step(0.75, sdf.a);
-        //total += sdf;// * threshold;
+        Metaball ball = balls[i];                
+        float influence = ball.radius / length(uv - ball.position);
+        influence *= influence; // Square the influence for smoother cutoff
+        color.rgb += ball.color * influence;
+        color.a += influence;        
       }
-      //float totalSdf = total.a;
-      //float threshold = step(float(N)*2., totalSdf);      
-      //vec3 col = total.rgb/totalSdf * threshold;
-      //vec3 col = total.rgb / total.a;
-      vec3 col = total.rgb;
-      fragColor = vec4(col, 1.0);
-    }
-
-    void main() {
-      mainImage(fragColor, position);
+      float alpha = max(1. - smoothstep(1., 1.2, color.a), .2); // Creating smooth metaball outline
+      if (color.a > .95) {
+        float adjustBrightness = 2.;
+        color = vec4(normalize(color.rgb) * adjustBrightness, 1.);
+      }            
+      fragColor = color * alpha;
     }
   `
+
+export function screensaver(gl: WebGL2RenderingContext, random: Random, clearColor: [number, number, number]) {
+  const noise = noise3d(random)
+  const numBalls = 100
+
+  // Init WebGL state
   setDefaults({ attribPrefix: "a_" })
-  const programInfo = createProgramInfo(gl, [vertShader, fragShader])
+  const programInfo = createProgramInfo(gl, [vertShader, fragShader(numBalls)])
   const arrays: Arrays = { position: { numComponents: 2, data: [-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1] } }
   const bufferInfo = createBufferInfoFromArrays(gl, arrays)
-  //const balls: Metaball[] = []
+  gl.enable(gl.BLEND)
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
-  const balls = [
-    {
-      radius: 0.25,
-      color: [1, 0, 0],
-      position: [0.5, 0],
-    },
-    {
-      radius: 0.25,
-      color: [0, 0, 1],
-      position: [-0.5, 0],
-    },
-  ]
-  // for (let i = 0; i < numBalls; i++) {
-  //   const ball: Metaball = {
-  //     radius: 0.8, //random.real(0.1, 0.2),
-  //     color: random.bool() ? [1, 0, 0] : [0, 0, 1], //random.color(),
-  //     position: [random.minmax(1), random.minmax(1)],
-  //   }
-  //   balls.push(ball)
-  //   // new TWEEN.Tween({ x: ball.position[0], y: ball.position[1] })
-  //   //   .to({ x: 0, y: 0 }, 1000)
-  //   //   .easing(TWEEN.Easing.Cubic.InOut)
-  //   //   .repeat(Infinity)
-  //   //   .yoyo(true)
-  //   //   .onUpdate(({ x, y }) => {
-  //   //     ball.position[0] = x
-  //   //     ball.position[1] = y
-  //   //   })
-  //   //   .start()
-  // }
+  // Init metaballs
+  const balls: Metaball[] = []
+  for (let i = 0; i < numBalls; i++) {
+    const radius = random.real(0.03, 0.05)
+    const ball: Metaball = {
+      radius: 0,
+      color: random.color(),
+      position: [random.minmax(1), random.minmax(1)],
+      speed: random.real(0.001, 0.01),
+    }
+    balls.push(ball)
+
+    // TODO: Restart tween after finish
+    const durationIn = random.real(2000, 5000)
+    //const durationOut = random.real(2000, 5000)
+    //const timeToLive = random.real(5000, 15000)
+    const tweenIn = new TWEEN.Tween(ball).to({ radius }, durationIn).easing(TWEEN.Easing.Elastic.Out)
+    // const tweenOut = new TWEEN.Tween(ball)
+    //   .to({ radius: 0 }, durationOut)
+    //   .easing(TWEEN.Easing.Elastic.In)
+    //   .delay(timeToLive)
+    tweenIn
+      //.chain(tweenOut)
+      .start(0)
+  }
+
+  function updatePositions(time: number) {
+    for (let i = 0; i < numBalls; i++) {
+      const ball = balls[i]
+      const n1 = noise(ball.position[0], ball.position[1], time + i * 1000)
+      const n2 = noise(ball.position[0], ball.position[1], time + i * 1000 + 10000)
+      const offsetX = n1 * ball.speed
+      const offsetY = n2 * ball.speed
+      // TODO: Pass clamping values in a constructor
+      ball.position[0] = clamp(ball.position[0] + offsetX, -1, 1)
+      ball.position[1] = clamp(ball.position[1] + offsetY, -1, 1)
+    }
+  }
 
   const update = (time: number) => {
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
+    gl.clearColor(clearColor[0] / 255, clearColor[1] / 255, clearColor[2] / 255, 1)
+    gl.clear(gl.COLOR_BUFFER_BIT)
 
     TWEEN.update(time * 1000)
-    const uniforms = {
-      resolution: [gl.canvas.width, gl.canvas.height],
-      time: time,
-      balls,
-    }
+    updatePositions(time * 0.1)
 
+    const uniforms = { time, balls }
     gl.useProgram(programInfo.program)
     setBuffersAndAttributes(gl, programInfo, bufferInfo)
     setUniforms(programInfo, uniforms)
@@ -135,9 +133,10 @@ export function screensaver(gl: WebGL2RenderingContext, random: Random) {
 }
 
 // TODO: Proper abstraction over framework in SketchRenderer
-export default ({ renderer, random }: SketchEnv) => {
-  const update = screensaver(renderer.gl, random)
-  const container = new Container()
-  container.visible = false
-  return { container, update }
-}
+export default (clearColor: [number, number, number]) =>
+  ({ renderer, random }: SketchEnv) => {
+    const update = screensaver(renderer.gl, random, clearColor)
+    const container = new Container()
+    container.visible = false
+    return { container, update }
+  }

@@ -22,7 +22,7 @@ module.exports = {
       },
     },
     {
-      files: ["./library/**"],
+      files: ["./library/**", "./*.ts"],
       extends: ["plugin:jsdoc/recommended-typescript"],
       rules: {
         "jsdoc/require-jsdoc": [

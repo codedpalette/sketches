@@ -22,9 +22,11 @@ export class Random extends BaseRandom {
 
   /**
    * @returns random color represented as array of RGB channels in range [0-1]
+   * @param min min value for all channels [0-1]
+   * @param max max value for all channels [0-1]
    */
-  color(): [number, number, number] {
-    return [this.realZeroToOneInclusive(), this.realZeroToOneInclusive(), this.realZeroToOneInclusive()]
+  color(min = 0, max = 1): [number, number, number] {
+    return [this.real(min, max), this.real(min, max), this.real(min, max)]
   }
 
   /**
