@@ -43,3 +43,5 @@ export async function loadModule(module: SketchModule): Promise<SketchFactory> {
   const { default: sketch } = (await import(`./sketches/${module.year}/${module.name}.ts`)) as SketchModuleImpl
   return sketch
 }
+
+export { default as screensaver } from "sketches/2024/screensaver"

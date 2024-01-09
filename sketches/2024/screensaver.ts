@@ -1,14 +1,15 @@
 import * as TWEEN from "@tweenjs/tween.js"
-import { SketchEnv } from "lib"
+import { isHTMLCanvas, SketchEnv } from "lib"
 import { noise3d, Random } from "library/core/random"
 import { globalPreamble } from "library/drawing/shaders"
 import { clamp } from "library/utils"
-import { Container } from "pixi.js"
+import { Color, ColorSource, Container } from "pixi.js"
 import {
   Arrays,
   createBufferInfoFromArrays,
   createProgramInfo,
   drawBufferInfo,
+  resizeCanvasToDisplaySize,
   setBuffersAndAttributes,
   setDefaults,
   setUniforms,
@@ -52,18 +53,15 @@ const fragShader = (numBalls: number) => /*glsl*/ `${globalPreamble}
         float influence = ball.radius / length(uv - ball.position);
         influence *= influence; // Square the influence for smoother cutoff
         color.rgb += ball.color * influence;
-        color.a += influence;        
-      }
-      float alpha = max(1. - smoothstep(1., 1.2, color.a), .2); // Creating smooth metaball outline
-      if (color.a > .95) {
-        float adjustBrightness = 2.;
-        color = vec4(normalize(color.rgb) * adjustBrightness, 1.);
+        color.a += influence;                
       }            
-      fragColor = color * alpha;
+      color.a *= smoothstep(0.2, 0.5, color.a);       
+      float alpha = 1. - smoothstep(1., 1.5, color.a);      
+      fragColor = color * alpha;     
     }
   `
 
-export function screensaver(gl: WebGL2RenderingContext, random: Random, clearColor: [number, number, number]) {
+export function screensaver(gl: WebGL2RenderingContext, random: Random, clearColor: ColorSource) {
   const noise = noise3d(random)
   const numBalls = 100
 
@@ -77,28 +75,40 @@ export function screensaver(gl: WebGL2RenderingContext, random: Random, clearCol
 
   // Init metaballs
   const balls: Metaball[] = []
+  const tweenGroup = new TWEEN.Group()
+  // Since SketchRunner restarts internal sketch clock, we need to explicitly track time for starting tweens properly
+  let currentTweenTime = 0
   for (let i = 0; i < numBalls; i++) {
-    const radius = random.real(0.03, 0.05)
-    const ball: Metaball = {
-      radius: 0,
-      color: random.color(),
+    const ball = createMetaball()
+    createTween(ball)
+    balls.push(ball)
+  }
+
+  function createMetaball(): Metaball {
+    return {
+      radius: random.real(0.03, 0.05),
+      color: random.color(0.2),
       position: [random.minmax(1), random.minmax(1)],
       speed: random.real(0.001, 0.01),
     }
-    balls.push(ball)
+  }
 
-    // TODO: Restart tween after finish
-    const durationIn = random.real(2000, 5000)
-    //const durationOut = random.real(2000, 5000)
-    //const timeToLive = random.real(5000, 15000)
-    const tweenIn = new TWEEN.Tween(ball).to({ radius }, durationIn).easing(TWEEN.Easing.Elastic.Out)
-    // const tweenOut = new TWEEN.Tween(ball)
-    //   .to({ radius: 0 }, durationOut)
-    //   .easing(TWEEN.Easing.Elastic.In)
-    //   .delay(timeToLive)
-    tweenIn
-      //.chain(tweenOut)
-      .start(0)
+  function createTween(ball: Metaball) {
+    const radius = ball.radius
+    ball.radius = 0
+    const durationIn = random.real(2, 5) * 1000
+    const durationOut = random.real(2, 5) * 1000
+    const timeToLive = random.real(10, 20) * 1000
+    const tweenIn = new TWEEN.Tween(ball, tweenGroup).to({ radius }, durationIn).easing(TWEEN.Easing.Elastic.Out)
+    const tweenOut = new TWEEN.Tween(ball, tweenGroup)
+      .to({ radius: 0 }, durationOut)
+      .easing(TWEEN.Easing.Elastic.In)
+      .delay(timeToLive)
+      .onComplete(() => {
+        Object.assign(ball, createMetaball())
+        createTween(ball)
+      })
+    tweenIn.chain(tweenOut).start(currentTweenTime)
   }
 
   function updatePositions(time: number) {
@@ -108,18 +118,20 @@ export function screensaver(gl: WebGL2RenderingContext, random: Random, clearCol
       const n2 = noise(ball.position[0], ball.position[1], time + i * 1000 + 10000)
       const offsetX = n1 * ball.speed
       const offsetY = n2 * ball.speed
-      // TODO: Pass clamping values in a constructor
       ball.position[0] = clamp(ball.position[0] + offsetX, -1, 1)
       ball.position[1] = clamp(ball.position[1] + offsetY, -1, 1)
     }
   }
 
+  const background = new Color(clearColor).toArray()
   const update = (time: number) => {
+    isHTMLCanvas(gl.canvas) && resizeCanvasToDisplaySize(gl.canvas)
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
-    gl.clearColor(clearColor[0] / 255, clearColor[1] / 255, clearColor[2] / 255, 1)
+    gl.clearColor(background[0], background[1], background[2], 1)
     gl.clear(gl.COLOR_BUFFER_BIT)
 
-    TWEEN.update(time * 1000)
+    currentTweenTime = time * 1000
+    tweenGroup.update(currentTweenTime)
     updatePositions(time * 0.1)
 
     const uniforms = { time, balls }
@@ -133,7 +145,7 @@ export function screensaver(gl: WebGL2RenderingContext, random: Random, clearCol
 }
 
 // TODO: Proper abstraction over framework in SketchRenderer
-export default (clearColor: [number, number, number]) =>
+export default (clearColor: ColorSource) =>
   ({ renderer, random }: SketchEnv) => {
     const update = screensaver(renderer.gl, random, clearColor)
     const container = new Container()
