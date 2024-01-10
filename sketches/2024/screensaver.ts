@@ -34,7 +34,7 @@ const vertShader = /*glsl*/ `${globalPreamble}
 
 const fragShader = (numBalls: number) => /*glsl*/ `${globalPreamble}    
     #define N ${numBalls}
-    #define AA 1.
+    //#define AA 1.
 
     struct Metaball {
       float radius;
