@@ -24,16 +24,17 @@ type Metaball = {
 
 const vertShader = /*glsl*/ `${globalPreamble}
   in vec2 a_position;
-  out vec2 uv;
+  out vec2 position;
 
   void main() {
-    uv = a_position;
+    position = a_position;
     gl_Position = vec4(a_position, 0., 1.);
   }
 `
 
 const fragShader = (numBalls: number) => /*glsl*/ `${globalPreamble}    
     #define N ${numBalls}
+    #define AA 1.
 
     struct Metaball {
       float radius;
@@ -41,12 +42,13 @@ const fragShader = (numBalls: number) => /*glsl*/ `${globalPreamble}
       vec3 color;
     };
 
-    in vec2 uv;    
+    in vec2 position;    
     uniform float time;
+    uniform vec2 resolution;
     uniform Metaball balls[N];
-    out vec4 fragColor;        
-
-    void main() {      
+    out vec4 fragColor;
+    
+    vec4 renderMetaballs(vec2 uv) {
       vec4 color = vec4(0.);      
       for(int i = 0; i < N; i++) {
         Metaball ball = balls[i];                
@@ -60,8 +62,24 @@ const fragShader = (numBalls: number) => /*glsl*/ `${globalPreamble}
       } else {
         color.rgb /= color.a;
       }            
-      float alpha = 1. - step(1., color.a);      
-      fragColor = color * alpha;     
+      float alpha = 1. - smoothstep(0.95, 1., color.a);      
+      return color * alpha;     
+    }
+
+    void main() {    
+      vec4 color = vec4(0.);    
+#ifdef AA 
+      // Antialiasing via supersampling
+      float uvFactor = 1. / max(resolution.x, resolution.y);    
+      for(float i = -AA; i < AA; ++i){
+          for(float j = -AA; j < AA; ++j){
+            color += renderMetaballs(position + vec2(i, j) * (uvFactor / AA)) / (4.* AA * AA);
+          }
+      }
+#else       
+      color = renderMetaballs(position);
+#endif /* AA */
+      fragColor = color;        
     }
   `
 
@@ -138,7 +156,7 @@ export function screensaver(gl: WebGL2RenderingContext, random: Random, clearCol
     tweenGroup.update(currentTweenTime)
     updatePositions(time * 0.1)
 
-    const uniforms = { time, balls }
+    const uniforms = { time, balls, resolution: [gl.canvas.width, gl.canvas.height] }
     gl.useProgram(programInfo.program)
     setBuffersAndAttributes(gl, programInfo, bufferInfo)
     setUniforms(programInfo, uniforms)
