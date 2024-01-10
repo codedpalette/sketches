@@ -54,9 +54,13 @@ const fragShader = (numBalls: number) => /*glsl*/ `${globalPreamble}
         influence *= influence; // Square the influence for smoother cutoff
         color.rgb += ball.color * influence;
         color.a += influence;                
+      }      
+      if (color.a < 1.) {
+        color.rgb *= 2.; // Adjust brightness
+      } else {
+        color.rgb /= color.a;
       }            
-      color.a *= smoothstep(0.2, 0.5, color.a);       
-      float alpha = 1. - smoothstep(1., 1.5, color.a);      
+      float alpha = 1. - step(1., color.a);      
       fragColor = color * alpha;     
     }
   `
