@@ -24,8 +24,7 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
     const color = gray(map(i, 0, numLayers - 1, 128, 0))
     layerContainer.addChild(trees(color))
     layerContainer.addChild(landscape(i, color))
-    layerContainer.filters =
-      i == numLayers - 1 ? null : [new BlurFilter(numLayers - i - 1, undefined, renderer.resolution)]
+    layerContainer.filters = i == numLayers - 1 ? null : [new BlurFilter(numLayers - i - 1, undefined)]
     container.addChild(layerContainer)
   }
 

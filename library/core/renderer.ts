@@ -1,10 +1,11 @@
-import { BrowserAdapter, Renderer, settings, WebWorkerAdapter } from "pixi.js"
+import { BrowserAdapter, Filter, Renderer, settings, WebWorkerAdapter } from "pixi.js"
 
 import { Canvas, RenderParams, SizeParams, SketchInstance } from "./types"
 
 const isBrowser = typeof window === "object"
 const defaultRenderParams: RenderParams = { antialias: true, resizeCSS: isBrowser, clearBefore: true }
 settings.ADAPTER = isBrowser ? BrowserAdapter : WebWorkerAdapter
+Filter.defaultResolution = null // set default filter resolution to renderer's resolution
 
 /** Class for abstracting over framework renderers (only Pixi.js for now) */
 export class SketchRenderer<ICanvas extends Canvas = Canvas> {

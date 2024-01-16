@@ -11,7 +11,7 @@ import { Container, FXAAFilter, NoiseFilter } from "pixi.js"
 export default ({ random, bbox, renderer }: SketchEnv) => {
   const mainHue = random.realZeroTo(360)
   const bgColor = formatHsl([mainHue, random.real(0.2, 0.3), random.real(0.8, 0.9)])
-  const numLayers = random.integer(2, 4)
+  const numLayers = 1 //random.integer(2, 4)
   const startingRotation = random.realZeroTo(Math.PI * 2)
   // Fragment shader to add variability to line segments. It varies line width, offset and alpha based on noise values
   const lineShader: ShaderProgram = {
@@ -53,7 +53,7 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
     const lines = drawLines(rotation % Math.PI, lineSpacing)
     container.addChild(lines)
     container.filterArea = renderer.screen
-    container.filters = [new NoiseAlphaFilter(noiseScale, random, renderer.resolution)]
+    container.filters = [new NoiseAlphaFilter(noiseScale, random)]
     return container
   }
 

@@ -4,7 +4,7 @@ import { drawBackground } from "library/drawing/helpers"
 import { fromPolar, map } from "library/utils"
 import { BlurFilter, Container, Graphics, IPointData } from "pixi.js"
 
-export default ({ random, bbox, renderer }: SketchEnv) => {
+export default ({ random, bbox }: SketchEnv) => {
   const noise = noise2d(random)
   // Define lip functions
   const lip = (a: number, b: number, sign: boolean) => (x: number) =>
@@ -89,7 +89,7 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
         .drawPolygon(randomPolygon(numVertices, radius))
         .setTransform(center.x, center.y)
     }
-    polygons.filters = [new BlurFilter(1, 2, renderer.resolution)]
+    polygons.filters = [new BlurFilter(1, 2)]
     return polygons
   }
 

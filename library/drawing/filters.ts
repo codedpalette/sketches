@@ -10,7 +10,7 @@ export class NoiseAlphaFilter extends Filter {
   private static fragShader = filterFragTemplate({
     preamble: /*glsl*/ `
       uniform float noiseScale;
-      uniform float noiseOffset;
+      uniform float noiseOffset;      
       ${glslNoise3d}
     `,
     main: /*glsl*/ `
@@ -23,14 +23,12 @@ export class NoiseAlphaFilter extends Filter {
    * Creates {@link NoiseAlphaFilter}
    * @param noiseScale Scale factor for noise sampling coordinates (lower values mean smoother noise)
    * @param random {@link Random} instance for generating random noise sampling offset
-   * @param resolution Pixi.js Renderer's resolution/device pixel ratio
    */
-  constructor(noiseScale = 1, random?: Random, resolution?: number) {
+  constructor(noiseScale = 1, random?: Random) {
     const uniforms = {
       noiseScale,
       noiseOffset: random?.realZeroToOneInclusive() ?? 0,
     }
     super(filterVertTemplate(), NoiseAlphaFilter.fragShader, uniforms)
-    this.resolution = resolution ?? null
   }
 }

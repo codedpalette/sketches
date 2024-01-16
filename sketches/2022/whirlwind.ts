@@ -4,11 +4,11 @@ import { drawBackground } from "library/drawing/helpers"
 import { map } from "library/utils"
 import { BlurFilter, Container, FXAAFilter, Graphics } from "pixi.js"
 
-export default ({ random, bbox, renderer }: SketchEnv) => {
+export default ({ random, bbox }: SketchEnv) => {
   const isDarkBackground = random.bool()
   const container = new Container()
   container.addChild(drawBackground(gray(isDarkBackground ? 20 : 240), bbox))
-  container.filters = [new FXAAFilter(), new BlurFilter(1, 2, renderer.resolution)]
+  container.filters = [new FXAAFilter(), new BlurFilter(1, 2)]
 
   // Lissajous curves parameters
   // x(t) = A*sin(a*t + delta)
