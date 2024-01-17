@@ -50,7 +50,10 @@ export class SketchRunner {
     this.toggleListeners(false)
   }
 
-  private clickListener = () => this.nextSketch()
+  private clickListener = (ev: Event) => {
+    ev.stopPropagation()
+    this.nextSketch()
+  }
 
   private toggleListeners(add: boolean) {
     if (this.params.clickable) {
