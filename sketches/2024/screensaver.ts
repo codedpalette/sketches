@@ -2,16 +2,24 @@ import * as TWEEN from "@tweenjs/tween.js"
 import { isHTMLCanvas, SketchEnv } from "lib"
 import { noise3d, Random } from "library/core/random"
 import { globalPreamble } from "library/drawing/shaders"
+import fxaa from "library/glsl/fxaa.glsl"
 import { clamp } from "library/utils"
 import { Color, ColorSource, Container } from "pixi.js"
 import {
   Arrays,
+  bindFramebufferInfo,
   createBufferInfoFromArrays,
+  createFramebufferInfo,
   createProgramInfo,
+  createTexture,
+  createUniformBlockInfo,
   drawBufferInfo,
   resizeCanvasToDisplaySize,
+  resizeFramebufferInfo,
+  setBlockUniforms,
   setBuffersAndAttributes,
   setDefaults,
+  setUniformBlock,
   setUniforms,
 } from "twgl.js"
 
@@ -33,8 +41,7 @@ const vertShader = /*glsl*/ `${globalPreamble}
 `
 
 const fragShader = (numBalls: number) => /*glsl*/ `${globalPreamble}    
-    #define N ${numBalls}
-    //#define AA 1.
+    #define N ${numBalls}    
 
     struct Metaball {
       float radius;
@@ -45,13 +52,15 @@ const fragShader = (numBalls: number) => /*glsl*/ `${globalPreamble}
     in vec2 position;    
     uniform float time;
     uniform vec2 resolution;
-    uniform Metaball balls[N];
-    out vec4 fragColor;
+    uniform Metaballs {
+      Metaball balls[N]; 
+    };
+    out vec4 fragColor;    
     
     vec4 renderMetaballs(vec2 uv) {
       vec4 color = vec4(0.);      
       for(int i = 0; i < N; i++) {
-        Metaball ball = balls[i];                
+        Metaball ball = balls[i];                  
         float influence = ball.radius / length(uv - ball.position);
         influence *= influence; // Square the influence for smoother cutoff
         color.rgb += ball.color * influence;
@@ -66,39 +75,59 @@ const fragShader = (numBalls: number) => /*glsl*/ `${globalPreamble}
       return color * alpha;     
     }
 
-    void main() {    
-      vec4 color = vec4(0.);    
-#ifdef AA 
-      // Antialiasing via supersampling
-      float uvFactor = 1. / max(resolution.x, resolution.y);    
-      for(float i = -AA; i < AA; ++i){
-          for(float j = -AA; j < AA; ++j){
-            color += renderMetaballs(position + vec2(i, j) * (uvFactor / AA)) / (4.* AA * AA);
-          }
-      }
-#else       
-      color = renderMetaballs(position);
-#endif /* AA */
-      fragColor = color;        
+    void main() {                
+      fragColor = renderMetaballs(position);
     }
   `
 
+const fxaaShader = /*glsl*/ `${globalPreamble}
+    ${fxaa}
+
+    uniform vec2 resolution;
+    uniform sampler2D tex;
+    out vec4 fragColor;
+    
+    void main() {
+      fragColor = applyFXAA(gl_FragCoord.xy, resolution, tex);
+    }
+`
+
 export function screensaver(gl: WebGL2RenderingContext, random: Random, clearColor: ColorSource) {
   const noise = noise3d(random)
+  const background = new Color(clearColor).toArray()
   const numBalls = 100
+  const fxaa = true
 
   // Init WebGL state
   setDefaults({ attribPrefix: "a_" })
-  const programInfo = createProgramInfo(gl, [vertShader, fragShader(numBalls)])
-  const arrays: Arrays = { position: { numComponents: 2, data: [-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1] } }
-  const bufferInfo = createBufferInfoFromArrays(gl, arrays)
   gl.enable(gl.BLEND)
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+  gl.clearColor(background[0], background[1], background[2], 1)
+
+  // Init buffers
+  const arrays: Arrays = { position: { numComponents: 2, data: [-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1] } }
+  const bufferInfo = createBufferInfoFromArrays(gl, arrays)
+
+  // Init programs
+  const metaballsProgramInfo = createProgramInfo(gl, [vertShader, fragShader(numBalls)])
+  const fxaaProgramInfo = createProgramInfo(gl, [vertShader, fxaaShader])
+  const uniformBlockInfo = createUniformBlockInfo(gl, metaballsProgramInfo, "Metaballs")
+
+  // Init framebuffer
+  const tex = createTexture(gl, {
+    width: gl.canvas.width,
+    height: gl.canvas.height,
+    min: gl.LINEAR,
+    wrap: gl.CLAMP_TO_EDGE,
+  })
+  const attachments = [{ attachment: tex }]
+  const fbi = createFramebufferInfo(gl, attachments)
 
   // Init metaballs
   const balls: Metaball[] = []
   const tweenGroup = new TWEEN.Group()
   // Since SketchRunner restarts internal sketch clock, we need to explicitly track time for starting tweens properly
+  // TODO: Abstract in SketchRunner
   let currentTweenTime = 0
   for (let i = 0; i < numBalls; i++) {
     const ball = createMetaball()
@@ -145,22 +174,33 @@ export function screensaver(gl: WebGL2RenderingContext, random: Random, clearCol
     }
   }
 
-  const background = new Color(clearColor).toArray()
   const update = (time: number) => {
-    isHTMLCanvas(gl.canvas) && resizeCanvasToDisplaySize(gl.canvas)
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
-    gl.clearColor(background[0], background[1], background[2], 1)
-    gl.clear(gl.COLOR_BUFFER_BIT)
+    const resized = isHTMLCanvas(gl.canvas) && resizeCanvasToDisplaySize(gl.canvas)
+    if (resized) {
+      resizeFramebufferInfo(gl, fbi, attachments)
+    }
+    const resolution = [gl.canvas.width, gl.canvas.height]
 
     currentTweenTime = time * 1000
     tweenGroup.update(currentTweenTime)
     updatePositions(time * 0.1)
 
-    const uniforms = { time, balls, resolution: [gl.canvas.width, gl.canvas.height] }
-    gl.useProgram(programInfo.program)
-    setBuffersAndAttributes(gl, programInfo, bufferInfo)
-    setUniforms(programInfo, uniforms)
+    bindFramebufferInfo(gl, fxaa ? fbi : null)
+    gl.clear(gl.COLOR_BUFFER_BIT)
+    gl.useProgram(metaballsProgramInfo.program)
+    setBuffersAndAttributes(gl, metaballsProgramInfo, bufferInfo)
+    setBlockUniforms(uniformBlockInfo, { balls })
+    setUniformBlock(gl, metaballsProgramInfo, uniformBlockInfo)
+    setUniforms(metaballsProgramInfo, { time, resolution })
     drawBufferInfo(gl, bufferInfo)
+
+    if (fxaa) {
+      bindFramebufferInfo(gl, null)
+      gl.useProgram(fxaaProgramInfo.program)
+      setBuffersAndAttributes(gl, fxaaProgramInfo, bufferInfo)
+      setUniforms(fxaaProgramInfo, { tex, resolution })
+      drawBufferInfo(gl, bufferInfo)
+    }
   }
 
   return update
