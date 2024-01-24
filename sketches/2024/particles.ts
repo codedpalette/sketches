@@ -97,9 +97,6 @@ export default ({ random, bbox }: SketchEnv) => {
   container.addChild(plot(points, box(minX, minY, maxX, maxY)))
   return { container }
 
-  /**
-   *
-   */
   function createAttractor() {
     if (random.bool()) {
       // Clifford attractor
@@ -122,11 +119,6 @@ export default ({ random, bbox }: SketchEnv) => {
     }
   }
 
-  /**
-   *
-   * @param points
-   * @param box
-   */
   function plot(points: IPointData[], box: Box) {
     let maxDistance = 0
     const distances = []

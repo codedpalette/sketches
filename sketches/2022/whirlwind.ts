@@ -47,11 +47,6 @@ export default ({ random, bbox }: SketchEnv) => {
   return { container }
 
   // Euclid's algorithm for greatest common divisor
-  /**
-   *
-   * @param x
-   * @param y
-   */
   function gcd(x: number, y: number): number {
     while (y) {
       const t = y

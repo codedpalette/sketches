@@ -24,9 +24,6 @@ export default ({ random, bbox }: SketchEnv) => {
   }
   return { container }
 
-  /**
-   *
-   */
   function createCircle() {
     let newCircle: Circle | undefined
     let circleSafeToDraw = false
@@ -55,10 +52,6 @@ export default ({ random, bbox }: SketchEnv) => {
   }
 
   // Checks if circle intersects any other circles or bounding box
-  /**
-   *
-   * @param circle
-   */
   function isCircleCollides(circle: Circle) {
     const { x, y } = circle.center
     // Check if any of the points on the circle lies outside bounding box
@@ -72,10 +65,6 @@ export default ({ random, bbox }: SketchEnv) => {
   }
 
   // Draw a circle as a multiple layers of polygons
-  /**
-   *
-   * @param circle
-   */
   function drawCircle(circle: Circle) {
     const noiseAmp = random.real(3, Math.min(minRadius, circle.r)) // Noise amplitude for displacing vertices of a layer
     const thetaStep = random.real(0.1, 0.5)

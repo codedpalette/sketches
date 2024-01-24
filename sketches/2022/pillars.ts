@@ -55,10 +55,6 @@ export default ({ random, bbox }: SketchEnv) => {
 
   return { container }
 
-  /**
-   *
-   * @param g
-   */
   function brokenRect(g: Graphics) {
     const dim = cellSize
     const x = -dim / 2
@@ -77,9 +73,6 @@ export default ({ random, bbox }: SketchEnv) => {
   // The "ant" moves according to the rules below:
   // - At a white square, turn 90° clockwise, flip the color of the square, move forward one unit
   // - At a black square, turn 90° counter-clockwise, flip the color of the square, move forward one unit
-  /**
-   *
-   */
   function simulateAnt() {
     const numSteps = 500000
     let currX = random.integer(0, cellsWidth - 1)

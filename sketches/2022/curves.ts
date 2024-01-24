@@ -37,12 +37,6 @@ export default ({ random, bbox }: SketchEnv) => {
 
   return { container }
 
-  /**
-   *
-   * @param x
-   * @param y
-   * @param fillPercent
-   */
   function drawCurve(x: number, y: number, fillPercent: number) {
     const { points = [], oppositePoints = [], visitedCells = [] } = generatePoints(x, y, fillPercent)
     if (points.length == 0) {
@@ -58,12 +52,6 @@ export default ({ random, bbox }: SketchEnv) => {
     container.addChild(g)
   }
 
-  /**
-   *
-   * @param startX
-   * @param startY
-   * @param fillPercent
-   */
   function generatePoints(startX: number, startY: number, fillPercent: number) {
     let x = startX,
       y = startY
@@ -111,19 +99,12 @@ export default ({ random, bbox }: SketchEnv) => {
   }
 
   // Convert a point to a flow field coordinates
-  /**
-   *
-   * @param point
-   */
   function sampleFlowField(point: Vector) {
     const i = Math.floor(map(point.x, -bbox.width / 2, bbox.width / 2, 0, flowFieldResolution))
     const j = Math.floor(map(point.y, bbox.height / 2, -bbox.height / 2, 0, flowFieldResolution))
     return { i, j }
   }
 
-  /**
-   *
-   */
   function generatePalette() {
     const mainHue = random.real(0, 360)
     const hues = [mainHue, (mainHue + 120) % 360, (mainHue + 240) % 360]
@@ -137,10 +118,6 @@ export default ({ random, bbox }: SketchEnv) => {
   }
 
   // Cartesian product of all elements of passed arrays
-  /**
-   *
-   * @param allEntries
-   */
   function cartesian<T>(...allEntries: T[][]) {
     return allEntries.reduce<T[][]>(
       (results, entries) =>
