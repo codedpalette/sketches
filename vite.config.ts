@@ -11,7 +11,6 @@ import tsconfigPaths from "vite-tsconfig-paths"
 
 export default defineConfig(() => {
   return {
-    base: "/sketches/",
     plugins: [
       externalizeDeps({
         devDeps: true, // Exclude dev dependencies
