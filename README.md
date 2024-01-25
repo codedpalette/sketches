@@ -1,10 +1,6 @@
 # Sketches
 
-This is a repository for my generative art sketches. I'm using TypeScript with [Pixi.js](https://pixijs.com/) for all my
-works, with plans to add [Three.js](https://threejs.org/) (there are some unfinished 3D sketches on a `master_backup`
-branch, which I plan to rewrite) and pure WebGL API. You can preview them on my [Github Pages](https://monkeyroar.github.io/sketches/).
-
-**TODO:** Update link
+This is a repository for my generative art sketches. I'm using TypeScript for all my works and various graphics libraries, such as [Pixi.js](https://pixijs.com/) and [Three.js](https://threejs.org/), along with the pure WebGL API. You can preview them on my Github Pages [website](https://monkeyroar.github.io).
 
 ## Installation
 
