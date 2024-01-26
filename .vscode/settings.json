@@ -1,9 +1,4 @@
 {
-  "files.exclude": {
-    "node_modules": true,
-    ".husky": true,
-    ".yarn": true
-  },
   "cSpell.ignorePaths": [
     "package-lock.json",
     "yarn.lock",
