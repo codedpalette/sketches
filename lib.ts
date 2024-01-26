@@ -1,4 +1,5 @@
 import { SketchFactory } from "library/core/types"
+import { ColorSource } from "pixi.js"
 
 export { SketchRenderer } from "library/core/renderer"
 export { SketchRunner } from "library/core/runner"
@@ -44,4 +45,12 @@ export async function loadModule(module: SketchModule): Promise<SketchFactory> {
   return sketch
 }
 
-export { default as screensaver } from "sketches/2024/screensaver"
+/**
+ * "Screensaver" sketch for website's main page background. Exported separately to not include it in the gallery.
+ * @param clearColor canvas's background color
+ * @returns promise with loaded sketch factory function
+ */
+export async function screensaver(clearColor: ColorSource): Promise<SketchFactory> {
+  const screensaverModule = await import("./sketches/2024/screensaver")
+  return screensaverModule.default(clearColor)
+}
