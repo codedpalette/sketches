@@ -1,6 +1,10 @@
 module.exports = {
   root: true,
   parser: "@typescript-eslint/parser",
+  parserOptions: {
+    tsconfigRootDir: __dirname,
+    project: true,
+  },
   plugins: ["@typescript-eslint", "import", "unused-imports", "simple-import-sort", "jsdoc"],
   extends: [
     "eslint:recommended",

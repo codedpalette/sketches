@@ -14,7 +14,6 @@ export default defineConfig(() => {
     plugins: [
       externalizeDeps({
         devDeps: true, // Exclude dev dependencies
-        except: ["rbush-knn"], // Strange bug with 'import tinyqueue'
       }),
       dts({ rollupTypes: true }),
       glsl({ root: "library/glsl" }),
@@ -48,11 +47,6 @@ export default defineConfig(() => {
         entry: resolve(__dirname, "lib.ts"),
         formats: ["es"],
         fileName: "sketches",
-      },
-      rollupOptions: {
-        output: {
-          inlineDynamicImports: true,
-        },
       },
     },
   }
