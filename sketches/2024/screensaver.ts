@@ -1,6 +1,6 @@
 import * as TWEEN from "@tweenjs/tween.js"
-import { isHTMLCanvas, SketchEnv } from "lib"
 import { noise3d, Random } from "library/core/random"
+import { isHTMLCanvas, SketchEnv } from "library/core/types"
 import { globalPreamble } from "library/drawing/shaders"
 import fxaa from "library/glsl/fxaa.glsl"
 import { clamp } from "library/utils"
