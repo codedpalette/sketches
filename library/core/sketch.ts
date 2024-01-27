@@ -7,7 +7,7 @@ import { SketchRenderer } from "./renderer"
 import { Canvas, isHTMLCanvas, SizeParams, SketchFactory, SketchInstance } from "./types"
 
 /** Class for wrapping sketch and controlling RNG state */
-export class Sketch<ICanvas extends Canvas = Canvas> {
+export class Sketch<ICanvas extends Canvas = HTMLCanvasElement> {
   /** Sketch size parameters */
   public readonly params: Required<SizeParams>
   /** Seed for initializing random generator */

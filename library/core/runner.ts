@@ -27,7 +27,7 @@ export class SketchRunner {
    * @param ui UI system object
    * @param params parameters overrides for this runner
    */
-  constructor(private sketch: Sketch<HTMLCanvasElement>, private ui?: UI, params?: Partial<RunnerParams>) {
+  constructor(public readonly sketch: Sketch, private ui?: UI, params?: Partial<RunnerParams>) {
     this.params = { ...defaultRunnerParams, ...params }
   }
 

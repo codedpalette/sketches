@@ -8,7 +8,7 @@ settings.ADAPTER = isBrowser ? BrowserAdapter : WebWorkerAdapter
 Filter.defaultResolution = null // set default filter resolution to renderer's resolution
 
 /** Class for abstracting over framework renderers (only Pixi.js for now) */
-export class SketchRenderer<ICanvas extends Canvas = Canvas> {
+export class SketchRenderer<ICanvas extends Canvas = HTMLCanvasElement> {
   /** Internal canvas that this renderer renders to */
   public readonly canvas: ICanvas
   /**
