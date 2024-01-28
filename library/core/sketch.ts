@@ -62,17 +62,18 @@ export class Sketch<ICanvas extends Canvas = HTMLCanvasElement> {
   /**
    * Render this sketch and export render result
    * @param sizeParamsOverrides optional overrides for rendering size params
+   * @param format optional image format type to export to
    * @returns renderer's canvas contents as blob
    */
-  async export(sizeParamsOverrides?: Partial<SizeParams>): Promise<Blob> {
-    const currentParams = this.params
+  async export(sizeParamsOverrides?: Partial<SizeParams>, format?: string): Promise<Blob> {
+    const currentParams = { ...this.params }
     Object.assign(this.params, sizeParamsOverrides)
     this.render()
     Object.assign(this.params, currentParams)
     const canvas = this.renderer.canvas
     const blobPromise = isHTMLCanvas(canvas)
-      ? new Promise<Blob>((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(blob) : reject())))
-      : canvas.convertToBlob()
+      ? new Promise<Blob>((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(blob) : reject()), format))
+      : canvas.convertToBlob({ type: format })
     return await blobPromise
   }
 

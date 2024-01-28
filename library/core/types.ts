@@ -70,8 +70,8 @@ export type RenderParams<ICanvas extends Canvas = HTMLCanvasElement> = {
 
 /** Parameters for controlling sketch running */
 export type RunnerParams = {
-  /** Enable/disable generating new sketches with a click on canvas */
-  clickable: boolean
+  /** Enable/disable generating new sketches with a click on canvas and provide custom click handler */
+  click: ((ev: Event) => void) | false
   /** Enable/disable running an update loop */
-  updatable: boolean
+  update: boolean
 }

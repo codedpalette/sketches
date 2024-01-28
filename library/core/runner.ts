@@ -5,8 +5,8 @@ import { UI } from "./ui"
 const recordingFPS = 60 // Used for canvas-capture recorder to count seconds of recording
 
 const defaultRunnerParams: RunnerParams = {
-  clickable: true,
-  updatable: true,
+  click: () => {},
+  update: true,
 }
 
 /** Class for controlling render loop */
@@ -24,10 +24,10 @@ export class SketchRunner {
 
   /**
    * @param sketch sketch to run
-   * @param ui UI system object
    * @param params parameters overrides for this runner
+   * @param ui UI system object
    */
-  constructor(public readonly sketch: Sketch, private ui?: UI, params?: Partial<RunnerParams>) {
+  constructor(public readonly sketch: Sketch, params?: Partial<RunnerParams>, private ui?: UI) {
     this.params = { ...defaultRunnerParams, ...params }
   }
 
@@ -38,7 +38,7 @@ export class SketchRunner {
   start() {
     this.sketch.render()
     this.toggleListeners(true)
-    if (this.params.updatable && (this.sketch.update || this.ui)) {
+    if (this.params.update && (this.sketch.update || this.ui)) {
       this.renderLoop()
     }
   }
@@ -52,11 +52,12 @@ export class SketchRunner {
 
   private clickListener = (ev: Event) => {
     ev.stopPropagation()
+    this.params.click && this.params.click(ev)
     this.nextSketch()
   }
 
   private toggleListeners(add: boolean) {
-    if (this.params.clickable) {
+    if (this.params.click) {
       const canvas = this.sketch.renderer.canvas
       ;["click", "touchend"].forEach((event) =>
         add ? canvas.addEventListener(event, this.clickListener) : canvas.removeEventListener(event, this.clickListener)
