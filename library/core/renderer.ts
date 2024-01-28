@@ -39,13 +39,21 @@ export class SketchRenderer<ICanvas extends Canvas = HTMLCanvasElement> {
    * @internal
    */
   render(sketch: SketchInstance, params: Required<SizeParams>) {
-    this.resize(params)
+    if (this.needsResize(params)) this.resize(params)
     this.renderer.render(sketch.container)
   }
 
   /** Destroy this renderer */
   destroy() {
     this.renderer.destroy()
+  }
+
+  private needsResize(newParams: Required<SizeParams>): boolean {
+    return (
+      this.renderer.resolution != newParams.resolution ||
+      this.renderer.width != newParams.width ||
+      this.renderer.height != newParams.height
+    )
   }
 
   /**
