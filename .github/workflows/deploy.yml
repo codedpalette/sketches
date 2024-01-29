@@ -31,6 +31,8 @@ jobs:
         with:
           version-type: patch
           skip-tag: true
+      - name: Enable corepack
+        run: corepack enable
       - name: Setup .yarnrc.yml
         run: yarn config set npmScopes.codedpalette.npmAuthToken $GITHUB_TOKEN
       - name: Install dependencies
