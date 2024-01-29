@@ -27,7 +27,9 @@
     "start": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
-    "postinstall": "husky install"
+    "postinstall": "husky",
+    "prepack": "pinst --disable",
+    "postpack": "pinst --enable"
   },
   "lint-staged": {
     "*.ts": [
@@ -64,8 +66,9 @@
     "eslint-plugin-jsdoc": "^48.0.2",
     "eslint-plugin-simple-import-sort": "^10.0.0",
     "eslint-plugin-unused-imports": "^3.0.0",
-    "husky": "^8.0.3",
+    "husky": "^9.0.7",
     "lint-staged": "^13.2.3",
+    "pinst": "^3.0.0",
     "prettier": "^2.8.8",
     "typescript": "^5.1.6",
     "vite": "^5.0.12",
