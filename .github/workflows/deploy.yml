@@ -36,4 +36,4 @@ jobs:
       - name: Build
         run: yarn build
       - name: Publish
-        run: yarn npm publisj
+        run: yarn npm publish
