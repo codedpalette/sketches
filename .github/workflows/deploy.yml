@@ -4,17 +4,17 @@ name: Deploy package
 on:
   # Runs on pushes targeting the default branch
   push:
-    branches: ["master"]
+    branches:
+      - "master"
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 # Allow one concurrent deployment
 concurrency:
-  group: "packages"
+  group: ${{ github.workflow }}
   cancel-in-progress: true
 
 jobs:
-  # Single deploy job since we're just deploying
   deploy:
     runs-on: ubuntu-latest
     permissions:
@@ -27,19 +27,13 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "20.x"
-          registry-url: "https://npm.pkg.github.com"
-      - run: cat .npmrc
-      - name: Install dependencies
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: install
-      - name: Build
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: build
-      - name: Publish
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: npm publish
+      - name: Setup .yarnrc.yml
+        run: yarn config set npmAuthToken $NPM_AUTH_TOKEN
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install dependencies
+        run: yarn install --immutable
+      - name: Build
+        run: yarn build
+      - name: Publish
+        run: yarn npm publisj
