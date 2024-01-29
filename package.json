@@ -8,7 +8,8 @@
     "url": "https://github.com/codedpalette/sketches.git"
   },
   "files": [
-    "dist"
+    "dist",
+    "!electron.js"
   ],
   "main": "electron.js",
   "module": "./dist/sketches.js",
