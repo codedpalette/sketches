@@ -46,6 +46,50 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@codedpalette/sketches@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@codedpalette/sketches@workspace:."
+  dependencies:
+    "@flatten-js/core": ^1.4.4
+    "@tweenjs/tween.js": ^21.0.0
+    "@types/culori": ^2.0.1
+    "@types/rbush": ^3.0.3
+    "@types/stats.js": ^0.17.0
+    "@typescript-eslint/eslint-plugin": ^6.2.1
+    "@typescript-eslint/parser": ^6.2.1
+    canvas-capture: ^2.1.1
+    culori: ^3.2.0
+    electron: ^28.0.0
+    eslint: ^8.44.0
+    eslint-config-prettier: ^8.9.0
+    eslint-import-resolver-typescript: ^3.5.5
+    eslint-plugin-import: ^2.28.0
+    eslint-plugin-jsdoc: ^48.0.2
+    eslint-plugin-simple-import-sort: ^10.0.0
+    eslint-plugin-unused-imports: ^3.0.0
+    husky: ^8.0.3
+    lint-staged: ^13.2.3
+    pixi.js: "npm:@pixi/webworker@latest"
+    prettier: ^2.8.8
+    random-js: ^2.1.0
+    rbush: ^3.0.1
+    rbush-knn: "https://github.com/mourner/rbush-knn.git"
+    simplex-noise: ^4.0.1
+    spectorjs: "https://github.com/BabylonJS/Spector.js"
+    stats.js: ^0.17.0
+    twgl.js: ^5.5.3
+    typescript: ^5.1.6
+    vite: ^5.0.12
+    vite-plugin-dts: ^3.6.4
+    vite-plugin-electron: ^0.15.5
+    vite-plugin-externalize-deps: ^0.8.0
+    vite-plugin-glsl: ^1.1.2
+    vite-plugin-node-polyfills: ^0.9.0
+    vite-tsconfig-paths: ^4.2.0
+    voronoijs: ^1.0.0
+  languageName: unknown
+  linkType: soft
+
 "@electron/get@npm:^2.0.0":
   version: 2.0.2
   resolution: "@electron/get@npm:2.0.2"
@@ -5737,50 +5781,6 @@ __metadata:
   checksum: b5458713337129016ae71182e20d2e2e0d01bb62c78cf180276dafe8a59bf1814a66aedd0dfc9bbb70cc549a9bc02f1c9773e4f222a2cff4692cd48e7a2b348b
   languageName: node
   linkType: hard
-
-"sketches@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "sketches@workspace:."
-  dependencies:
-    "@flatten-js/core": ^1.4.4
-    "@tweenjs/tween.js": ^21.0.0
-    "@types/culori": ^2.0.1
-    "@types/rbush": ^3.0.3
-    "@types/stats.js": ^0.17.0
-    "@typescript-eslint/eslint-plugin": ^6.2.1
-    "@typescript-eslint/parser": ^6.2.1
-    canvas-capture: ^2.1.1
-    culori: ^3.2.0
-    electron: ^28.0.0
-    eslint: ^8.44.0
-    eslint-config-prettier: ^8.9.0
-    eslint-import-resolver-typescript: ^3.5.5
-    eslint-plugin-import: ^2.28.0
-    eslint-plugin-jsdoc: ^48.0.2
-    eslint-plugin-simple-import-sort: ^10.0.0
-    eslint-plugin-unused-imports: ^3.0.0
-    husky: ^8.0.3
-    lint-staged: ^13.2.3
-    pixi.js: "npm:@pixi/webworker@latest"
-    prettier: ^2.8.8
-    random-js: ^2.1.0
-    rbush: ^3.0.1
-    rbush-knn: "https://github.com/mourner/rbush-knn.git"
-    simplex-noise: ^4.0.1
-    spectorjs: "https://github.com/BabylonJS/Spector.js"
-    stats.js: ^0.17.0
-    twgl.js: ^5.5.3
-    typescript: ^5.1.6
-    vite: ^5.0.12
-    vite-plugin-dts: ^3.6.4
-    vite-plugin-electron: ^0.15.5
-    vite-plugin-externalize-deps: ^0.8.0
-    vite-plugin-glsl: ^1.1.2
-    vite-plugin-node-polyfills: ^0.9.0
-    vite-tsconfig-paths: ^4.2.0
-    voronoijs: ^1.0.0
-  languageName: unknown
-  linkType: soft
 
 "slash@npm:^3.0.0":
   version: 3.0.0
