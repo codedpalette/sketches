@@ -57,11 +57,10 @@ export class SketchRunner {
   }
 
   private toggleListeners(add: boolean) {
+    const event = "click"
     if (this.params.click) {
       const canvas = this.sketch.renderer.canvas
-      ;["click", "touchend"].forEach((event) =>
-        add ? canvas.addEventListener(event, this.clickListener) : canvas.removeEventListener(event, this.clickListener)
-      )
+      add ? canvas.addEventListener(event, this.clickListener) : canvas.removeEventListener(event, this.clickListener)
     }
   }
 
