@@ -42,3 +42,7 @@ jobs:
         run: yarn build
       - name: Publish
         run: yarn npm publish
+      - name: Trigger website deploy
+        run: gh workflow run deploy.yml -R ${{github.repository_owner}}/${{github.repository_owner}}.github.io
+        env:
+          GH_TOKEN: ${{ secrets.PAT }}
