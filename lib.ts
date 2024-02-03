@@ -20,7 +20,7 @@ type SketchModuleImpl = {
 
 // Only finished artworks here
 export const sketches = [
-  { name: "fireworks", year: 2023 },
+  //{ name: "fireworks", year: 2023 },
   { name: "kiss", year: 2023 },
   { name: "shade", year: 2023 },
   { name: "whirlwind", year: 2022 },
