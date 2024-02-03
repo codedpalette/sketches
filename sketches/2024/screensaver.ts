@@ -206,7 +206,7 @@ export function screensaver(gl: WebGL2RenderingContext, random: Random, clearCol
   return update
 }
 
-// TODO: Proper abstraction over framework in SketchRenderer
+// HACK: Until proper abstraction over framework in SketchRenderer is implemented
 export default (clearColor: ColorSource) =>
   ({ renderer, random }: SketchEnv) => {
     const update = screensaver(renderer.gl, random, clearColor)

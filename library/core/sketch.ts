@@ -52,7 +52,7 @@ export class Sketch<ICanvas extends Canvas = HTMLCanvasElement> {
    */
   render() {
     const sketch = this.sketch || this.runFactory()
-    // TODO: Remove once proper framework abstraction in SketchRenderer is supported
+    // FIXME: Remove once proper framework abstraction in SketchRenderer is supported
     if (sketch.container.getChildAt(0).visible) {
       this.renderer.render(sketch, this.params)
     }
