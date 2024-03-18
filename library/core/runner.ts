@@ -1,9 +1,15 @@
 import { Sketch } from "./sketch"
-import { RunnerParams } from "./types"
 import { UI } from "./ui"
 
-const recordingFPS = 60 // Used for canvas-capture recorder to count seconds of recording
+/** Parameters for controlling sketch running */
+export type RunnerParams = {
+  /** Enable/disable generating new sketches with a click on canvas and provide custom click handler */
+  click: ((ev: Event) => void) | false
+  /** Enable/disable running an update loop */
+  update: boolean
+}
 
+const recordingFPS = 60 // Used for canvas-capture recorder to count seconds of recording
 const defaultRunnerParams: RunnerParams = {
   click: () => {},
   update: true,
@@ -60,7 +66,9 @@ export class SketchRunner {
     const event = "click"
     if (this.params.click) {
       const canvas = this.sketch.renderer.canvas
-      add ? canvas.addEventListener(event, this.clickListener) : canvas.removeEventListener(event, this.clickListener)
+      add
+        ? canvas.addEventListener?.(event, this.clickListener)
+        : canvas.removeEventListener?.(event, this.clickListener)
     }
   }
 

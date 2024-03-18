@@ -1,13 +1,13 @@
 import { box } from "@flatten-js/core"
-import { Container } from "pixi.js"
+import { Container, ICanvas, Matrix } from "pixi.js"
 import { createEntropy, MersenneTwister19937 as MersenneTwister } from "random-js"
 
 import { Random } from "./random"
 import { SketchRenderer } from "./renderer"
-import { Canvas, isHTMLCanvas, SizeParams, SketchFactory, SketchInstance } from "./types"
+import { SizeParams, SketchFactory, SketchInstance } from "./types"
 
 /** Class for wrapping sketch and controlling RNG state */
-export class Sketch<ICanvas extends Canvas = HTMLCanvasElement> {
+export class Sketch<T extends ICanvas = HTMLCanvasElement> {
   /** Sketch size parameters */
   public readonly params: Required<SizeParams>
   /** Seed for initializing random generator */
@@ -28,8 +28,8 @@ export class Sketch<ICanvas extends Canvas = HTMLCanvasElement> {
    * @param seed RNG seed (useful for recreating state of another sketch object)
    */
   constructor(
-    private sketchFactory: SketchFactory,
-    public readonly renderer: SketchRenderer<ICanvas>,
+    private sketchFactory: SketchFactory<T>,
+    public readonly renderer: SketchRenderer<T>,
     params: SizeParams,
     seed?: number[]
   ) {
@@ -71,9 +71,9 @@ export class Sketch<ICanvas extends Canvas = HTMLCanvasElement> {
     this.render()
     Object.assign(this.params, currentParams)
     const canvas = this.renderer.canvas
-    const blobPromise = isHTMLCanvas(canvas)
-      ? new Promise<Blob>((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(blob) : reject()), format))
-      : canvas.convertToBlob({ type: format })
+    const blobPromise =
+      canvas.convertToBlob?.({ type: format }) ||
+      new Promise((resolve, reject) => canvas.toBlob?.((blob) => (blob ? resolve(blob) : reject()), format) || reject())
     return await blobPromise
   }
 
@@ -123,8 +123,9 @@ export class Sketch<ICanvas extends Canvas = HTMLCanvasElement> {
     const newSketch = this.sketchFactory({ renderer, random, bbox })
     const container = newSketch.container
 
+    newSketch.container = new Container()
     // Set transform matrix to translate (0, 0) to the viewport center and point Y-axis upwards
-    newSketch.container = new Container().setTransform(width / 2, height / 2, 1, -1)
+    newSketch.container.setFromMatrix(new Matrix().scale(1, -1).translate(width / 2, height / 2))
     newSketch.container.addChild(container)
     return newSketch
   }

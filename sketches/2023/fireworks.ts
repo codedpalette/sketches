@@ -20,7 +20,7 @@ export default ({ random, bbox }: SketchEnv) => {
     const r = random.real(hypotenuse / 4, hypotenuse / 2)
     const theta = (2 * Math.PI * i) / numVortices + baseTheta
     const { x, y } = fromPolar(r, theta)
-    container.addChild(drawVortex(hue)).setTransform(x, y)
+    container.addChild(drawVortex(hue)).position.set(x, y)
   }
   return { container }
 
@@ -99,7 +99,9 @@ export default ({ random, bbox }: SketchEnv) => {
         ctx.fillRect(0, 0, bbox.width, bbox.height)
       }, bbox)
     )
-    backgroundContainer.filters = [new NoiseFilter(random.real(0.125, 0.25), random.realZeroToOneExclusive())]
+    backgroundContainer.filters = [
+      new NoiseFilter({ noise: random.real(0.125, 0.25), seed: random.realZeroToOneExclusive() }),
+    ]
     return backgroundContainer
   }
 

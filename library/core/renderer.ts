@@ -1,35 +1,57 @@
-import { BrowserAdapter, Filter, Renderer, settings, WebWorkerAdapter } from "pixi.js"
+import { autoDetectRenderer, BrowserAdapter, DOMAdapter, ICanvas, WebGLRenderer, WebWorkerAdapter } from "pixi.js"
 
-import { Canvas, RenderParams, SizeParams, SketchInstance } from "./types"
+import { SizeParams, SketchInstance } from "./types"
+
+/** Parameters for controlling rendering process */
+export type RenderParams<T extends ICanvas = HTMLCanvasElement> = {
+  /** Enable WebGL antialiasing */
+  antialias: boolean
+  /** Whether or not to resize canvas css dimensions when resizing renderer*/
+  resizeCSS: boolean
+  /** Should the renderer clear the canvas before render pass */
+  clearBefore: boolean
+  /** Optional canvas for renderer to render onto */
+  canvas?: T
+}
 
 const isBrowser = typeof window === "object"
 const defaultRenderParams: RenderParams = { antialias: true, resizeCSS: isBrowser, clearBefore: true }
-settings.ADAPTER = isBrowser ? BrowserAdapter : WebWorkerAdapter
-Filter.defaultResolution = null // set default filter resolution to renderer's resolution
+DOMAdapter.set(isBrowser ? BrowserAdapter : WebWorkerAdapter)
 
 /** Class for abstracting over framework renderers (only Pixi.js for now) */
-export class SketchRenderer<ICanvas extends Canvas = HTMLCanvasElement> {
+export class SketchRenderer<T extends ICanvas = HTMLCanvasElement> {
   /** Internal canvas that this renderer renders to */
-  public readonly canvas: ICanvas
+  public readonly canvas: T
   /**
-   * Pixi.js {@link Renderer}
+   * Pixi.js {@link WebGLRenderer}
    * @internal
    */
-  public readonly renderer: Renderer
+  public readonly renderer: WebGLRenderer<T>
 
   /**
-   * @param params parameters overrides for this renderer
+   * Renderer constructor
+   * @param renderer Pixi.js {@link WebGLRenderer}
    */
-  constructor(params?: Partial<RenderParams>) {
+  private constructor(renderer: WebGLRenderer<T>) {
+    this.renderer = renderer
+    this.canvas = renderer.canvas
+  }
+
+  /**
+   * initialize this renderer
+   * @param params parameters overrides for this renderer
+   * @returns Promise that resolves to renderer
+   */
+  static async init(params?: Partial<RenderParams>): Promise<SketchRenderer> {
     const renderParams = { ...defaultRenderParams, ...params }
-    // Initialize Pixi.js WebGL renderer
-    this.renderer = new Renderer({
-      view: renderParams.canvas,
+    const renderer = (await autoDetectRenderer({
+      canvas: renderParams.canvas,
       antialias: renderParams.antialias,
       autoDensity: renderParams.resizeCSS,
       clearBeforeRender: renderParams.clearBefore,
-    })
-    this.canvas = this.renderer.view as ICanvas
+      preference: "webgl",
+    })) as WebGLRenderer
+    return new SketchRenderer(renderer)
   }
 
   /**

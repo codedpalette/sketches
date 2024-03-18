@@ -10,7 +10,7 @@ import { ColorSource, Graphics, Sprite } from "pixi.js"
  * @returns Graphics object with a background rect
  */
 export function drawBackground(color: ColorSource, bbox: Box): Graphics {
-  return new Graphics().beginFill(color).drawRect(-bbox.width, -bbox.height, bbox.width * 2, bbox.height * 2)
+  return new Graphics().rect(-bbox.width, -bbox.height, bbox.width * 2, bbox.height * 2).fill(color)
 }
 
 /**

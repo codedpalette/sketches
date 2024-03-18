@@ -1,7 +1,9 @@
 import { Box } from "@flatten-js/core"
-import { Container, Renderer } from "pixi.js"
+import { Container, ICanvas, WebGLRenderer } from "pixi.js"
 
 import { Random } from "./random"
+
+export type SketchType = "webgl" | "pixi" | "canvas"
 
 /**
  * Type for sketch update function
@@ -19,9 +21,9 @@ export type SketchInstance = {
 }
 
 /** Environment for generating sketch instances */
-export type SketchEnv = {
-  /** Pixi.js {@link Renderer} instance */
-  renderer: Renderer
+export type SketchEnv<T extends ICanvas = HTMLCanvasElement> = {
+  /** Pixi.js {@link WebGLRenderer} instance */
+  renderer: WebGLRenderer<T>
   /** {@link Random} instance to enable repeatability of RNG values */
   random: Random
   /** Bounding box of sketch's model space */
@@ -33,7 +35,7 @@ export type SketchEnv = {
  * @param {SketchEnv} env Environment for sketch
  * @returns {SketchInstance} Specific instance of a sketch
  */
-export type SketchFactory = (env: SketchEnv) => SketchInstance
+export type SketchFactory<T extends ICanvas = HTMLCanvasElement> = (env: SketchEnv<T>) => SketchInstance
 
 /** Parameters for controlling sketch's size */
 export type SizeParams = {
@@ -43,35 +45,4 @@ export type SizeParams = {
   height: number
   /** Renderer's resolution / device pixel ratio */
   resolution?: number
-}
-
-export type Canvas = HTMLCanvasElement | OffscreenCanvas
-
-/**
- * Type guard to distinguish between HTML and offscreen canvas
- * @param canvas {@link HTMLCanvasElement} or {@link OffscreenCanvas}
- * @returns true if `canvas` is {@link HTMLCanvasElement}
- */
-export function isHTMLCanvas(canvas: Canvas): canvas is HTMLCanvasElement {
-  return (canvas as HTMLCanvasElement).isConnected !== undefined
-}
-
-/** Parameters for controlling rendering process */
-export type RenderParams<ICanvas extends Canvas = HTMLCanvasElement> = {
-  /** Enable WebGL antialiasing */
-  antialias: boolean
-  /** Whether or not to resize canvas css dimensions when resizing renderer*/
-  resizeCSS: boolean
-  /** Should the renderer clear the canvas before render pass */
-  clearBefore: boolean
-  /** Optional canvas for renderer to render onto */
-  canvas?: ICanvas
-}
-
-/** Parameters for controlling sketch running */
-export type RunnerParams = {
-  /** Enable/disable generating new sketches with a click on canvas and provide custom click handler */
-  click: ((ev: Event) => void) | false
-  /** Enable/disable running an update loop */
-  update: boolean
 }

@@ -1,6 +1,6 @@
 import * as TWEEN from "@tweenjs/tween.js"
 import { noise3d, Random } from "library/core/random"
-import { isHTMLCanvas, SketchEnv } from "library/core/types"
+import { SketchEnv } from "library/core/types"
 import { globalPreamble } from "library/drawing/shaders"
 import fxaa from "library/glsl/fxaa.glsl"
 import { clamp } from "library/utils"
@@ -175,7 +175,7 @@ export function screensaver(gl: WebGL2RenderingContext, random: Random, clearCol
   }
 
   const update = (time: number) => {
-    const resized = isHTMLCanvas(gl.canvas) && resizeCanvasToDisplaySize(gl.canvas)
+    const resized = "style" in gl.canvas && resizeCanvasToDisplaySize(gl.canvas)
     if (resized) {
       resizeFramebufferInfo(gl, fbi, attachments)
     }

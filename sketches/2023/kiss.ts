@@ -2,7 +2,7 @@ import { noise2d } from "library/core/random"
 import { SketchEnv } from "library/core/types"
 import { drawBackground } from "library/drawing/helpers"
 import { fromPolar, map } from "library/utils"
-import { BlurFilter, Container, Graphics, IPointData } from "pixi.js"
+import { BlurFilter, Container, Graphics, PointData } from "pixi.js"
 
 export default ({ random, bbox }: SketchEnv) => {
   const noise = noise2d(random)
@@ -17,8 +17,7 @@ export default ({ random, bbox }: SketchEnv) => {
 
   const container = new Container()
   container.angle = random.real(-15, 15)
-  container.addChild(background())
-  container.addChild(polygons())
+  container.addChild(background(), polygons())
   return { container }
 
   function background() {
@@ -46,11 +45,7 @@ export default ({ random, bbox }: SketchEnv) => {
               color: { h: backHue, s: random.real(30, 50), v: random.real(50, 70), a: random.real(0.1, 0.3) },
               numVertices: random.integer(15, 25),
             }
-      backContainer
-        .addChild(new Graphics())
-        .beginFill(color)
-        .drawPolygon(randomPolygon(numVertices, radius))
-        .setTransform(x, y)
+      backContainer.addChild(new Graphics()).poly(randomPolygon(numVertices, radius)).fill(color).position.set(x, y)
     }
     return backContainer
   }
@@ -79,15 +74,15 @@ export default ({ random, bbox }: SketchEnv) => {
       const numVertices = random.integer(3, 9)
       polygons
         .addChild(new Graphics())
-        .beginFill(color)
-        .drawPolygon(randomPolygon(numVertices, radius))
-        .setTransform(center.x, center.y)
+        .poly(randomPolygon(numVertices, radius))
+        .fill(color)
+        .position.set(center.x, center.y)
     }
-    polygons.filters = [new BlurFilter(1, 2)]
+    polygons.filters = [new BlurFilter({ strength: 1, quality: 2 })]
     return polygons
   }
 
-  function randomPolygon(numVertices: number, radius: number): IPointData[] {
+  function randomPolygon(numVertices: number, radius: number): PointData[] {
     // Define vertices as random points on a circle with a specified radius
     const thetas = Array.from({ length: numVertices }, (_) => random.real(0, 2 * Math.PI)).sort()
     return thetas.map((theta) => fromPolar(radius, theta))
