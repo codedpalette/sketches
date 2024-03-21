@@ -1,7 +1,7 @@
 import { Segment } from "@flatten-js/core"
-import { Attribute, Buffer, Color, ColorSource, Geometry, Mesh, Shader, TYPES } from "pixi.js"
+import { Attribute, Buffer, BufferUsage, Color, ColorSource, Geometry, Mesh, Shader } from "pixi.js"
 
-import { fragTemplate, ShaderProgram, vertexTemplate } from "./shaders"
+import { meshFragTemplate, meshVertTemplate, ShaderProgram } from "./shaders"
 
 /**
  * Render multiple line segments in a single draw call using instanced geometry.
@@ -17,7 +17,7 @@ export function renderLines(
   width: number,
   color: ColorSource,
   fragShaderExt: ShaderProgram = {}
-): Mesh<Shader> {
+): Mesh<Geometry, Shader> {
   // Initialize a quad for instance geometry
   // prettier-ignore
   const segmentInstanceGeometry = [
@@ -28,46 +28,47 @@ export function renderLines(
     1, 0.5,
     0, 0.5,
   ]
-  const positionBufferIdx = 0
-  const positionBuffer = Buffer.from(segmentInstanceGeometry)
-  const pointsBufferIdx = 1
-  const pointsBuffer = Buffer.from(segments.flatMap((seg) => [seg.start.x, seg.start.y, seg.end.x, seg.end.y]))
+  const positionBuffer = new Buffer({
+    data: segmentInstanceGeometry,
+    label: "positionBuffer",
+    usage: BufferUsage.VERTEX | BufferUsage.COPY_DST,
+  })
+  const pointsBuffer = new Buffer({
+    data: segments.flatMap((seg) => [seg.start.x, seg.start.y, seg.end.x, seg.end.y]),
+    label: "pointsBuffer",
+    usage: BufferUsage.VERTEX | BufferUsage.COPY_DST,
+  })
 
   // Define vertex attributes
-  const positionAttribute = new Attribute(positionBufferIdx, 2, false, TYPES.FLOAT, 0, 0, true, 0)
   const elementSize = Float32Array.BYTES_PER_ELEMENT
+  // TODO: PR to pixi with divisor field
+  const positionAttribute: Attribute = {
+    buffer: positionBuffer,
+    instance: true,
+    divisor: 0,
+  }
   // Use single interleaved buffer for segment start and segment end attributes
-  const segmentStartAttribute = new Attribute(
-    pointsBufferIdx,
-    2,
-    false,
-    TYPES.FLOAT,
-    elementSize * 4,
-    elementSize * 0,
-    true,
-    1
-  )
-  const segmentEndAttribute = new Attribute(
-    pointsBufferIdx,
-    2,
-    false,
-    TYPES.FLOAT,
-    elementSize * 4,
-    elementSize * 2,
-    true,
-    1
-  )
-
-  const geometry = new Geometry([positionBuffer, pointsBuffer], {
-    aPosition: positionAttribute, // position of the instance geometry vertex
-    aSegmentStart: segmentStartAttribute, // position of the first vertex of a line segment
-    aSegmentEnd: segmentEndAttribute, // position of the second vertex of a line segment
+  const segmentStartAttribute: Attribute = {
+    buffer: pointsBuffer,
+    instance: true,
+    divisor: 1,
+    stride: elementSize * 4,
+  }
+  const segmentEndAttribute: Attribute = {
+    ...segmentStartAttribute,
+    offset: elementSize * 2,
+  }
+  const geometry = new Geometry({
+    attributes: {
+      aPosition: positionAttribute, // position of the instance geometry vertex
+      aSegmentStart: segmentStartAttribute, // position of the first vertex of a line segment
+      aSegmentEnd: segmentEndAttribute, // position of the second vertex of a line segment
+    },
+    instanceCount: segments.length,
   })
-  geometry.instanced = true
-  geometry.instanceCount = segments.length
 
   // Define shader program
-  const vertexShader = vertexTemplate({
+  const vertexShader = meshVertTemplate({
     preamble: /*glsl*/ `
       in vec2 aSegmentStart, aSegmentEnd;
       out float instanceId;
@@ -89,7 +90,7 @@ export function renderLines(
       instanceId = float(gl_InstanceID);
     `,
   })
-  const fragShader = fragTemplate({
+  const fragShader = meshFragTemplate({
     preamble: /*glsl*/ `
       in float instanceId;
       uniform vec4 color;
@@ -100,7 +101,14 @@ export function renderLines(
       ${fragShaderExt.main ?? ""}
     `,
   })
-  const uniforms = { width, color: new Color(color) }
-  const shader = Shader.from(vertexShader, fragShader, uniforms)
-  return new Mesh(geometry, shader)
+
+  const uniforms = {
+    width: { value: width, type: "f32" },
+    color: { value: new Color(color).toArray(), type: "vec4<f32>" },
+  }
+  const shader = Shader.from({
+    gl: { vertex: vertexShader, fragment: fragShader },
+    resources: { uniforms },
+  })
+  return new Mesh({ geometry, shader })
 }

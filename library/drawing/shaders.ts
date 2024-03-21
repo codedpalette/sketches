@@ -9,7 +9,7 @@ export type ShaderProgram = {
   main?: string // Code that extends main function, can override local variables and varyings
 }
 
-export const globalPreamble = /*glsl*/ `#version 300 es  
+export const globalPreamble = /*glsl*/ `#version 300 es   
   precision highp float;
   #define PI 3.1415926535897932384626433832795
 `
@@ -20,10 +20,11 @@ export const globalPreamble = /*glsl*/ `#version 300 es
  * @param program {@link ShaderProgram} to extend this template
  * @returns vertex glsl code
  */
-export const vertexTemplate = (program: ShaderProgram = {}): string => /*glsl*/ `${globalPreamble}
-  in vec2 aPosition;
-  uniform mat3 projectionMatrix;
-  uniform mat3 translationMatrix;
+export const meshVertTemplate = (program: ShaderProgram = {}): string => /*glsl*/ `${globalPreamble}
+  in vec2 aPosition;  
+  uniform mat3 uProjectionMatrix;
+  uniform mat3 uWorldTransformMatrix;
+  uniform mat3 uTransformMatrix;
   out vec2 vPosition;
   ${program.preamble ?? ""}
 
@@ -31,17 +32,18 @@ export const vertexTemplate = (program: ShaderProgram = {}): string => /*glsl*/ 
     vPosition = aPosition;
     vec2 position = aPosition;
     ${program.main ?? ""}
-    gl_Position = vec4((projectionMatrix * translationMatrix * vec3(position.xy, 1.0)).xy, 0.0, 1.0);        
+    mat3 mvp = uProjectionMatrix * uWorldTransformMatrix * uTransformMatrix;
+    gl_Position = vec4((mvp * vec3(position.xy, 1.0)).xy, 0.0, 1.0);        
   }
 `
 
 /**
- * Template for fragment shader program. Defines varyings passed from {@link vertexTemplate}
+ * Template for fragment shader program. Defines varyings passed from {@link meshVertTemplate}
  * and sets the `fragColor` variable
  * @param program {@link ShaderProgram} to extend this template
  * @returns fragment glsl code
  */
-export const fragTemplate = (program: ShaderProgram = {}): string => /*glsl*/ `${globalPreamble}
+export const meshFragTemplate = (program: ShaderProgram = {}): string => /*glsl*/ `${globalPreamble}
   in vec2 vPosition;
   out vec4 fragColor;
   ${program.preamble ?? ""}
@@ -60,18 +62,30 @@ export const fragTemplate = (program: ShaderProgram = {}): string => /*glsl*/ `$
  * @returns vertex glsl code
  */
 export const filterVertTemplate = (program: ShaderProgram = {}): string => /*glsl*/ `${globalPreamble}
-  in vec2 aVertexPosition;
-  uniform mat3 projectionMatrix;
-  uniform vec4 inputSize;
-  uniform vec4 outputFrame;
+  in vec2 aPosition;
   out vec2 vTextureCoord;
+
+  uniform vec4 uInputSize;
+  uniform vec4 uOutputFrame;
+  uniform vec4 uOutputTexture;
   ${program.preamble ?? ""}
 
+  vec2 filterVertexPosition() {
+    vec2 position = aPosition * uOutputFrame.zw + uOutputFrame.xy;      
+    position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;
+    position.y = position.y * (2.0*uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;
+    return position;
+  }
+
+  vec2 filterTextureCoord(){
+    return aPosition * (uOutputFrame.zw * uInputSize.zw);
+  }
+
   void main() {
-    vTextureCoord = aVertexPosition * (outputFrame.zw * inputSize.zw);
-    vec2 position = aVertexPosition * max(outputFrame.zw, vec2(0.)) + outputFrame.xy;
+    vTextureCoord = filterTextureCoord();
+    vec2 position = filterVertexPosition();
     ${program.main ?? ""}
-    gl_Position = vec4((projectionMatrix * vec3(position.xy, 1.0)).xy, 0.0, 1.0);    
+    gl_Position = vec4(position, 0.0, 1.0);    
   }
 
 `
@@ -85,12 +99,12 @@ export const filterVertTemplate = (program: ShaderProgram = {}): string => /*gls
  */
 export const filterFragTemplate = (program: ShaderProgram = {}): string => /*glsl*/ `${globalPreamble}
   in vec2 vTextureCoord;
-  uniform sampler2D uSampler;
+  uniform sampler2D uTexture;
   out vec4 fragColor;
   ${program.preamble ?? ""}
 
   void main() {
-    fragColor = texture(uSampler, vTextureCoord);
+    fragColor = texture(uTexture, vTextureCoord);
     ${program.main ?? ""}
   }
 `

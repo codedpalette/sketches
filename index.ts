@@ -2,7 +2,7 @@ import { SketchRenderer } from "library/core/renderer"
 import { SketchRunner } from "library/core/runner"
 import { Sketch } from "library/core/sketch"
 import { initUI } from "library/core/ui"
-import factory from "sketches/2023/kiss"
+import factory from "sketches/2023/shade"
 
 const defaultSizeParams = { resolution: 1, width: 1250, height: 1250 }
 const renderer = await SketchRenderer.init()

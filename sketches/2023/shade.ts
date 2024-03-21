@@ -1,14 +1,14 @@
 import { line, point, Segment, segment, vector } from "@flatten-js/core"
 import { SketchEnv } from "library/core/types"
 import { formatHsl } from "library/drawing/color"
-import { NoiseAlphaFilter } from "library/drawing/filters"
+import { FXAAFilter, NoiseAlphaFilter } from "library/drawing/filters"
 import { drawBackground } from "library/drawing/helpers"
 import { renderLines } from "library/drawing/meshes"
 import { glslNoise2d, ShaderProgram } from "library/drawing/shaders"
 import { map } from "library/utils"
-import { Container, FXAAFilter, NoiseFilter } from "pixi.js"
+import { Container, NoiseFilter, Rectangle } from "pixi.js"
 
-export default ({ random, bbox, renderer }: SketchEnv) => {
+export default ({ random, bbox }: SketchEnv) => {
   const mainHue = random.realZeroTo(360)
   const bgColor = formatHsl([mainHue, random.real(0.2, 0.3), random.real(0.8, 0.9)])
   const numLayers = 1 //random.integer(2, 4)
@@ -37,7 +37,10 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
   for (let i = 1; i <= numLayers; i++) {
     container.addChild(drawLayer(i))
   }
-  container.filters = [new NoiseFilter(random.real(0.1, 0.2), random.realZeroToOneInclusive()), new FXAAFilter()]
+  container.filters = [
+    new NoiseFilter({ noise: random.real(0.1, 0.2), seed: random.realZeroToOneInclusive() }),
+    new FXAAFilter(),
+  ]
   return { container }
 
   function drawLayer(layerNum: number) {
@@ -48,7 +51,7 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
 
     const lines = drawLines(rotation % Math.PI, lineSpacing)
     container.addChild(lines)
-    container.filterArea = renderer.screen
+    container.filterArea = new Rectangle(bbox.xmin, bbox.ymin, bbox.width, bbox.height)
     container.filters = [new NoiseAlphaFilter(noiseScale, random)]
     return container
   }

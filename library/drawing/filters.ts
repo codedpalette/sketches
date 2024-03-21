@@ -1,5 +1,6 @@
 import { Random } from "library/core/random"
-import { Filter } from "pixi.js"
+import fxaa from "library/glsl/fxaa.glsl"
+import { Filter, GlProgram } from "pixi.js"
 
 import { filterFragTemplate, filterVertTemplate, glslNoise3d } from "./shaders"
 
@@ -26,9 +27,31 @@ export class NoiseAlphaFilter extends Filter {
    */
   constructor(noiseScale = 1, random?: Random) {
     const uniforms = {
-      noiseScale,
-      noiseOffset: random?.realZeroToOneInclusive() ?? 0,
+      noiseScale: { value: noiseScale, type: "f32" },
+      noiseOffset: { value: random?.realZeroToOneInclusive() ?? 0, type: "f32" },
     }
-    super(filterVertTemplate(), NoiseAlphaFilter.fragShader, uniforms)
+    const glProgram = new GlProgram({ vertex: filterVertTemplate(), fragment: NoiseAlphaFilter.fragShader })
+    super({ glProgram, resources: { uniforms } })
+  }
+}
+
+/**
+ * Pixi.js filter for FXAA (Fast Approximate Anti-Aliasing)
+ */
+export class FXAAFilter extends Filter {
+  private static fragShader = filterFragTemplate({
+    preamble: /*glsl*/ `${fxaa}
+      uniform vec4 uOutputFrame;
+    `,
+    main: /*glsl*/ `
+      vec2 resolution = uOutputFrame.zw;
+      fragColor = applyFXAA(vTextureCoord * resolution, resolution, uTexture);
+    `,
+  })
+
+  /** Creates {@link FXAAFilter} */
+  constructor() {
+    const glProgram = new GlProgram({ vertex: filterVertTemplate(), fragment: FXAAFilter.fragShader })
+    super({ glProgram })
   }
 }
