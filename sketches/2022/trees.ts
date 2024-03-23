@@ -12,8 +12,8 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
   const landHeight = 200
   const landAmp = 20
   const numLayers = 3
-  const fruitTexture = renderer.generateTexture(new Graphics().beginFill("red").drawCircle(0, 0, 1))
-  const leafTexture = renderer.generateTexture(new Graphics().beginFill("green").drawCircle(0, 0, 1))
+  const fruitTexture = renderer.generateTexture(new Graphics().circle(0, 0, 1).fill("red"))
+  const leafTexture = renderer.generateTexture(new Graphics().circle(0, 0, 1).fill("green"))
   const container = new Container()
   container.addChild(drawBackground("white", bbox))
 
@@ -24,14 +24,14 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
     const color = gray(map(i, 0, numLayers - 1, 128, 0))
     layerContainer.addChild(trees(color))
     layerContainer.addChild(landscape(i, color))
-    layerContainer.filters = i == numLayers - 1 ? null : [new BlurFilter(numLayers - i - 1, undefined)]
+    layerContainer.filters = i == numLayers - 1 ? [] : [new BlurFilter({ strength: numLayers - i - 1 })]
     container.addChild(layerContainer)
   }
 
   return { container }
 
   function landscape(noiseOffset: number, color: ColorSource) {
-    const g = new Graphics().lineStyle(1, color).beginFill(color)
+    const g = new Graphics().setStrokeStyle({ width: 1, color }).setFillStyle(color)
     const pointData = [{ x: -bbox.width / 2, y: -bbox.height / 2 }]
     for (let i = 0; i < bbox.width; i++) {
       const n = noise(i, noiseOffset * 1000)
@@ -39,8 +39,7 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
       pointData.push({ x: i - bbox.width / 2, y: -bbox.height / 2 + landHeight - delta })
     }
     pointData.push({ x: bbox.width / 2, y: -bbox.height / 2 })
-    g.drawPolygon(pointData)
-    g.closePath()
+    g.poly(pointData).stroke().fill()
     return g
   }
 
@@ -68,7 +67,7 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
     const container = new Container()
     const width = map(height, stopBranchHeight, startBranchHeight, 1, 5)
     const alpha = map(height, stopBranchHeight, startBranchHeight, 32, 255) / 255
-    container.addChild(new Graphics().lineStyle({ width, color, alpha }).lineTo(0, height))
+    container.addChild(new Graphics().lineTo(0, height).stroke({ width, color, alpha }))
 
     const maxTheta = depth == 0 ? Math.PI / 4 : Math.PI / 2
     const nBranches = random.integer(5, 8) - depth

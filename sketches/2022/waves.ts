@@ -40,10 +40,10 @@ export default ({ random, bbox }: SketchEnv) => {
       const color = { h: hue, s: sat, v: val }
 
       if (val > 10) {
-        const g = new Graphics().beginFill(color)
+        const g = new Graphics().setFillStyle(color)
         g.position.set(x, y)
         g.skew.x = skew
-        g.drawRect(rectSize / 2, rectSize / 2, rectSize, rectSize)
+        g.rect(rectSize / 2, rectSize / 2, rectSize, rectSize).fill()
         container.addChild(g)
       }
 

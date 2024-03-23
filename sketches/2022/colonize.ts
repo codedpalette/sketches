@@ -150,15 +150,14 @@ export default ({ random, bbox }: SketchEnv) => {
     const g = new Graphics()
     const val = isDarkBackground ? 100 : 50
     const sat = isDarkBackground ? random.real(20, 100) : random.real(50, 100)
-    const colorSource = { h: hue, s: sat, v: val }
+    const color = { h: hue, s: sat, v: val }
     for (const node of nodes) {
       if (node.parent) {
         const alpha = Math.min(node.thickness / 7 + 0.4, 1)
-        const weight = node.thickness + 1
-        g.lineStyle(weight, colorSource, alpha)
-          .beginFill(colorSource, alpha)
-          .moveTo(node.position.x, node.position.y)
+        const width = node.thickness + 1
+        g.moveTo(node.position.x, node.position.y)
           .lineTo(node.parent.position.x, node.parent.position.y)
+          .stroke({ width, color, alpha })
       }
     }
     return g

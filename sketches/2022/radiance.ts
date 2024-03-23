@@ -1,8 +1,9 @@
 import { box, vector } from "@flatten-js/core"
 import { formatCss } from "culori"
 import { SketchEnv } from "library/core/types"
+import { FXAAFilter } from "library/drawing/filters"
 import { drawCanvas } from "library/drawing/helpers"
-import { Color, Container, FXAAFilter, Graphics } from "pixi.js"
+import { Color, Container, Graphics } from "pixi.js"
 
 export default ({ random, bbox }: SketchEnv) => {
   const gradientCenter = vector(random.minmax(bbox.width * 0.4), random.minmax(bbox.height * 0.4))
@@ -35,10 +36,8 @@ export default ({ random, bbox }: SketchEnv) => {
   function drawRays() {
     const triangleHeight = Math.hypot(bbox.width, bbox.height)
     const rotationStep = 0.25
-    const triangleContainer = new Container().setTransform(gradientCenter.x, gradientCenter.y)
-    const triangleTemplate = new Graphics()
-      .beginFill("white")
-      .drawPolygon([vector(0, 0), vector(-triangleHeight, 1), vector(-triangleHeight, -1)])
+    const triangleContainer = new Container()
+    triangleContainer.position.set(gradientCenter.x, gradientCenter.y)
 
     let rotation = 0
     while (rotation < 2 * Math.PI - rotationStep) {
@@ -47,8 +46,14 @@ export default ({ random, bbox }: SketchEnv) => {
       const triangleHalfBase = triangleHeight * Math.tan(rayAngle / 2)
 
       const triangleGraphics = triangleContainer
-        .addChild(new Graphics(triangleTemplate.geometry))
-        .setTransform(0, 0, 1, triangleHalfBase, rayRotation)
+        .addChild(new Graphics())
+        .poly(
+          [vector(0, 0), vector(-triangleHeight, triangleHalfBase), vector(-triangleHeight, -triangleHalfBase)],
+          false
+        )
+        .fill("white")
+
+      triangleGraphics.rotation = rayRotation
       triangleGraphics.tint = new Array(3).fill(random.bool() ? random.realZeroTo(0.2) : 1 - random.realZeroTo(0.2))
 
       rotation += random.real(1, 1.2) * rotationStep
@@ -59,7 +64,7 @@ export default ({ random, bbox }: SketchEnv) => {
   function drawCircle() {
     const radius = random.real(50, 75)
     const circleBbox = box(0, 0, radius * 2, radius * 2)
-    return drawCanvas((ctx) => {
+    const sprite = drawCanvas((ctx) => {
       const gradient = ctx.createLinearGradient(radius, 0, radius, radius * 2)
       gradient.addColorStop(0, paletteCss[0])
       gradient.addColorStop(1, paletteCss[1])
@@ -68,6 +73,8 @@ export default ({ random, bbox }: SketchEnv) => {
       ctx.beginPath()
       ctx.ellipse(radius, radius, radius, radius, 0, 0, 2 * Math.PI)
       ctx.fill()
-    }, circleBbox).setTransform(gradientCenter.x, gradientCenter.y)
+    }, circleBbox)
+    sprite.position.set(gradientCenter.x, gradientCenter.y)
+    return sprite
   }
 }

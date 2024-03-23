@@ -41,7 +41,6 @@ export function renderLines(
 
   // Define vertex attributes
   const elementSize = Float32Array.BYTES_PER_ELEMENT
-  // TODO: PR to pixi with divisor field
   const positionAttribute: Attribute = {
     buffer: positionBuffer,
     instance: true,

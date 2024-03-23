@@ -2,7 +2,7 @@ import { SketchEnv } from "library/core/types"
 import { gray } from "library/drawing/color"
 import { drawBackground } from "library/drawing/helpers"
 import { map } from "library/utils"
-import { Container, DEG_TO_RAD, Graphics } from "pixi.js"
+import { Container, DEG_TO_RAD, Graphics, Matrix } from "pixi.js"
 import { BoundingBox, Site, Voronoi } from "voronoijs"
 
 export default ({ random, bbox }: SketchEnv) => {
@@ -28,22 +28,20 @@ export default ({ random, bbox }: SketchEnv) => {
     const subShards = random.integer(75, 125)
     const subShardsContainer = new Container()
     for (let i = 0; i < subShards; i++) {
-      const scaleFactor = (baseScaleFactor * (subShards - i)) / subShards
+      const scale = (baseScaleFactor * (subShards - i)) / subShards
       const alpha = map(i, 0, subShards, 1, 0)
       const fillColor = map(i, 0, subShards, 0, 255)
-      const rgb = gray(gradientDirection ? 255 - fillColor : fillColor)
+      const color = gray(gradientDirection ? 255 - fillColor : fillColor)
 
       const pointData = halfEdges.map((edge) => {
         const point = edge.getStartpoint()
         return offsetVec.translate(point.x, point.y).translate(-cell.site.x, -cell.site.y)
       })
-      subShardsContainer.addChild(
-        new Graphics()
-          .lineStyle(0, rgb, alpha)
-          .beginFill(rgb, alpha)
-          .setTransform(cell.site.x, cell.site.y, scaleFactor, scaleFactor, rotation)
-          .drawPolygon(pointData)
-      )
+      subShardsContainer
+        .addChild(new Graphics())
+        .setTransform(new Matrix().rotate(rotation).scale(scale, scale).translate(cell.site.x, cell.site.y))
+        .poly(pointData)
+        .fill({ color, alpha })
     }
     container.addChild(subShardsContainer)
   }

@@ -22,7 +22,7 @@ export type UI = {
  * @returns object holding references to ui elements
  */
 export function initUI(sketch: Sketch, defaultParams: Required<SizeParams>): UI {
-  const canvas = sketch.renderer.canvas as HTMLCanvasElement
+  const canvas = sketch.renderer.canvas
   initCanvasCapture(canvas)
   initSpector(canvas)
   initResizeUI(sketch, defaultParams)

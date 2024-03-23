@@ -48,7 +48,7 @@ export default ({ random, bbox }: SketchEnv) => {
 
     const randomColor = random.pick(palette)
     const pointData = points.concat(oppositePoints).flat()
-    const g = new Graphics().beginFill(randomColor).drawPolygon(pointData).closePath()
+    const g = new Graphics().poly(pointData).fill(randomColor)
     container.addChild(g)
   }
 

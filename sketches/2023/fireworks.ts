@@ -39,8 +39,8 @@ export default ({ random, bbox }: SketchEnv) => {
     const briPeriod = (maxRadius - minRadius) * random.real(0.25, 0.5) // Period of sine wave modulating brightness change
 
     for (let i = 0; i < particleCount; i++) {
-      const g = c.addChild(new Graphics())
       const trailLength = random.real(75, 150)
+      const g = c.addChild(new Graphics())
       // Particle's current polar coordinates
       let r = map(random.realZeroToOneInclusive(), 0, 1, minRadius, maxRadius)
       let theta = random.real(0, 2 * Math.PI)
@@ -52,7 +52,7 @@ export default ({ random, bbox }: SketchEnv) => {
         const { x: x0, y: y0 } = fromPolar(r, theta)
         const { x: x1, y: y1 } = fromPolar(r + rStep, theta - thetaStep)
 
-        const lineThickness = (1 + noise(i * 100, j) + j / trailLength) * 2
+        const width = (2 + noise(i * 100, j) + j / trailLength) * 2
         const alpha = j / (trailLength * 2) + 0.5
 
         // Convert particle's radius vector to a sine wave phase value
@@ -60,7 +60,8 @@ export default ({ random, bbox }: SketchEnv) => {
         // Use it to modulate brightness with offset in [-0.25, 0.25]
         const briOffset = Math.sin(briTheta) / 4
         const color = formatHsl([hue, sat, bri + briOffset])
-        g.lineStyle(lineThickness, color, alpha).moveTo(x0, y0).lineTo(x1, y1)
+        // TODO: Rewrite to Mesh and drawSegments
+        g.moveTo(x0, y0).lineTo(x1, y1).stroke({ width, color, alpha })
 
         theta += thetaStep
         r -= rStep
@@ -109,12 +110,13 @@ export default ({ random, bbox }: SketchEnv) => {
     const container = new Container()
     const numStars = random.real(200, 300)
     for (let i = 0; i < numStars; i++) {
-      const g = container
-        .addChild(new Graphics().beginFill("white", random.real(0.5, 1)))
-        .setTransform(random.minmax(bbox.width / 2), random.minmax(bbox.height / 2))
-      g.drawCircle(0, 0, random.real(2, 4))
+      container
+        .addChild(new Graphics())
+        .circle(0, 0, random.real(2, 4))
+        .fill({ color: "white", alpha: random.real(0.5, 1) })
+        .position.set(random.minmax(bbox.width / 2), random.minmax(bbox.height / 2))
     }
-    container.filters = [new BlurFilter(1, 1)]
+    container.filters = [new BlurFilter({ strength: 1, quality: 1 })]
     return container
   }
 }

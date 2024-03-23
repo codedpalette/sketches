@@ -41,7 +41,7 @@ export default ({ random, bbox }: SketchEnv) => {
     const alpha = map(radiusFactor, 1, 0, 255, 150) / 255
     const strokeColor = map(radiusFactor, 0, 1, 100, 50)
     const strokeThickness = map(radiusFactor * radiusFactor, 0, 1, 0, 2)
-    graphics.lineStyle(strokeThickness, gray(strokeColor))
+    graphics.setStrokeStyle({ width: strokeThickness, color: gray(strokeColor) })
 
     // Calculate fill color
     const hueNoiseFactor = 0.05
@@ -49,7 +49,7 @@ export default ({ random, bbox }: SketchEnv) => {
     const hue = Math.abs(n) > 0.5 ? mainHue : (mainHue + 180) % 360
     const sat = map(radiusFactor, 0, 1, 50, 0)
     const val = map(radiusFactor, 0, 1, 90, 100)
-    graphics.beginFill({ h: hue, s: sat, v: val })
+    graphics.setFillStyle({ h: hue, s: sat, v: val })
 
     // Calculate skew
     const skewNoiseFactor = 0.01
@@ -58,7 +58,10 @@ export default ({ random, bbox }: SketchEnv) => {
     const [skewX, skewY] = [n1, n2].map((n) => map(n, -1, 1, -Math.PI / 4, Math.PI / 4) * (1 - radiusFactor))
     graphics.skew = { x: skewX, y: skewY }
 
-    graphics.drawRect(width / 2, height / 2, width, height)
+    graphics
+      .rect(width / 2, height / 2, width, height)
+      .fill()
+      .stroke()
     graphics.position = { x: centerX, y: centerY }
     graphics.alpha = alpha
     container.addChild(graphics)

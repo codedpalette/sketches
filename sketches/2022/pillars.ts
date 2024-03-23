@@ -1,7 +1,7 @@
 import { SketchEnv } from "library/core/types"
 import { drawBackground } from "library/drawing/helpers"
 import { map } from "library/utils"
-import { Container, Graphics } from "pixi.js"
+import { Container, Graphics, Matrix } from "pixi.js"
 
 export default ({ random, bbox }: SketchEnv) => {
   const cellSize = 10
@@ -39,15 +39,12 @@ export default ({ random, bbox }: SketchEnv) => {
       if (cells[i][j]) {
         const x = i * cellSize + cellSize / 2 + random.minmax(xNoise)
         const y = j * cellSize + cellSize / 2
-        const graphics = new Graphics()
-          .beginFill({ h: hue, s: sat, v: val, a: alpha })
-          .setTransform(
-            x - bbox.width / 2,
-            -y + bbox.height / 2,
-            random.real(0.8, 2),
-            random.real(0.8, 2),
-            random.real(0, 2 * Math.PI)
-          )
+        const graphics = new Graphics().setFillStyle({ h: hue, s: sat, v: val, a: alpha }).setTransform(
+          new Matrix()
+            .rotate(random.real(0, 2 * Math.PI))
+            .scale(random.real(0.8, 2), random.real(0.8, 2))
+            .translate(x - bbox.width / 2, -y + bbox.height / 2)
+        )
         container.addChild(brokenRect(graphics))
       }
     }
@@ -65,7 +62,7 @@ export default ({ random, bbox }: SketchEnv) => {
       { x: x + random.real(0, dim), y: y - dim },
       { x, y: y - random.real(0, dim) },
     ]
-    g.drawPolygon(pointData)
+    g.poly(pointData).fill()
     return g
   }
 
@@ -74,7 +71,7 @@ export default ({ random, bbox }: SketchEnv) => {
   // - At a white square, turn 90° clockwise, flip the color of the square, move forward one unit
   // - At a black square, turn 90° counter-clockwise, flip the color of the square, move forward one unit
   function simulateAnt() {
-    const numSteps = 500000
+    const numSteps = 1000000
     let currX = random.integer(0, cellsWidth - 1)
     let currY = random.integer(0, cellsHeight - 1)
     let currDirection = random.integer(0, 3)

@@ -1,14 +1,15 @@
 import { SketchEnv } from "library/core/types"
 import { gray } from "library/drawing/color"
+import { FXAAFilter } from "library/drawing/filters"
 import { drawBackground } from "library/drawing/helpers"
 import { map } from "library/utils"
-import { BlurFilter, Container, FXAAFilter, Graphics } from "pixi.js"
+import { BlurFilter, Container, Graphics } from "pixi.js"
 
 export default ({ random, bbox }: SketchEnv) => {
   const isDarkBackground = random.bool()
   const container = new Container()
   container.addChild(drawBackground(gray(isDarkBackground ? 20 : 240), bbox))
-  container.filters = [new FXAAFilter(), new BlurFilter(1, 2)]
+  container.filters = [new FXAAFilter(), new BlurFilter({ strength: 1, quality: 2 })]
 
   // Lissajous curves parameters
   // x(t) = A*sin(a*t + delta)
@@ -31,9 +32,7 @@ export default ({ random, bbox }: SketchEnv) => {
     const y = B * Math.sin(b * t)
     const radius = map(alpha, 0, 255, 1, 5)
     const color = gray(isDarkBackground ? alpha : 255 - alpha)
-    g.beginFill(color, alpha / 255)
-      .drawCircle(x, y, radius)
-      .endFill()
+    g.circle(x, y, radius).fill({ color, alpha: alpha / 255 })
     t += tStep
     alpha += alphaStep
     if (alpha > 255) {

@@ -2,8 +2,9 @@ import { Box, box } from "@flatten-js/core"
 import { SketchEnv } from "library/core/types"
 import { drawBackground } from "library/drawing/helpers"
 import { map } from "library/utils"
-import { Color, Container, IPointData, ParticleContainer, Sprite, Texture } from "pixi.js"
+import { Color, Container, PointData, Sprite, Texture } from "pixi.js"
 
+// TODO: container.destroy bug https://github.com/pixijs/pixijs/issues/10345
 export default ({ random, bbox }: SketchEnv) => {
   const container = new Container()
   container.addChild(drawBackground("black", bbox))
@@ -12,7 +13,7 @@ export default ({ random, bbox }: SketchEnv) => {
   const particleCount = 1e5
 
   let found = false
-  let points: IPointData[] = []
+  let points: PointData[] = []
   let maxX = 0,
     minX = 0,
     maxY = 0,
@@ -101,7 +102,7 @@ export default ({ random, bbox }: SketchEnv) => {
     if (random.bool()) {
       // Clifford attractor
       const [a, b, c, d] = Array.from({ length: 4 }).map(() => random.minmax(2))
-      return (point: IPointData) => {
+      return (point: PointData) => {
         const { x, y } = point
         const newX = Math.sin(a * y) + c * Math.cos(a * x)
         const newY = Math.sin(b * x) + d * Math.cos(b * y)
@@ -110,7 +111,7 @@ export default ({ random, bbox }: SketchEnv) => {
     } else {
       // Quadratic map
       const coefs = Array.from({ length: 12 }).map(() => random.minmax(2))
-      return (point: IPointData) => {
+      return (point: PointData) => {
         const { x, y } = point
         const newX = coefs[0] + coefs[1] * x + coefs[2] * x * x + coefs[3] * x * y + coefs[4] * y + coefs[5] * y * y
         const newY = coefs[6] + coefs[7] * x + coefs[8] * x * x + coefs[9] * x * y + coefs[10] * y + coefs[11] * y * y
@@ -119,7 +120,7 @@ export default ({ random, bbox }: SketchEnv) => {
     }
   }
 
-  function plot(points: IPointData[], box: Box) {
+  function plot(points: PointData[], box: Box) {
     let maxDistance = 0
     const distances = []
     for (let i = 0; i < points.length; i++) {
@@ -127,12 +128,11 @@ export default ({ random, bbox }: SketchEnv) => {
       distances[i] = i == 0 ? 0 : Math.hypot(point.x - points[i - 1].x, point.y - points[i - 1].y)
       maxDistance = Math.max(distances[i], maxDistance)
     }
-    const particleContainer = new ParticleContainer(particleCount, { vertices: true, tint: true })
+    const particleContainer = new Container()
     for (let i = 0; i < points.length; i++) {
       const point = points[i]
       const particle = new Sprite(Texture.WHITE)
       particle.anchor.set(0.5)
-      particle.scale.set(0.1)
       const x = map(point.x, box.xmin, box.xmax, bbox.xmin, bbox.xmax)
       const y = map(point.y, box.ymin, box.ymax, bbox.ymin, bbox.ymax)
       particle.position.set(x, y)

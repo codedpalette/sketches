@@ -3,7 +3,7 @@ import { SketchEnv } from "library/core/types"
 import { gray } from "library/drawing/color"
 import { drawBackground } from "library/drawing/helpers"
 import { fromPolar, map } from "library/utils"
-import { Container, Graphics, IPointData } from "pixi.js"
+import { Container, Graphics, PointData } from "pixi.js"
 
 export default ({ random, bbox }: SketchEnv) => {
   const backgroundColor = random.real(0, 20)
@@ -73,16 +73,15 @@ export default ({ random, bbox }: SketchEnv) => {
     for (let i = radius; i > 0; i -= noiseAmp / 2) {
       const val = map(i, radius, 0, minVal, 100)
       const sat = i == radius ? 0 : map(i, radius, 0, 100, 20)
-      const graphics = new Graphics().beginFill({ h: hue, s: sat, v: val })
+      const graphics = container.addChild(new Graphics()).setFillStyle({ h: hue, s: sat, v: val })
 
-      const points: IPointData[] = []
+      const points: PointData[] = []
       for (let theta = 0; theta < 2 * Math.PI; theta += thetaStep) {
         const r = i + random.minmax(0.2) * noiseAmp
         const vertex = fromPolar(r, theta)
         points.push(circle.center.translate(vertex.x, vertex.y))
       }
-      graphics.drawPolygon(points).closePath()
-      container.addChild(graphics)
+      graphics.poly(points).fill()
     }
   }
 }
