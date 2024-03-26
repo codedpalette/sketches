@@ -3,27 +3,27 @@ import { ICanvas } from "pixi.js"
 import { createEntropy, MersenneTwister19937 as MersenneTwister } from "random-js"
 
 import { Random } from "./random"
-import { PixiRenderer } from "./renderer"
-import { SizeParams, SketchCreator, SketchInstance, SketchParams, SketchType, UpdateFn } from "./types"
+import { SketchRenderer } from "./renderer"
+import { ExportParams, SizeParams, SketchCreator, SketchInstance, SketchParams, SketchType, UpdateFn } from "./types"
 
-export interface SketchConstructor {
-  <T extends ICanvas>(renderer: PixiRenderer<T>, params: SketchParams): SketchLike<T>
+export interface SketchConstructor<T extends SketchType> {
+  <C extends ICanvas>(renderer: SketchRenderer<C>, params: SketchParams): Sketch<T, C>
 }
 
-export interface SketchLike<T extends ICanvas> {
+export interface SketchLike<C extends ICanvas> {
   update?: UpdateFn
-  canvas: T
+  canvas: C
   render(): void
   next(): void
   resize(params: Partial<SizeParams>): void
 }
 
 /** Class for wrapping sketch and controlling RNG state */
-export class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
-  /** Sketch size parameters */
-  public readonly params: Required<SizeParams>
+class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
   /** Seed for initializing random generator */
   public readonly seed: number[]
+  /** Sketch size parameters */
+  private params: Required<SizeParams>
   /** Using [Mersenne twister](http://en.wikipedia.org/wiki/Mersenne_twister) algorithm for repeatability */
   private mersenneTwister: MersenneTwister
   /** RNG instance */
@@ -42,7 +42,7 @@ export class Sketch<T extends SketchType, C extends ICanvas> implements SketchLi
   constructor(
     private type: T,
     private sketchCreator: SketchCreator<T>,
-    private renderer: PixiRenderer<C>,
+    private renderer: SketchRenderer<C>,
     params: SketchParams
   ) {
     this.params = { resolution: 1, ...params }
@@ -60,6 +60,14 @@ export class Sketch<T extends SketchType, C extends ICanvas> implements SketchLi
   }
 
   /**
+   * Sketch size parameters
+   * @returns size params
+   */
+  get size(): Required<SizeParams> {
+    return this.params
+  }
+
+  /**
    * Canvas that this sketch renders to
    * @returns canvas
    */
@@ -72,28 +80,28 @@ export class Sketch<T extends SketchType, C extends ICanvas> implements SketchLi
    */
   render() {
     const instance = this.instance || this.iterate()
-    // FIXME: Remove once proper framework abstraction in SketchRenderer is supported
-    if ("container" in instance && instance.container.visible) {
-      this.renderer.render(instance, this.params)
-    }
+    this.renderer.render(instance, this.params)
     this.instance = instance
   }
 
   /**
    * Render this sketch and export render result
-   * @param sizeParamsOverrides optional overrides for rendering size params
-   * @param format optional image format type to export to
+   * @param exportParams optional overrides for rendering size params and image type
    * @returns renderer's canvas contents as blob
    */
-  async export(sizeParamsOverrides?: Partial<SizeParams>, format?: string): Promise<Blob> {
+  async export(exportParams?: ExportParams): Promise<Blob> {
     const currentParams = { ...this.params }
-    Object.assign(this.params, sizeParamsOverrides)
+    Object.assign(this.params, exportParams)
     this.render()
+    this.params = currentParams
     Object.assign(this.params, currentParams)
     const canvas = this.renderer.canvas
     const blobPromise =
-      canvas.convertToBlob?.({ type: format }) ||
-      new Promise((resolve, reject) => canvas.toBlob?.((blob) => (blob ? resolve(blob) : reject()), format) || reject())
+      canvas.convertToBlob?.({ type: exportParams?.format }) ||
+      new Promise(
+        (resolve, reject) =>
+          canvas.toBlob?.((blob) => (blob ? resolve(blob) : reject()), exportParams?.format) || reject()
+      )
     return await blobPromise
   }
 
@@ -148,6 +156,8 @@ export class Sketch<T extends SketchType, C extends ICanvas> implements SketchLi
  * @param sketchCreator function producing new sketch instances
  * @returns function that creates Pixi.js sketch with given params
  */
-export function pixi(sketchCreator: SketchCreator<"pixi">): SketchConstructor {
+export function pixi(sketchCreator: SketchCreator<"pixi">): SketchConstructor<"pixi"> {
   return (renderer, params) => new Sketch("pixi", sketchCreator, renderer, params)
 }
+
+export type ISketch<C extends ICanvas = HTMLCanvasElement> = InstanceType<typeof Sketch<SketchType, C>>

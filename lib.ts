@@ -1,9 +1,9 @@
-import { SketchConstructor } from "library/core/sketch"
-import { ColorSource } from "pixi.js"
+import { SketchConstructor, SketchLike } from "library/core/sketch"
+import { SketchType } from "library/core/types"
 
-export { PixiRenderer } from "library/core/renderer"
+export { SketchRenderer } from "library/core/renderer"
 export { SketchRunner } from "library/core/runner"
-export { Sketch } from "library/core/sketch"
+export type { ISketch as Sketch } from "library/core/sketch"
 export * from "library/core/types"
 
 /** Sketch module definition */
@@ -14,8 +14,8 @@ export type SketchModule = {
   year: number
 }
 
-type SketchModuleImpl = {
-  default: SketchConstructor
+type SketchModuleImpl<T extends SketchType> = {
+  default: SketchConstructor<T>
 }
 
 // Only finished artworks here
@@ -40,17 +40,17 @@ export const sketches = [
  * @param module {@link SketchModule} definition
  * @returns promise with loaded sketch factory function
  */
-export async function loadModule(module: SketchModule): Promise<SketchConstructor> {
-  const { default: sketch } = (await import(`./sketches/${module.year}/${module.name}.ts`)) as SketchModuleImpl
+export async function loadModule<T extends SketchType>(module: SketchModule): Promise<SketchConstructor<T>> {
+  const { default: sketch } = (await import(`./sketches/${module.year}/${module.name}.ts`)) as SketchModuleImpl<T>
   return sketch
 }
 
 /**
  * "Screensaver" sketch for website's main page background. Exported separately to not include it in the gallery.
- * @param clearColor canvas's background color
+ * @param canvas canvas to render on
  * @returns promise with loaded sketch factory function
  */
-export async function screensaver(clearColor: ColorSource): Promise<SketchConstructor> {
+export async function screensaver(canvas: HTMLCanvasElement): Promise<SketchLike<HTMLCanvasElement>> {
   const screensaverModule = await import("./sketches/2024/screensaver")
-  return screensaverModule.default(clearColor)
+  return screensaverModule.default(canvas)
 }

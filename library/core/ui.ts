@@ -4,10 +4,16 @@ import { Spector } from "spectorjs"
 import Stats from "stats.js"
 
 import { SketchLike } from "./sketch"
-import { SizeParams, UI } from "./types"
+import { SizeParams } from "./types"
 
 const minWidth = 100
 const minHeight = 100
+
+/** Type for holding reference to parts UI system */
+export type UI = {
+  stats: Stats
+  capture: typeof CanvasCapture
+}
 
 /**
  * Initializes UI element for capturing canvas to file, profiling WebGL commands and resizing canvas

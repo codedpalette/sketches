@@ -1,8 +1,8 @@
 import { Box } from "@flatten-js/core"
-import { CanvasCapture } from "canvas-capture"
 import { Container, ICanvas, WebGLRenderer } from "pixi.js"
 
 import { Random } from "./random"
+import { UI } from "./ui"
 
 /** Sketch type by API used */
 export type SketchType = "pixi"
@@ -77,16 +77,14 @@ export type RenderParams<T extends ICanvas = ICanvas> = {
   antialias: boolean
   /** Whether or not to resize canvas css dimensions when resizing renderer*/
   resizeCSS: boolean
-  /** Should the renderer clear the canvas before render pass */
-  clearBefore: boolean
   /** Optional canvas for renderer to render onto */
   canvas?: T
 }
 
-/** Type for holding reference to parts UI system */
-export type UI = {
-  stats: Stats
-  capture: typeof CanvasCapture
+/** Parameters for exporting render as image */
+export type ExportParams = Partial<SizeParams> & {
+  /** A string indicating the image format. The default type is image/png */
+  format?: string
 }
 
 /** Parameters for controlling sketch running */

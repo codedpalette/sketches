@@ -12,11 +12,11 @@ import {
 import { RenderParams, SizeParams, SketchInstance, SketchRenderingContext, SketchType } from "./types"
 
 const isBrowser = typeof window === "object"
-const defaultRenderParams: RenderParams = { antialias: true, resizeCSS: isBrowser, clearBefore: true }
+const defaultRenderParams: RenderParams = { antialias: true, resizeCSS: isBrowser }
 DOMAdapter.set(isBrowser ? BrowserAdapter : WebWorkerAdapter)
 
 /** Class for abstracting over framework renderers (only Pixi.js for now) */
-export class PixiRenderer<C extends ICanvas> {
+export class SketchRenderer<C extends ICanvas> {
   /** Internal canvas that this renderer renders to */
   public readonly canvas: C
   /**
@@ -39,16 +39,15 @@ export class PixiRenderer<C extends ICanvas> {
    * @param params parameters overrides for this renderer
    * @returns Promise that resolves to renderer
    */
-  static async init<C extends ICanvas>(params?: Partial<RenderParams>): Promise<PixiRenderer<C>> {
+  static async init<C extends ICanvas>(params?: Partial<RenderParams>): Promise<SketchRenderer<C>> {
     const renderParams = { ...defaultRenderParams, ...params }
     const renderer = (await autoDetectRenderer({
       canvas: renderParams.canvas,
       antialias: renderParams.antialias,
       autoDensity: renderParams.resizeCSS,
-      clearBeforeRender: renderParams.clearBefore,
       preference: "webgl",
     })) as unknown as WebGLRenderer<C>
-    return new PixiRenderer(renderer)
+    return new SketchRenderer(renderer)
   }
 
   /**

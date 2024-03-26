@@ -1,13 +1,12 @@
-import { PixiRenderer } from "library/core/renderer"
+import { SketchRenderer } from "library/core/renderer"
 import { SketchRunner } from "library/core/runner"
 import { initUI } from "library/core/ui"
-import screensaver from "sketches/2024/screensaver"
+import constructor from "sketches/2023/shade"
 
 const defaultSizeParams = { resolution: 1, width: 1250, height: 1250 }
-const renderer = await PixiRenderer.init<HTMLCanvasElement>({ resizeCSS: false, antialias: false })
-renderer.renderer.resize(defaultSizeParams.width, defaultSizeParams.height)
-const sketch = screensaver("black")(renderer, defaultSizeParams)
+const renderer = await SketchRenderer.init<HTMLCanvasElement>()
+document.body.appendChild(renderer.canvas)
+const sketch = constructor(renderer, defaultSizeParams)
 const ui = initUI(sketch, defaultSizeParams)
 const runner = new SketchRunner(sketch, { ui })
-document.body.appendChild(renderer.canvas)
 runner.start()
