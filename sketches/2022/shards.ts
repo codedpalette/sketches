@@ -1,11 +1,11 @@
-import { SketchEnv } from "library/core/types"
+import { pixi } from "library/core/sketch"
 import { gray } from "library/drawing/color"
 import { drawBackground } from "library/drawing/helpers"
 import { map } from "library/utils"
 import { Container, DEG_TO_RAD, Graphics, Matrix } from "pixi.js"
 import { BoundingBox, Site, Voronoi } from "voronoijs"
 
-export default ({ random, bbox }: SketchEnv) => {
+export default pixi(({ random, bbox }) => {
   const gradientDirection = random.bool()
   const numSites = random.integer(50, 250) // Number of Voronoi site objects
   const sites: Site[] = []
@@ -46,4 +46,4 @@ export default ({ random, bbox }: SketchEnv) => {
     container.addChild(subShardsContainer)
   }
   return { container }
-}
+})

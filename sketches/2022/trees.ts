@@ -1,11 +1,11 @@
 import { noise2d } from "library/core/random"
-import { SketchEnv } from "library/core/types"
+import { pixi } from "library/core/sketch"
 import { gray } from "library/drawing/color"
 import { drawBackground } from "library/drawing/helpers"
 import { map } from "library/utils"
 import { BlurFilter, ColorSource, Container, Graphics, Sprite } from "pixi.js"
 
-export default ({ random, bbox, renderer }: SketchEnv) => {
+export default pixi(({ random, bbox, renderer }) => {
   const noise = noise2d(random)
   const maxDepth = 5
   const stopBranchHeight = 10
@@ -89,4 +89,4 @@ export default ({ random, bbox, renderer }: SketchEnv) => {
     sprite.scale.set(random.real(1, 2))
     return sprite
   }
-}
+})

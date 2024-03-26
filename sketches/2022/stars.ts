@@ -1,11 +1,11 @@
 import { Circle, circle, point } from "@flatten-js/core"
-import { SketchEnv } from "library/core/types"
+import { pixi } from "library/core/sketch"
 import { gray } from "library/drawing/color"
 import { drawBackground } from "library/drawing/helpers"
 import { fromPolar, map } from "library/utils"
 import { Container, Graphics, PointData } from "pixi.js"
 
-export default ({ random, bbox }: SketchEnv) => {
+export default pixi(({ random, bbox }) => {
   const backgroundColor = random.real(0, 20)
   const minVal = (backgroundColor / 255) * 100
   const mainHue = random.real(0, 360)
@@ -84,4 +84,4 @@ export default ({ random, bbox }: SketchEnv) => {
       graphics.poly(points).fill()
     }
   }
-}
+})

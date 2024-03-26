@@ -1,10 +1,10 @@
 import { noise2d } from "library/core/random"
-import { SketchEnv } from "library/core/types"
+import { pixi } from "library/core/sketch"
 import { drawBackground } from "library/drawing/helpers"
 import { fromPolar, map } from "library/utils"
 import { BlurFilter, Container, Graphics, PointData } from "pixi.js"
 
-export default ({ random, bbox }: SketchEnv) => {
+export default pixi(({ random, bbox }) => {
   const noise = noise2d(random)
   // Define lip functions
   const lip = (a: number, b: number, sign: boolean) => (x: number) =>
@@ -87,4 +87,4 @@ export default ({ random, bbox }: SketchEnv) => {
     const thetas = Array.from({ length: numVertices }, (_) => random.real(0, 2 * Math.PI)).sort()
     return thetas.map((theta) => fromPolar(radius, theta))
   }
-}
+})

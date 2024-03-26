@@ -1,11 +1,11 @@
-import { SketchEnv } from "library/core/types"
+import { pixi } from "library/core/sketch"
 import { gray } from "library/drawing/color"
 import { FXAAFilter } from "library/drawing/filters"
 import { drawBackground } from "library/drawing/helpers"
 import { map } from "library/utils"
 import { BlurFilter, Container, Graphics } from "pixi.js"
 
-export default ({ random, bbox }: SketchEnv) => {
+export default pixi(({ random, bbox }) => {
   const isDarkBackground = random.bool()
   const container = new Container()
   container.addChild(drawBackground(gray(isDarkBackground ? 20 : 240), bbox))
@@ -54,4 +54,4 @@ export default ({ random, bbox }: SketchEnv) => {
     }
     return x
   }
-}
+})

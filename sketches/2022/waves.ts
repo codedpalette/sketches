@@ -1,10 +1,10 @@
 import { noise2d } from "library/core/random"
-import { SketchEnv } from "library/core/types"
+import { pixi } from "library/core/sketch"
 import { drawBackground } from "library/drawing/helpers"
 import { map } from "library/utils"
 import { Container, Graphics } from "pixi.js"
 
-export default ({ random, bbox }: SketchEnv) => {
+export default pixi(({ random, bbox }) => {
   const noise = noise2d(random)
   const hue = random.real(0, 360)
   const numWaves = random.integer(15, 25)
@@ -55,4 +55,4 @@ export default ({ random, bbox }: SketchEnv) => {
       }
     }
   }
-}
+})

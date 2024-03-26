@@ -1,7 +1,7 @@
-import { SketchFactory } from "library/core/types"
+import { SketchConstructor } from "library/core/sketch"
 import { ColorSource } from "pixi.js"
 
-export { SketchRenderer } from "library/core/renderer"
+export { PixiRenderer } from "library/core/renderer"
 export { SketchRunner } from "library/core/runner"
 export { Sketch } from "library/core/sketch"
 export * from "library/core/types"
@@ -15,7 +15,7 @@ export type SketchModule = {
 }
 
 type SketchModuleImpl = {
-  default: SketchFactory
+  default: SketchConstructor
 }
 
 // Only finished artworks here
@@ -40,7 +40,7 @@ export const sketches = [
  * @param module {@link SketchModule} definition
  * @returns promise with loaded sketch factory function
  */
-export async function loadModule(module: SketchModule): Promise<SketchFactory> {
+export async function loadModule(module: SketchModule): Promise<SketchConstructor> {
   const { default: sketch } = (await import(`./sketches/${module.year}/${module.name}.ts`)) as SketchModuleImpl
   return sketch
 }
@@ -50,7 +50,7 @@ export async function loadModule(module: SketchModule): Promise<SketchFactory> {
  * @param clearColor canvas's background color
  * @returns promise with loaded sketch factory function
  */
-export async function screensaver(clearColor: ColorSource): Promise<SketchFactory> {
+export async function screensaver(clearColor: ColorSource): Promise<SketchConstructor> {
   const screensaverModule = await import("./sketches/2024/screensaver")
   return screensaverModule.default(clearColor)
 }

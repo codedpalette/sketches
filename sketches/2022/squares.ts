@@ -1,12 +1,12 @@
 import { Line, line, point, vector } from "@flatten-js/core"
 import { noise3d } from "library/core/random"
-import { SketchEnv } from "library/core/types"
+import { pixi } from "library/core/sketch"
 import { gray } from "library/drawing/color"
 import { drawBackground } from "library/drawing/helpers"
 import { map } from "library/utils"
 import { Container, Graphics } from "pixi.js"
 
-export default ({ random, bbox }: SketchEnv) => {
+export default pixi(({ random, bbox }) => {
   const noise = noise3d(random)
   const mainHue = random.realZeroTo(360)
   const baseRadius = 35 // base rectangle size
@@ -68,4 +68,4 @@ export default ({ random, bbox }: SketchEnv) => {
   }
 
   return { container }
-}
+})

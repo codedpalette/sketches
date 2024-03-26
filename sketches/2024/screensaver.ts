@@ -1,6 +1,6 @@
 import * as TWEEN from "@tweenjs/tween.js"
 import { noise3d, Random } from "library/core/random"
-import { SketchEnv } from "library/core/types"
+import { pixi } from "library/core/sketch"
 import { globalPreamble } from "library/drawing/shaders"
 import fxaa from "library/glsl/fxaa.glsl"
 import { clamp } from "library/utils"
@@ -92,7 +92,7 @@ const fxaaShader = /*glsl*/ `${globalPreamble}
     }
 `
 
-export function screensaver(gl: WebGL2RenderingContext, random: Random, clearColor: ColorSource) {
+function screensaver(gl: WebGL2RenderingContext, random: Random, clearColor: ColorSource) {
   const noise = noise3d(random)
   const background = new Color(clearColor).toArray()
   const numBalls = 100
@@ -208,9 +208,9 @@ export function screensaver(gl: WebGL2RenderingContext, random: Random, clearCol
 
 // HACK: Until proper abstraction over framework in SketchRenderer is implemented
 export default (clearColor: ColorSource) =>
-  ({ renderer, random }: SketchEnv) => {
+  pixi(({ renderer, random }) => {
     const update = screensaver(renderer.gl, random, clearColor)
     const container = new Container()
     container.visible = false
     return { container, update }
-  }
+  })

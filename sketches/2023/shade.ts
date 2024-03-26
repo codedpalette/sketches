@@ -1,5 +1,5 @@
 import { line, point, Segment, segment, vector } from "@flatten-js/core"
-import { SketchEnv } from "library/core/types"
+import { pixi } from "library/core/sketch"
 import { formatHsl } from "library/drawing/color"
 import { FXAAFilter, NoiseAlphaFilter } from "library/drawing/filters"
 import { drawBackground } from "library/drawing/helpers"
@@ -8,7 +8,7 @@ import { glslNoise2d, ShaderProgram } from "library/drawing/shaders"
 import { map } from "library/utils"
 import { Container, NoiseFilter, Rectangle } from "pixi.js"
 
-export default ({ random, bbox }: SketchEnv) => {
+export default pixi(({ random, bbox }) => {
   const mainHue = random.realZeroTo(360)
   const bgColor = formatHsl([mainHue, random.real(0.2, 0.3), random.real(0.8, 0.9)])
   const numLayers = 1 //random.integer(2, 4)
@@ -84,4 +84,4 @@ export default ({ random, bbox }: SketchEnv) => {
 
     return renderLines(segments, lineWidth, lineColor, lineShader)
   }
-}
+})

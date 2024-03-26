@@ -1,5 +1,5 @@
 import { Point, point, vector } from "@flatten-js/core"
-import { SketchEnv } from "library/core/types"
+import { pixi } from "library/core/sketch"
 import { gray } from "library/drawing/color"
 import { drawBackground } from "library/drawing/helpers"
 import { fromPolar } from "library/utils"
@@ -27,7 +27,7 @@ class NodeIndex extends RBush<Node> {
   }
 }
 
-export default ({ random, bbox }: SketchEnv) => {
+export default pixi(({ random, bbox }) => {
   // Only nodes within this distance around an attractor can be associated with that attractor.
   // Large attraction distances mean smoother and more subtle branch curves, but at a performance cost.
   const attractionDist = 100
@@ -162,4 +162,4 @@ export default ({ random, bbox }: SketchEnv) => {
     }
     return g
   }
-}
+})

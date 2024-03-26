@@ -1,13 +1,25 @@
 import { box } from "@flatten-js/core"
-import { Container, ICanvas, Matrix } from "pixi.js"
+import { ICanvas } from "pixi.js"
 import { createEntropy, MersenneTwister19937 as MersenneTwister } from "random-js"
 
 import { Random } from "./random"
-import { SketchRenderer } from "./renderer"
-import { SizeParams, SketchFactory, SketchInstance } from "./types"
+import { PixiRenderer } from "./renderer"
+import { SizeParams, SketchCreator, SketchInstance, SketchParams, SketchType, UpdateFn } from "./types"
+
+export interface SketchConstructor {
+  <T extends ICanvas>(renderer: PixiRenderer<T>, params: SketchParams): SketchLike<T>
+}
+
+export interface SketchLike<T extends ICanvas> {
+  update?: UpdateFn
+  canvas: T
+  render(): void
+  next(): void
+  resize(params: Partial<SizeParams>): void
+}
 
 /** Class for wrapping sketch and controlling RNG state */
-export class Sketch<T extends ICanvas = HTMLCanvasElement> {
+export class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
   /** Sketch size parameters */
   public readonly params: Required<SizeParams>
   /** Seed for initializing random generator */
@@ -19,22 +31,22 @@ export class Sketch<T extends ICanvas = HTMLCanvasElement> {
   /** RNG use count (for repeatability of random numbers) */
   private randomUseCount = 0
   /** Current sketch instance */
-  private sketch?: SketchInstance
+  private instance?: SketchInstance<T>
 
   /**
-   * @param sketchFactory function producing new sketch instances
+   * @param type framework type used by this sketch
+   * @param sketchCreator function producing new sketch instances
    * @param renderer renderer to use for this sketch
-   * @param params parameters object defining sketch size and render resolution
-   * @param seed RNG seed (useful for recreating state of another sketch object)
+   * @param params parameters object defining sketch size, render resolution and RNG seed
    */
   constructor(
-    private sketchFactory: SketchFactory<T>,
-    public readonly renderer: SketchRenderer<T>,
-    params: SizeParams,
-    seed?: number[]
+    private type: T,
+    private sketchCreator: SketchCreator<T>,
+    private renderer: PixiRenderer<C>,
+    params: SketchParams
   ) {
     this.params = { resolution: 1, ...params }
-    this.seed = seed || createEntropy()
+    this.seed = params.seed || createEntropy()
     this.mersenneTwister = MersenneTwister.seedWithArray(this.seed)
     this.random = new Random(this.mersenneTwister)
   }
@@ -44,19 +56,27 @@ export class Sketch<T extends ICanvas = HTMLCanvasElement> {
    * @returns underlying sketch instance's update function
    */
   get update() {
-    return this.sketch?.update
+    return this.instance?.update
+  }
+
+  /**
+   * Canvas that this sketch renders to
+   * @returns canvas
+   */
+  get canvas() {
+    return this.renderer.canvas
   }
 
   /**
    * Render this sketch
    */
   render() {
-    const sketch = this.sketch || this.runFactory()
+    const instance = this.instance || this.iterate()
     // FIXME: Remove once proper framework abstraction in SketchRenderer is supported
-    if (sketch.container.getChildAt(0).visible) {
-      this.renderer.render(sketch, this.params)
+    if ("container" in instance && instance.container.visible) {
+      this.renderer.render(instance, this.params)
     }
-    this.sketch = sketch
+    this.instance = instance
   }
 
   /**
@@ -83,7 +103,7 @@ export class Sketch<T extends ICanvas = HTMLCanvasElement> {
     // We store how many random values were generated so far, so that when canvas is resized we could
     // "replay" RNG from this point
     this.randomUseCount = this.mersenneTwister.getUseCount()
-    this.sketch = this.runFactory()
+    this.instance = this.iterate()
   }
 
   /**
@@ -99,34 +119,35 @@ export class Sketch<T extends ICanvas = HTMLCanvasElement> {
       // Which is why we need to recreate the state that was prior to last sketch run
       this.mersenneTwister = MersenneTwister.seedWithArray(this.seed).discard(this.randomUseCount)
       this.random = new Random(this.mersenneTwister)
-      this.sketch = this.runFactory()
+      this.instance = this.iterate()
     }
-  }
-
-  /** Destroy current sketch container and free associated memory */
-  private destroy() {
-    this.sketch?.container.destroy(true)
-    this.sketch = undefined
   }
 
   /**
    * Method to generate new sketch instance
    * @returns sketch instance with wrapped container
    */
-  private runFactory(): SketchInstance {
-    const renderer = this.renderer.renderer
+  private iterate(): SketchInstance<T> {
     const random = this.random
     const { width, height } = this.params
     // Calculate bounding box
     const bbox = box(-width / 2, -height / 2, width / 2, height / 2)
-
-    const newSketch = this.sketchFactory({ renderer, random, bbox })
-    const container = newSketch.container
-
-    newSketch.container = new Container()
-    // Set transform matrix to translate (0, 0) to the viewport center and point Y-axis upwards
-    newSketch.container.setFromMatrix(new Matrix().scale(1, -1).translate(width / 2, height / 2))
-    newSketch.container.addChild(container)
+    const newSketch = this.sketchCreator({ random, bbox, ...this.renderer.getRenderingContext(this.type) })
     return newSketch
   }
+
+  /** Destroy current sketch container and free associated memory */
+  private destroy() {
+    this.instance && "container" in this.instance && this.instance.container.destroy(true)
+    this.instance = undefined
+  }
+}
+
+/**
+ * Helper method to define Pixi.js sketch
+ * @param sketchCreator function producing new sketch instances
+ * @returns function that creates Pixi.js sketch with given params
+ */
+export function pixi(sketchCreator: SketchCreator<"pixi">): SketchConstructor {
+  return (renderer, params) => new Sketch("pixi", sketchCreator, renderer, params)
 }

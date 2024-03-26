@@ -1,38 +1,35 @@
-import { autoDetectRenderer, BrowserAdapter, DOMAdapter, ICanvas, WebGLRenderer, WebWorkerAdapter } from "pixi.js"
+import {
+  autoDetectRenderer,
+  BrowserAdapter,
+  Container,
+  DOMAdapter,
+  ICanvas,
+  Matrix,
+  WebGLRenderer,
+  WebWorkerAdapter,
+} from "pixi.js"
 
-import { SizeParams, SketchInstance } from "./types"
-
-/** Parameters for controlling rendering process */
-export type RenderParams<T extends ICanvas = HTMLCanvasElement> = {
-  /** Enable WebGL antialiasing */
-  antialias: boolean
-  /** Whether or not to resize canvas css dimensions when resizing renderer*/
-  resizeCSS: boolean
-  /** Should the renderer clear the canvas before render pass */
-  clearBefore: boolean
-  /** Optional canvas for renderer to render onto */
-  canvas?: T
-}
+import { RenderParams, SizeParams, SketchInstance, SketchRenderingContext, SketchType } from "./types"
 
 const isBrowser = typeof window === "object"
 const defaultRenderParams: RenderParams = { antialias: true, resizeCSS: isBrowser, clearBefore: true }
 DOMAdapter.set(isBrowser ? BrowserAdapter : WebWorkerAdapter)
 
 /** Class for abstracting over framework renderers (only Pixi.js for now) */
-export class SketchRenderer<T extends ICanvas = HTMLCanvasElement> {
+export class PixiRenderer<C extends ICanvas> {
   /** Internal canvas that this renderer renders to */
-  public readonly canvas: T
+  public readonly canvas: C
   /**
    * Pixi.js {@link WebGLRenderer}
    * @internal
    */
-  public readonly renderer: WebGLRenderer<T>
+  public readonly renderer: WebGLRenderer<C>
 
   /**
    * Renderer constructor
    * @param renderer Pixi.js {@link WebGLRenderer}
    */
-  private constructor(renderer: WebGLRenderer<T>) {
+  private constructor(renderer: WebGLRenderer<C>) {
     this.renderer = renderer
     this.canvas = renderer.canvas
   }
@@ -42,7 +39,7 @@ export class SketchRenderer<T extends ICanvas = HTMLCanvasElement> {
    * @param params parameters overrides for this renderer
    * @returns Promise that resolves to renderer
    */
-  static async init(params?: Partial<RenderParams>): Promise<SketchRenderer> {
+  static async init<C extends ICanvas>(params?: Partial<RenderParams>): Promise<PixiRenderer<C>> {
     const renderParams = { ...defaultRenderParams, ...params }
     const renderer = (await autoDetectRenderer({
       canvas: renderParams.canvas,
@@ -50,8 +47,22 @@ export class SketchRenderer<T extends ICanvas = HTMLCanvasElement> {
       autoDensity: renderParams.resizeCSS,
       clearBeforeRender: renderParams.clearBefore,
       preference: "webgl",
-    })) as WebGLRenderer
-    return new SketchRenderer(renderer)
+    })) as unknown as WebGLRenderer<C>
+    return new PixiRenderer(renderer)
+  }
+
+  /**
+   * Get rendering context for sketch initialization
+   * @param type sketch framework type
+   * @returns SketchRenderingContext
+   */
+  getRenderingContext<T extends SketchType>(type: T): SketchRenderingContext<T> {
+    if (type === "pixi") {
+      return { renderer: this.renderer } as unknown as SketchRenderingContext<T>
+    } else {
+      // TODO: Three.js
+      return { gl: this.canvas.getContext("webgl2") } as unknown as SketchRenderingContext<T>
+    }
   }
 
   /**
@@ -60,9 +71,15 @@ export class SketchRenderer<T extends ICanvas = HTMLCanvasElement> {
    * @param params {@link SizeParams}
    * @internal
    */
-  render(sketch: SketchInstance, params: Required<SizeParams>) {
+  render(sketch: SketchInstance<"pixi">, params: Required<SizeParams>) {
     if (this.needsResize(params)) this.resize(params)
-    this.renderer.render(sketch.container)
+
+    const stage = new Container()
+    // Set transform matrix to translate (0, 0) to the viewport center and point Y-axis upwards
+    stage.setFromMatrix(new Matrix().scale(1, -1).translate(params.width / 2, params.height / 2))
+    stage.addChild(sketch.container)
+
+    this.renderer.render(stage)
   }
 
   /** Destroy this renderer */

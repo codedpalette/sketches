@@ -1,12 +1,12 @@
 import { point, ray, vector } from "@flatten-js/core"
 import { noise2d } from "library/core/random"
-import { SketchEnv } from "library/core/types"
+import { pixi } from "library/core/sketch"
 import { formatHsl } from "library/drawing/color"
 import { drawCanvas } from "library/drawing/helpers"
 import { fromPolar, map } from "library/utils"
 import { BlurFilter, Container, Graphics, NoiseFilter } from "pixi.js"
 
-export default ({ random, bbox }: SketchEnv) => {
+export default pixi(({ random, bbox }) => {
   const noise = noise2d(random)
   const container = new Container()
   container.addChild(drawBackground(), drawStars())
@@ -119,4 +119,4 @@ export default ({ random, bbox }: SketchEnv) => {
     container.filters = [new BlurFilter({ strength: 1, quality: 1 })]
     return container
   }
-}
+})

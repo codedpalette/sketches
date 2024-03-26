@@ -3,17 +3,11 @@ import { clamp } from "library/utils"
 import { Spector } from "spectorjs"
 import Stats from "stats.js"
 
-import { Sketch } from "./sketch"
-import { SizeParams } from "./types"
+import { SketchLike } from "./sketch"
+import { SizeParams, UI } from "./types"
 
 const minWidth = 100
 const minHeight = 100
-
-/** Object holding reference to UI system */
-export type UI = {
-  stats: Stats
-  capture: typeof CanvasCapture
-}
 
 /**
  * Initializes UI element for capturing canvas to file, profiling WebGL commands and resizing canvas
@@ -21,8 +15,8 @@ export type UI = {
  * @param defaultParams default {@link SizeParams} to fallback to
  * @returns object holding references to ui elements
  */
-export function initUI(sketch: Sketch, defaultParams: Required<SizeParams>): UI {
-  const canvas = sketch.renderer.canvas
+export function initUI(sketch: SketchLike<HTMLCanvasElement>, defaultParams: Required<SizeParams>): UI {
+  const canvas = sketch.canvas
   initCanvasCapture(canvas)
   initSpector(canvas)
   initResizeUI(sketch, defaultParams)
@@ -63,7 +57,7 @@ function initSpector(canvas: HTMLCanvasElement) {
  * @param sketch {@link Sketch} instance to resize
  * @param defaultParams default {@link SizeParams} to fallback to
  */
-function initResizeUI(sketch: Sketch, defaultParams: Required<SizeParams>) {
+function initResizeUI(sketch: SketchLike<HTMLCanvasElement>, defaultParams: Required<SizeParams>) {
   const resizeForm = document.createElement("form")
   const getParam = (paramKey: string) => parseInt((<HTMLInputElement>document.getElementById(paramKey)).value) || 0
 

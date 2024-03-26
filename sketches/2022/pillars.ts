@@ -1,9 +1,9 @@
-import { SketchEnv } from "library/core/types"
+import { pixi } from "library/core/sketch"
 import { drawBackground } from "library/drawing/helpers"
 import { map } from "library/utils"
 import { Container, Graphics, Matrix } from "pixi.js"
 
-export default ({ random, bbox }: SketchEnv) => {
+export default pixi(({ random, bbox }) => {
   const cellSize = 10
   const cells: boolean[][] = []
   const cellsWidth = Math.floor(bbox.width / cellSize)
@@ -99,4 +99,4 @@ export default ({ random, bbox }: SketchEnv) => {
       currY = (currY + cellsHeight) % cellsHeight
     }
   }
-}
+})

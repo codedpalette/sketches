@@ -1,13 +1,7 @@
-import { Sketch } from "./sketch"
-import { UI } from "./ui"
+import { ICanvas } from "pixi.js"
 
-/** Parameters for controlling sketch running */
-export type RunnerParams = {
-  /** Enable/disable generating new sketches with a click on canvas and provide custom click handler */
-  click: ((ev: Event) => void) | false
-  /** Enable/disable running an update loop */
-  update: boolean
-}
+import { SketchLike } from "./sketch"
+import { RunnerParams } from "./types"
 
 const recordingFPS = 60 // Used for canvas-capture recorder to count seconds of recording
 const defaultRunnerParams: RunnerParams = {
@@ -31,9 +25,8 @@ export class SketchRunner {
   /**
    * @param sketch sketch to run
    * @param params parameters overrides for this runner
-   * @param ui UI system object
    */
-  constructor(public readonly sketch: Sketch, params?: Partial<RunnerParams>, private ui?: UI) {
+  constructor(public readonly sketch: SketchLike<ICanvas>, params?: Partial<RunnerParams>) {
     this.params = { ...defaultRunnerParams, ...params }
   }
 
@@ -44,7 +37,7 @@ export class SketchRunner {
   start() {
     this.sketch.render()
     this.toggleListeners(true)
-    if (this.params.update && (this.sketch.update || this.ui)) {
+    if (this.params.update && (this.sketch.update || this.params.ui)) {
       this.renderLoop()
     }
   }
@@ -65,7 +58,7 @@ export class SketchRunner {
   private toggleListeners(add: boolean) {
     const event = "click"
     if (this.params.click) {
-      const canvas = this.sketch.renderer.canvas
+      const canvas = this.sketch.canvas
       add
         ? canvas.addEventListener?.(event, this.clickListener)
         : canvas.removeEventListener?.(event, this.clickListener)
@@ -81,11 +74,11 @@ export class SketchRunner {
 
   private renderLoop() {
     const loop = (timestamp: number) => {
-      this.ui?.stats?.begin()
+      this.params.ui?.stats?.begin()
       this.updateTime(timestamp)
       this.sketch.render()
       this.checkRecording()
-      this.ui?.stats?.end()
+      this.params.ui?.stats?.end()
       this.requestId = requestAnimationFrame(loop)
     }
     this.requestId = requestAnimationFrame(loop)
@@ -108,9 +101,9 @@ export class SketchRunner {
    * Renders sketch as PNG/MP4 file. For more information see {@link https://github.com/amandaghassaei/canvas-capture#use}
    */
   private checkRecording() {
-    this.ui?.capture?.checkHotkeys()
-    if (this.ui?.capture?.isRecording()) {
-      this.ui?.capture?.recordFrame()
+    this.params.ui?.capture?.checkHotkeys()
+    if (this.params.ui?.capture?.isRecording()) {
+      this.params.ui?.capture?.recordFrame()
       ++this.frameRecordCounter % recordingFPS == 0 &&
         console.log(`Recorded ${this.frameRecordCounter / recordingFPS} seconds`)
     } else if (this.frameRecordCounter != 0) this.frameRecordCounter == 0

@@ -1,11 +1,11 @@
 import { Box, box } from "@flatten-js/core"
-import { SketchEnv } from "library/core/types"
+import { pixi } from "library/core/sketch"
 import { drawBackground } from "library/drawing/helpers"
 import { map } from "library/utils"
 import { Color, Container, PointData, Sprite, Texture } from "pixi.js"
 
 // TODO: container.destroy bug https://github.com/pixijs/pixijs/issues/10345
-export default ({ random, bbox }: SketchEnv) => {
+export default pixi(({ random, bbox }) => {
   const container = new Container()
   container.addChild(drawBackground("black", bbox))
   const color = new Color(random.color())
@@ -142,4 +142,4 @@ export default ({ random, bbox }: SketchEnv) => {
     particleContainer.tint = color
     return particleContainer
   }
-}
+})

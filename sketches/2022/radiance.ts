@@ -1,11 +1,11 @@
 import { box, vector } from "@flatten-js/core"
 import { formatCss } from "culori"
-import { SketchEnv } from "library/core/types"
+import { pixi } from "library/core/sketch"
 import { FXAAFilter } from "library/drawing/filters"
 import { drawCanvas } from "library/drawing/helpers"
 import { Color, Container, Graphics } from "pixi.js"
 
-export default ({ random, bbox }: SketchEnv) => {
+export default pixi(({ random, bbox }) => {
   const gradientCenter = vector(random.minmax(bbox.width * 0.4), random.minmax(bbox.height * 0.4))
   const gradientRotation = Math.atan2(gradientCenter.y, gradientCenter.x) + random.minmax(Math.PI / 8)
   const palette = [random.color(), random.color(), random.color()]
@@ -77,4 +77,4 @@ export default ({ random, bbox }: SketchEnv) => {
     sprite.position.set(gradientCenter.x, gradientCenter.y)
     return sprite
   }
-}
+})
