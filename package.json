@@ -42,7 +42,7 @@
     "@tweenjs/tween.js": "^21.0.0",
     "canvas-capture": "^2.1.1",
     "culori": "^3.2.0",
-    "pixi.js": "patch:pixi.js@patch%3Apixi.js@npm%253A8.0.2%23~/.yarn/patches/pixi.js-npm-8.0.2-e378b9f02a.patch%3A%3Aversion=8.0.2&hash=596bc5#~/.yarn/patches/pixi.js-patch-b01bbe8e6f.patch",
+    "pixi.js": "codedpalette/pixijs#dev",
     "random-js": "^2.1.0",
     "rbush": "^3.0.1",
     "rbush-knn": "https://github.com/mourner/rbush-knn.git",
