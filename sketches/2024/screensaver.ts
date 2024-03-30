@@ -1,11 +1,11 @@
 import * as TWEEN from "@tweenjs/tween.js"
-import { SizeParams, SketchParams } from "lib"
+import { converter, parse } from "culori"
 import { noise3d, Random } from "library/core/random"
 import { SketchLike } from "library/core/sketch"
+import { SizeParams, SketchParams } from "library/core/types"
 import { globalPreamble } from "library/drawing/shaders"
 import fxaa from "library/glsl/fxaa.glsl"
 import { clamp } from "library/utils"
-import { Color } from "pixi.js"
 import { createEntropy, MersenneTwister19937 as MersenneTwister } from "random-js"
 import {
   Arrays,
@@ -32,6 +32,7 @@ type Metaball = {
   speed: number
 }
 
+const rgb = converter("rgb")
 function screensaver(canvas: HTMLCanvasElement, params?: SketchParams): SketchLike<HTMLCanvasElement> {
   const seed = params?.seed || createEntropy()
   const mersenneTwister = MersenneTwister.seedWithArray(seed)
@@ -39,7 +40,7 @@ function screensaver(canvas: HTMLCanvasElement, params?: SketchParams): SketchLi
   const noise = noise3d(random)
 
   const gl = canvas.getContext("webgl2") as WebGL2RenderingContext
-  const background = new Color(getComputedStyle(canvas).backgroundColor).toArray()
+  const background = rgb(parse(getComputedStyle(canvas).backgroundColor)) || { r: 0, g: 0, b: 0 }
   const numBalls = 100
   const fxaa = true
 
@@ -47,7 +48,7 @@ function screensaver(canvas: HTMLCanvasElement, params?: SketchParams): SketchLi
   setDefaults({ attribPrefix: "a_" })
   gl.enable(gl.BLEND)
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-  gl.clearColor(background[0], background[1], background[2], 1)
+  gl.clearColor(background.r, background.g, background.b, 1)
 
   // Init buffers
   const arrays: Arrays = { position: { numComponents: 2, data: [-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1] } }
