@@ -1,10 +1,10 @@
-import { SketchRenderer } from "library/core/renderer"
+import { init } from "library/core/renderer"
 import { SketchRunner } from "library/core/runner"
 import { initUI } from "library/core/ui"
 import constructor from "sketches/2023/shade"
 
 const defaultSizeParams = { resolution: 1, width: 1250, height: 1250 }
-const renderer = await SketchRenderer.init<HTMLCanvasElement>()
+const renderer = await init<HTMLCanvasElement>()
 document.body.appendChild(renderer.canvas)
 const sketch = constructor(renderer, defaultSizeParams)
 const ui = initUI(sketch, defaultSizeParams)

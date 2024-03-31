@@ -27,7 +27,11 @@ module.exports = {
       rules: {
         "jsdoc/require-jsdoc": [
           "warn",
-          { publicOnly: true, require: { ClassDeclaration: true, MethodDefinition: true } },
+          {
+            publicOnly: true,
+            require: { ClassDeclaration: true, MethodDefinition: true },
+            contexts: ["TSInterfaceDeclaration"],
+          },
         ],
       },
     },

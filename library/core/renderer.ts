@@ -1,53 +1,29 @@
-import {
-  autoDetectRenderer,
-  BrowserAdapter,
-  Container,
-  DOMAdapter,
-  ICanvas,
-  Matrix,
-  WebGLRenderer,
-  WebWorkerAdapter,
-} from "pixi.js"
+import "pixi.js/filters"
+import "pixi.js/graphics"
+import "pixi.js/mesh"
 
-import { RenderParams, SizeParams, SketchInstance, SketchRenderingContext, SketchType } from "./types"
+import { BrowserAdapter, Container, DOMAdapter, Matrix, WebGLRenderer, WebWorkerAdapter } from "pixi.js"
+
+import { ICanvas, RenderParams, SizeParams, SketchInstance, SketchRenderingContext, SketchType } from "./types"
 
 const isBrowser = typeof window === "object"
-const defaultRenderParams: RenderParams = { antialias: true, resizeCSS: isBrowser }
 DOMAdapter.set(isBrowser ? BrowserAdapter : WebWorkerAdapter)
+const defaultRenderParams: RenderParams = { antialias: true, resizeCSS: isBrowser }
 
 /** Class for abstracting over framework renderers (only Pixi.js for now) */
-export class SketchRenderer<C extends ICanvas> {
+class Renderer<C extends ICanvas> {
   /** Internal canvas that this renderer renders to */
   public readonly canvas: C
-  /**
-   * Pixi.js {@link WebGLRenderer}
-   * @internal
-   */
-  public readonly renderer: WebGLRenderer<C>
+  /** Pixi.js {@link WebGLRenderer} */
+  private renderer: WebGLRenderer<C>
 
   /**
    * Renderer constructor
    * @param renderer Pixi.js {@link WebGLRenderer}
    */
-  private constructor(renderer: WebGLRenderer<C>) {
+  constructor(renderer: WebGLRenderer<C>) {
     this.renderer = renderer
     this.canvas = renderer.canvas
-  }
-
-  /**
-   * initialize this renderer
-   * @param params parameters overrides for this renderer
-   * @returns Promise that resolves to renderer
-   */
-  static async init<C extends ICanvas>(params?: Partial<RenderParams>): Promise<SketchRenderer<C>> {
-    const renderParams = { ...defaultRenderParams, ...params }
-    const renderer = (await autoDetectRenderer({
-      canvas: renderParams.canvas,
-      antialias: renderParams.antialias,
-      autoDensity: renderParams.resizeCSS,
-      preference: "webgl",
-    })) as unknown as WebGLRenderer<C>
-    return new SketchRenderer(renderer)
   }
 
   /**
@@ -55,13 +31,9 @@ export class SketchRenderer<C extends ICanvas> {
    * @param type sketch framework type
    * @returns SketchRenderingContext
    */
+  // eslint-disable-next-line unused-imports/no-unused-vars
   getRenderingContext<T extends SketchType>(type: T): SketchRenderingContext<T> {
-    if (type === "pixi") {
-      return { renderer: this.renderer } as unknown as SketchRenderingContext<T>
-    } else {
-      // TODO: Three.js
-      return { gl: this.canvas.getContext("webgl2") } as unknown as SketchRenderingContext<T>
-    }
+    return { renderer: this.renderer }
   }
 
   /**
@@ -113,4 +85,24 @@ export class SketchRenderer<C extends ICanvas> {
       this.renderer.resize(params.width, params.height)
     }
   }
+}
+/**
+ * Initialize a renderer
+ * @param params parameters overrides for renderer
+ * @returns Promise that resolves to renderer
+ */
+export async function init<C extends ICanvas>(params?: Partial<RenderParams<C>>): Promise<SketchRenderer<C>> {
+  const renderParams = { ...defaultRenderParams, ...params }
+  const renderer = new WebGLRenderer<C>()
+  await renderer.init({
+    canvas: renderParams.canvas,
+    antialias: renderParams.antialias,
+    autoDensity: renderParams.resizeCSS,
+  })
+  return new Renderer(renderer)
+}
+
+// TODO: Public exported interface
+export type SketchRenderer<C extends ICanvas = ICanvas> = {
+  [P in keyof Renderer<C>]: Renderer<C>[P]
 }

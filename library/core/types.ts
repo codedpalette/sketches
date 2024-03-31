@@ -1,8 +1,11 @@
 import { Box } from "@flatten-js/core"
-import { Container, ICanvas, WebGLRenderer } from "pixi.js"
+import { Container, WebGLRenderer } from "pixi.js"
 
 import { Random } from "./random"
 import { UI } from "./ui"
+
+/** Abstract canvas type */
+export type ICanvas = HTMLCanvasElement | OffscreenCanvas
 
 /** Sketch type by API used */
 export type SketchType = "pixi"

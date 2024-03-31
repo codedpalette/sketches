@@ -33,7 +33,7 @@ type Metaball = {
 }
 
 const rgb = converter("rgb")
-function screensaver(canvas: HTMLCanvasElement, params?: SketchParams): SketchLike<HTMLCanvasElement> {
+export default (canvas: HTMLCanvasElement, params?: SketchParams) => {
   const seed = params?.seed || createEntropy()
   const mersenneTwister = MersenneTwister.seedWithArray(seed)
   const random = new Random(mersenneTwister)
@@ -78,7 +78,7 @@ function screensaver(canvas: HTMLCanvasElement, params?: SketchParams): SketchLi
   createMetaballs()
   params && resize(params)
 
-  return {
+  return <SketchLike<HTMLCanvasElement>>{
     canvas,
     update(totalTime) {
       time = totalTime
@@ -229,5 +229,3 @@ const fxaaShader = /*glsl*/ `${globalPreamble}
     fragColor = applyFXAA(gl_FragCoord.xy, dimensions, tex);
   }
 `
-
-export default screensaver

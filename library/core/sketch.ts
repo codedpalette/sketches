@@ -1,22 +1,18 @@
 import { box } from "@flatten-js/core"
-import { ICanvas } from "pixi.js"
 import { createEntropy, MersenneTwister19937 as MersenneTwister } from "random-js"
 
 import { Random } from "./random"
 import { SketchRenderer } from "./renderer"
-import { ExportParams, SizeParams, SketchCreator, SketchInstance, SketchParams, SketchType, UpdateFn } from "./types"
-
-export interface SketchConstructor<T extends SketchType> {
-  <C extends ICanvas>(renderer: SketchRenderer<C>, params: SketchParams): Sketch<T, C>
-}
-
-export interface SketchLike<C extends ICanvas> {
-  update?: UpdateFn
-  canvas: C
-  render(): void
-  next(): void
-  resize(params: Partial<SizeParams>): void
-}
+import {
+  ExportParams,
+  ICanvas,
+  SizeParams,
+  SketchCreator,
+  SketchInstance,
+  SketchParams,
+  SketchType,
+  UpdateFn,
+} from "./types"
 
 /** Class for wrapping sketch and controlling RNG state */
 class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
@@ -97,11 +93,9 @@ class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
     Object.assign(this.params, currentParams)
     const canvas = this.renderer.canvas
     const blobPromise =
-      canvas.convertToBlob?.({ type: exportParams?.format }) ||
-      new Promise(
-        (resolve, reject) =>
-          canvas.toBlob?.((blob) => (blob ? resolve(blob) : reject()), exportParams?.format) || reject()
-      )
+      "convertToBlob" in canvas
+        ? canvas.convertToBlob({ type: exportParams?.format })
+        : new Promise<Blob>((ok, err) => canvas.toBlob((blob) => (blob ? ok(blob) : err), exportParams?.format))
     return await blobPromise
   }
 
@@ -151,13 +145,33 @@ class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
   }
 }
 
+/** Interface for curried {@link SketchCreator} functions with {@link SketchType} already set */
+export interface SketchConstructor {
+  <C extends ICanvas>(renderer: SketchRenderer<C>, params: SketchParams): ISketch<C>
+}
+
+/**
+ * Interface for sketches that aren't using {@link SketchRenderer} (such as WebGL)
+ * in order to enable interop with {@link SketchRunner} and {@link UI}
+ */
+export interface SketchLike<C extends ICanvas> {
+  readonly canvas: C
+  update?: UpdateFn
+  render(): void
+  next(): void
+  resize(params: Partial<SizeParams>): void
+}
+
 /**
  * Helper method to define Pixi.js sketch
  * @param sketchCreator function producing new sketch instances
  * @returns function that creates Pixi.js sketch with given params
  */
-export function pixi(sketchCreator: SketchCreator<"pixi">): SketchConstructor<"pixi"> {
+export function pixi(sketchCreator: SketchCreator<"pixi">): SketchConstructor {
   return (renderer, params) => new Sketch("pixi", sketchCreator, renderer, params)
 }
 
-export type ISketch<C extends ICanvas = HTMLCanvasElement> = InstanceType<typeof Sketch<SketchType, C>>
+// TODO: Public exported interface
+export type ISketch<C extends ICanvas = HTMLCanvasElement> = {
+  [P in keyof Sketch<SketchType, C>]: Sketch<SketchType, C>[P]
+}

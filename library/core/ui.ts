@@ -11,7 +11,13 @@ const minHeight = 100
 
 /** Type for holding reference to parts UI system */
 export type UI = {
+  /**
+   *
+   */
   stats: Stats
+  /**
+   *
+   */
   capture: typeof CanvasCapture
 }
 

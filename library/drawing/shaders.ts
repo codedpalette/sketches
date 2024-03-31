@@ -5,7 +5,13 @@ import glslNoise4d from "../glsl/noise4D.glsl"
 export { glslNoise2d, glslNoise3d, glslNoise4d }
 
 export type ShaderProgram = {
+  /**
+   *
+   */
   preamble?: string // Code that goes outside of main function (attribute and uniform definitions, function dependencies)
+  /**
+   *
+   */
   main?: string // Code that extends main function, can override local variables and varyings
 }
 

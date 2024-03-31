@@ -1,7 +1,5 @@
-import { ICanvas } from "pixi.js"
-
 import { SketchLike } from "./sketch"
-import { RunnerParams } from "./types"
+import { ICanvas, RunnerParams } from "./types"
 
 const recordingFPS = 60 // Used for canvas-capture recorder to count seconds of recording
 const defaultRunnerParams: RunnerParams = {
@@ -26,7 +24,7 @@ export class SketchRunner {
    * @param sketch sketch to run
    * @param params parameters overrides for this runner
    */
-  constructor(public readonly sketch: SketchLike<ICanvas>, params?: Partial<RunnerParams>) {
+  constructor(private sketch: SketchLike<ICanvas>, params?: Partial<RunnerParams>) {
     this.params = { ...defaultRunnerParams, ...params }
   }
 

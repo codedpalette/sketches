@@ -4,7 +4,6 @@ import { drawBackground } from "library/drawing/helpers"
 import { map } from "library/utils"
 import { Color, Container, PointData, Sprite, Texture } from "pixi.js"
 
-// TODO: container.destroy bug https://github.com/pixijs/pixijs/issues/10345
 export default pixi(({ random, bbox }) => {
   const container = new Container()
   container.addChild(drawBackground("black", bbox))
