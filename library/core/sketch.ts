@@ -50,6 +50,7 @@ class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
   /**
    * Wrapper for sketch update function
    * @returns underlying sketch instance's update function
+   * @internal
    */
   get update() {
     return this.instance?.update
@@ -99,7 +100,10 @@ class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
     return await blobPromise
   }
 
-  /** Generate new sketch instance */
+  /**
+   * Generate new sketch instance
+   * @internal
+   */
   next() {
     this.destroy()
     // We store how many random values were generated so far, so that when canvas is resized we could
@@ -171,7 +175,6 @@ export function pixi(sketchCreator: SketchCreator<"pixi">): SketchConstructor {
   return (renderer, params) => new Sketch("pixi", sketchCreator, renderer, params)
 }
 
-// TODO: Public exported interface
 export type ISketch<C extends ICanvas = HTMLCanvasElement> = {
   [P in keyof Sketch<SketchType, C>]: Sketch<SketchType, C>[P]
 }

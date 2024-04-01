@@ -30,6 +30,7 @@ class Renderer<C extends ICanvas> {
    * Get rendering context for sketch initialization
    * @param type sketch framework type
    * @returns SketchRenderingContext
+   * @internal
    */
   // eslint-disable-next-line unused-imports/no-unused-vars
   getRenderingContext<T extends SketchType>(type: T): SketchRenderingContext<T> {
@@ -102,7 +103,6 @@ export async function init<C extends ICanvas>(params?: Partial<RenderParams<C>>)
   return new Renderer(renderer)
 }
 
-// TODO: Public exported interface
 export type SketchRenderer<C extends ICanvas = ICanvas> = {
   [P in keyof Renderer<C>]: Renderer<C>[P]
 }
