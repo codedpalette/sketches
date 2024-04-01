@@ -27,7 +27,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      # FIXME: Read from package.json
       - name: Version bump
         uses: phips28/gh-action-bump-version@master
         with:
@@ -43,7 +42,6 @@ jobs:
         run: yarn build
       - name: Publish
         run: yarn npm publish
-      # FIXME: Not always
       - name: Trigger website deploy
         run: gh workflow run deploy.yml -R ${{github.repository_owner}}/${{github.repository_owner}}.github.io
         env:
