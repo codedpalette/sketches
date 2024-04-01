@@ -160,8 +160,10 @@ export interface SketchConstructor {
  */
 export interface SketchLike<C extends ICanvas> {
   readonly canvas: C
+  /** @internal */
   update?: UpdateFn
   render(): void
+  /** @internal */
   next(): void
   resize(params: Partial<SizeParams>): void
 }
