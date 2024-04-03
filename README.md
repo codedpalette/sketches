@@ -28,7 +28,7 @@ yarn start
 In order to switch to a different sketch, go to `<root>/index.ts` and update the following import at the start of a file
 
 ```typescript
-import factory from "path/to/sketch" // Update path here
+import constructor from "path/to/sketch" // Update path here
 ```
 
 ### Production

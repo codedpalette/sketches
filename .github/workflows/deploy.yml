@@ -27,20 +27,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Version bump
-        uses: phips28/gh-action-bump-version@master
-        with:
-          version-type: patch
-          skip-tag: true
       - name: Enable corepack
         run: corepack enable
       - name: Setup .yarnrc.yml
         run: yarn config set npmScopes.codedpalette.npmAuthToken $GITHUB_TOKEN
       - name: Install dependencies
-        #FIXME: Remove ignore once pixi changes are merged
-        run: YARN_CHECKSUM_BEHAVIOR=ignore yarn install --immutable
+        run: yarn install --immutable
       - name: Build
         run: yarn build
+      - name: Version bump
+        uses: phips28/gh-action-bump-version@master
+        with:
+          version-type: patch
+          skip-tag: true
       - name: Publish
         run: yarn npm publish
       - name: Trigger website deploy

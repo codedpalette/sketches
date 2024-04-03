@@ -70,7 +70,7 @@ __metadata:
     husky: "npm:^9.0.7"
     lint-staged: "npm:^13.2.3"
     pinst: "npm:^3.0.0"
-    pixi.js: "codedpalette/pixijs#dev"
+    pixi.js: "npm:^8.0.5"
     prettier: "npm:^2.8.8"
     random-js: "npm:^2.1.0"
     rbush: "npm:^3.0.1"
@@ -4550,9 +4550,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pixi.js@codedpalette/pixijs#dev":
-  version: 8.0.4
-  resolution: "pixi.js@https://github.com/codedpalette/pixijs.git#commit=b37d8ac557020ee3b6e3c03221b3cb671a8878d8"
+"pixi.js@npm:^8.0.5":
+  version: 8.0.5
+  resolution: "pixi.js@npm:8.0.5"
   dependencies:
     "@pixi/colord": "npm:^2.9.6"
     "@types/css-font-loading-module": "npm:^0.0.12"
@@ -4563,7 +4563,7 @@ __metadata:
     eventemitter3: "npm:^5.0.1"
     ismobilejs: "npm:^1.1.1"
     parse-svg-path: "npm:^0.1.2"
-  checksum: 10c0/1db01b7ce23d0f46747a9d474dbce228064942115ed372991382ee255d9d9bd8b5c260627720ff37905c386da20af09bd6a54bd1184f90067af5810601dea9e4
+  checksum: 10c0/da9a7f5db2063639f5362071d4881e1f8125300e32ad114b81732b5011bfb637285d278396c045ff585d0bd068fcc302974e228d7e4b89a9881348b82220a80f
   languageName: node
   linkType: hard
 

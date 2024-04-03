@@ -43,14 +43,11 @@ export function renderLines(
   const elementSize = Float32Array.BYTES_PER_ELEMENT
   const positionAttribute: Attribute = {
     buffer: positionBuffer,
-    instance: true,
-    divisor: 0,
   }
   // Use single interleaved buffer for segment start and segment end attributes
   const segmentStartAttribute: Attribute = {
     buffer: pointsBuffer,
     instance: true,
-    divisor: 1,
     stride: elementSize * 4,
   }
   const segmentEndAttribute: Attribute = {
