@@ -15,23 +15,23 @@
   // 	],
   // 	"description": "Log output to console"
   // }
-  "Sketch": {
+  "Sketch 2D": {
     "scope": "typescript",
-    "prefix": "sketch",
+    "prefix": "sketch2d",
     "body": [
-      "import { SketchEnv } from \"library/core/types\"",
+      "import { pixi } from \"library/core/sketch\"",
       "import { drawBackground } from \"library/drawing/helpers\"",
       "import { Container, Graphics } from \"pixi.js\"",
       "",
-      "export default ({ random, bbox }: SketchEnv) => {",
-      "  const container = new Container()",
-      "  container.addChild(drawBackground(\"white\", bbox))",
-      "  container",
-      "    .addChild(new Graphics())",
-      "    .beginFill(random.color())",
-      "    .drawRect(-bbox.width / 4, -bbox.height / 4, bbox.width / 2, bbox.height / 2)",
-      "  return { container }",
-      "}",
+      "export default pixi(({ random, bbox }) => {",
+      "\tconst container = new Container()",
+      "\tcontainer.addChild(drawBackground(\"white\", bbox))",
+      "\tcontainer",
+      "\t\t.addChild(new Graphics())",
+      "\t\t.rect(-bbox.width / 4, -bbox.height / 4, bbox.width / 2, bbox.height / 2)",
+      "\t\t.fill({ color: random.color() })",
+      "\treturn { container }",
+      "})",
       ""
     ]
   },
