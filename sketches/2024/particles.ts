@@ -127,7 +127,7 @@ export default pixi(({ random, bbox }) => {
       distances[i] = i == 0 ? 0 : Math.hypot(point.x - points[i - 1].x, point.y - points[i - 1].y)
       maxDistance = Math.max(distances[i], maxDistance)
     }
-    const particleContainer = new Container()
+    const particleContainer = new Container({ isRenderGroup: true })
     for (let i = 0; i < points.length; i++) {
       const point = points[i]
       const particle = new Sprite(Texture.WHITE)

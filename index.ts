@@ -1,7 +1,7 @@
 import { init } from "library/core/renderer"
 import { SketchRunner } from "library/core/runner"
 import { initUI } from "library/core/ui"
-import constructor from "sketches/2023/shade"
+import constructor from "sketches/2024/particles"
 
 const defaultSizeParams = { resolution: 1, width: 1250, height: 1250 }
 const renderer = await init<HTMLCanvasElement>()

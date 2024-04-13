@@ -70,7 +70,7 @@ __metadata:
     husky: "npm:^9.0.7"
     lint-staged: "npm:^13.2.3"
     pinst: "npm:^3.0.0"
-    pixi.js: "npm:^8.0.5"
+    pixi.js: "npm:^8.1.0"
     prettier: "npm:^2.8.8"
     random-js: "npm:^2.1.0"
     rbush: "npm:^3.0.1"
@@ -4550,9 +4550,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pixi.js@npm:^8.0.5":
-  version: 8.0.5
-  resolution: "pixi.js@npm:8.0.5"
+"pixi.js@npm:^8.1.0":
+  version: 8.1.0
+  resolution: "pixi.js@npm:8.1.0"
   dependencies:
     "@pixi/colord": "npm:^2.9.6"
     "@types/css-font-loading-module": "npm:^0.0.12"
@@ -4563,7 +4563,7 @@ __metadata:
     eventemitter3: "npm:^5.0.1"
     ismobilejs: "npm:^1.1.1"
     parse-svg-path: "npm:^0.1.2"
-  checksum: 10c0/da9a7f5db2063639f5362071d4881e1f8125300e32ad114b81732b5011bfb637285d278396c045ff585d0bd068fcc302974e228d7e4b89a9881348b82220a80f
+  checksum: 10c0/6c5775d832dd18bec4621bca04cb5a0021757551467368dbe6daae3e48cc52c6ddc47d1f7111302cec1667710ab9270e0e9a4cedf9cf1ee801cf12ae5503437d
   languageName: node
   linkType: hard
 
