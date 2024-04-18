@@ -1,7 +1,7 @@
 import { init } from "library/core/renderer"
 import { SketchRunner } from "library/core/runner"
 import { initUI } from "library/core/ui"
-import constructor from "sketches/2022/carpet"
+import constructor from "sketches/2024/rectangles"
 
 const defaultSizeParams = { resolution: 1, width: 1250, height: 1250 }
 const renderer = await init<HTMLCanvasElement>()
