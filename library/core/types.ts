@@ -1,5 +1,6 @@
 import { Box } from "@flatten-js/core"
-import { Container, WebGLRenderer } from "pixi.js"
+import { Container, WebGLRenderer as PixiRenderer } from "pixi.js"
+import { Camera, Scene, WebGLRenderer as ThreeRenderer } from "three"
 
 import { Random } from "./random"
 import { UI } from "./ui"
@@ -8,7 +9,7 @@ import { UI } from "./ui"
 export type ICanvas = HTMLCanvasElement | OffscreenCanvas
 
 /** Sketch type by API used */
-export type SketchType = "pixi"
+export type SketchType = "pixi" | "three"
 
 /** Context for generating sketch instances (shared between all types) */
 export type SharedSketchContext = {
@@ -20,12 +21,18 @@ export type SharedSketchContext = {
 
 /** Pixi.js-specific context */
 export type PixiContext = {
-  renderer: WebGLRenderer<ICanvas>
+  renderer: PixiRenderer<ICanvas>
+}
+
+/** Three.js-specific context */
+export type ThreeContext = {
+  renderer: ThreeRenderer
 }
 
 /** Sketch type mapping to framework-specific context type */
 export type SketchRenderingContext<T extends SketchType> = {
   pixi: PixiContext
+  three: ThreeContext
 }[T]
 
 /** Sketch type mapping to full context type */
@@ -38,18 +45,32 @@ export type SketchContext<T extends SketchType> = SharedSketchContext & SketchRe
  */
 export type UpdateFn = (totalTime: number, deltaTime: number) => void
 
-/** Single iteration of a Pixi.js sketch */
-export type PixiInstance = {
-  /** Pixi.js {@link Container} */
-  container: Container
+/** Single sketch instance (shared between all types) */
+export type SharedSketchInstance = {
   /** Sketch update function */
   update?: UpdateFn
 }
 
-/** Single iteration of a sketch creator function */
+/** Single iteration of a Pixi.js sketch */
+export type PixiInstance = {
+  /** Pixi.js {@link Container} */
+  container: Container
+}
+
+/** Single iteration of a Three.js sketch */
+export type ThreeInstance = {
+  /** Three.js {@link Scene} */
+  scene: Scene
+  /** Three.js {@link Camera} */
+  camera: Camera
+}
+
+/** Result of a single iteration of a sketch creator function */
 export type SketchInstance<T extends SketchType> = {
   pixi: PixiInstance
-}[T]
+  three: ThreeInstance
+}[T] &
+  SharedSketchInstance
 
 /**
  * Function for generating sketch instances

@@ -177,6 +177,15 @@ export function pixi(sketchCreator: SketchCreator<"pixi">): SketchConstructor {
   return (renderer, params) => new Sketch("pixi", sketchCreator, renderer, params)
 }
 
+/**
+ * Helper method to define Three.js sketch
+ * @param sketchCreator function producing new sketch instances
+ * @returns function that creates Three.js sketch with given params
+ */
+export function three(sketchCreator: SketchCreator<"three">): SketchConstructor {
+  return (renderer, params) => new Sketch("three", sketchCreator, renderer, params)
+}
+
 export type ISketch<C extends ICanvas = HTMLCanvasElement> = {
   [P in keyof Sketch<SketchType, C>]: Sketch<SketchType, C>[P]
 }

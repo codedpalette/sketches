@@ -41,3 +41,12 @@ export function clamp(x: number, a: number, b: number): number {
 export function fromPolar(r: number, theta: number): Point {
   return point(r * Math.cos(theta), r * Math.sin(theta))
 }
+
+/**
+ * Converts an angle from radians to degrees.
+ * @param radians - The angle in radians.
+ * @returns The angle in degrees.
+ */
+export function radToDeg(radians: number): number {
+  return (radians * 180) / Math.PI
+}

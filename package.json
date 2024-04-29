@@ -49,6 +49,7 @@
     "simplex-noise": "^4.0.1",
     "spectorjs": "https://github.com/BabylonJS/Spector.js",
     "stats.js": "^0.17.0",
+    "three": "^0.164.1",
     "twgl.js": "^5.5.3",
     "voronoijs": "^1.0.0"
   },
@@ -56,6 +57,7 @@
     "@types/culori": "^2.0.1",
     "@types/rbush": "^3.0.3",
     "@types/stats.js": "^0.17.0",
+    "@types/three": "^0.164.1",
     "@typescript-eslint/eslint-plugin": "^6.2.1",
     "@typescript-eslint/parser": "^6.2.1",
     "electron": "^28.0.0",
