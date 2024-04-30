@@ -16,6 +16,7 @@ export default pixi(({ random, bbox }) => {
 
   const gridFactor = random.real(0.015, 0.025)
   const packing = rectanglePacking(bbox, gridFactor, random)
+  // TODO: Add soft body physics deform
   for (const rect of packing) {
     const g = container
       .addChild(new Graphics())

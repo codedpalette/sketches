@@ -2,35 +2,38 @@ import { box } from "@flatten-js/core"
 import { noise4d } from "library/core/random"
 import { three } from "library/core/sketch"
 import { rectanglePacking } from "library/geometry/packing"
-import { fromPolar, radToDeg } from "library/utils"
-import { Color, Fog, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, PlaneGeometry, Scene } from "three"
+import { fromPolar, map, radToDeg } from "library/utils"
+import { Color, Fog, InstancedMesh, Matrix4, PerspectiveCamera, PlaneGeometry, Quaternion, Scene, Vector3 } from "three"
 
 export default three(({ random, bbox }) => {
   const noise = noise4d(random)
   const loopDurationSeconds = 5
   const planeDim = 2
-  const sides = 4 //random.integer(4, 8)
-  const rectanglesPerSide = 30
+  const sides = random.integer(4, 8)
+  const rectanglesPerSide = 300
   const holeScale = random.real(0.2, 0.3) //Relation between central hole and screen dimensions
   const apothem = planeDim / (2 * Math.tan(Math.PI / sides))
 
+  const mainHue = random.realZeroTo(360)
+  const secondHue = (mainHue + 180) % 360
+
   const camera = configureCamera(holeScale)
   const scene = new Scene()
-  scene.fog = new Fog(0x000000, 0, camera.far - planeDim / 2)
+  scene.fog = new Fog(0x000000, 0, camera.far)
 
-  const geometry = new PlaneGeometry(1, 1)
-  const planeGroup = createPlaneGroup()
-  const planes: Group[] = []
+  const planeGeometry = new PlaneGeometry(1, 1)
+  const planeMesh = createPlaneMesh()
+  const planes: InstancedMesh[] = []
   for (let i = 0; i < sides; i++) {
     for (let j = 0; j < 5; j++) {
-      const group = planeGroup.clone()
-      group
+      const mesh = planeMesh.clone()
+      mesh
         .rotateX(-Math.PI / 2)
         .rotateY((2 * Math.PI * i) / sides)
         .translateZ(-apothem)
-      group.position.z -= (j - 2) * planeDim
-      planes.push(group)
-      scene.add(group)
+      mesh.position.z -= (j - 2) * planeDim
+      planes.push(mesh)
+      scene.add(mesh)
     }
   }
 
@@ -47,35 +50,44 @@ export default three(({ random, bbox }) => {
     camera.lookAt(0, 0, camera.position.z - planeDim)
     camera.rotateZ(-cameraRotation / 2)
 
-    const noiseScaleFactor = 0.3
-    for (const mesh of planeGroup.children as Mesh[]) {
-      const x = Math.abs(mesh.position.x) * noiseScaleFactor
-      const y = Math.abs(mesh.position.y) * noiseScaleFactor
-      const z = Math.abs((totalTime % loopDurationSeconds) * 2 - loopDurationSeconds) * noiseScaleFactor
+    const noiseScaleFactor = 3
+    for (let i = 0; i < planeMesh.count; i++) {
+      const matrix = new Matrix4()
+      planeMesh.getMatrixAt(i, matrix)
+      const position = new Vector3().setFromMatrixPosition(matrix)
 
-      const hue = noise(x, y, z, 0)
-      const sat = 0.5 + noise(x, y, z, 100) / 4
-      const bri = 0.5 + noise(x, y, z, 200) / 4
+      const x = Math.abs(position.x) * noiseScaleFactor
+      const y = Math.abs(position.y) * noiseScaleFactor
+      const z = totalTime
 
-      ;(mesh.material as MeshBasicMaterial).color.setHSL(hue, sat, bri)
+      const n = noise(x, y, z, 0)
+      const hue = (((n > 0 ? mainHue : secondHue) + n * 40) % 360) / 360
+      const sat = map(noise(x, y, z, 10000), -1, 1, 0.5, 1)
+      const bri = map(noise(x, y, z, 20000), -1, 1, 0.2, 0.6)
+
+      for (const mesh of planes) {
+        mesh.setColorAt(
+          i,
+          new Color().setHSL(Math.round(hue * 10) / 10, Math.round(sat * 10) / 10, Math.round(bri * 10) / 10)
+        )
+      }
+    }
+    for (const mesh of planes) {
+      mesh.instanceColor && (mesh.instanceColor.needsUpdate = true)
     }
   }
 
   return { scene, camera, update }
 
-  function createPlaneGroup(): Group {
-    // TODO: Instanced mesh
+  function createPlaneMesh(): InstancedMesh {
     const packing = rectanglePacking(box(0, 0, planeDim, planeDim), planeDim / rectanglesPerSide, random)
-    console.log(packing.length)
-    const group = new Group()
-    for (const rect of packing) {
-      const material = new MeshBasicMaterial({ color: new Color(...random.color()), depthWrite: true })
-      const rectMesh = new Mesh(geometry, material)
-      rectMesh.scale.set(rect.width, rect.height, 1)
-      rectMesh.position.set(rect.center.x - planeDim / 2, rect.center.y - planeDim / 2, 0)
-      group.add(rectMesh)
+    const mesh = new InstancedMesh(planeGeometry, undefined, packing.length)
+    for (const [i, rect] of packing.entries()) {
+      const scaleVector = new Vector3(rect.width, rect.height, 1)
+      const positionVector = new Vector3(rect.center.x - planeDim / 2, rect.center.y - planeDim / 2, 0)
+      mesh.setMatrixAt(i, new Matrix4().compose(positionVector, new Quaternion(), scaleVector))
     }
-    return group
+    return mesh
   }
 
   function configureCamera(holeScale: number) {
