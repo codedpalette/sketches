@@ -19,7 +19,7 @@ export default three(({ random, bbox }) => {
 
   const camera = configureCamera(holeScale)
   const scene = new Scene()
-  scene.fog = new Fog(0x000000, 0, camera.far)
+  scene.fog = new Fog(0x000000, 0, camera.far - planeDim / 2)
 
   const planeGeometry = new PlaneGeometry(1, 1)
   const planeMesh = createPlaneMesh()

@@ -25,8 +25,9 @@ class Renderer<C extends ICanvas> {
    * Renderer constructor
    * @param pixiRenderer Pixi.js {@link PixiRenderer}
    * @param threeRenderer Three.js {@link ThreeRenderer}
+   * @param params {@link RenderParams}
    */
-  constructor(pixiRenderer: PixiRenderer<C>, threeRenderer: ThreeRenderer) {
+  constructor(pixiRenderer: PixiRenderer<C>, threeRenderer: ThreeRenderer, private params: RenderParams<C>) {
     this.pixiRenderer = pixiRenderer
     this.threeRenderer = threeRenderer
     this.canvas = pixiRenderer.canvas
@@ -51,7 +52,7 @@ class Renderer<C extends ICanvas> {
    */
   render<T extends SketchType>(sketch: SketchInstance<T>, params: Required<SizeParams>) {
     const type = "container" in sketch ? "pixi" : "three"
-    const needsReset = this.lastRenderedType && this.lastRenderedType !== type
+    const needsReset = this.lastRenderedType !== type
     if (this.needsResize(type, params)) this.resize(type, params)
 
     if ("container" in sketch) {
@@ -60,7 +61,9 @@ class Renderer<C extends ICanvas> {
       stage.setFromMatrix(new Matrix().scale(1, -1).translate(params.width / 2, params.height / 2))
       stage.addChild(sketch.container)
 
-      if (needsReset) this.pixiRenderer.runners.contextChange.emit(this.pixiRenderer.gl)
+      if (needsReset) {
+        this.pixiRenderer.runners.contextChange.emit(this.pixiRenderer.gl)
+      }
       this.pixiRenderer.render(stage)
     } else {
       if (needsReset) this.threeRenderer.resetState()
@@ -76,10 +79,15 @@ class Renderer<C extends ICanvas> {
   }
 
   private needsResize(type: SketchType, newParams: Required<SizeParams>): boolean {
+    const threeRendererSize = this.threeRenderer.getSize(new Vector2())
     const { width, height, resolution } =
       type === "pixi"
         ? this.pixiRenderer
-        : { ...this.threeRenderer.getSize(new Vector2()), resolution: this.threeRenderer.getPixelRatio() }
+        : {
+            width: threeRendererSize.width,
+            height: threeRendererSize.height,
+            resolution: this.threeRenderer.getPixelRatio(),
+          }
     return resolution != newParams.resolution || width != newParams.width || height != newParams.height
   }
 
@@ -88,7 +96,7 @@ class Renderer<C extends ICanvas> {
       this.pixiRenderer.resolution = params.resolution
       this.pixiRenderer.resize(params.width, params.height)
     } else {
-      this.threeRenderer.setSize(params.width, params.height) // TODO: resizeCSS
+      this.threeRenderer.setSize(params.width, params.height, this.params.resizeCSS)
       this.threeRenderer.setPixelRatio(params.resolution)
     }
 
@@ -96,12 +104,12 @@ class Renderer<C extends ICanvas> {
     // it may cause actual drawbuffer dimensions to be higher than these limits. In order to check for this
     // we compare requested renderer dimensions to actual drawbuffer dimensions, and if they're higher,
     // reset resolution to 1. See for example https://github.com/mrdoob/three.js/issues/5917 for more details.
-    // TODO: this should be done also in ThreeRenderer
-    const drawBufferWidth = this.pixiRenderer.gl.drawingBufferWidth
-    const drawBufferHeight = this.pixiRenderer.gl.drawingBufferHeight
-    if (this.pixiRenderer.width > drawBufferWidth || this.pixiRenderer.height > drawBufferHeight) {
-      this.pixiRenderer.resolution = 1
-      this.pixiRenderer.resize(params.width, params.height)
+    // FIXME: This causes resize to run every frame
+    const { width: requestedWidth, height: requestedHeight } = this.canvas
+    const { drawingBufferWidth, drawingBufferHeight } =
+      type == "pixi" ? this.pixiRenderer.gl : this.threeRenderer.getContext()
+    if (requestedWidth > drawingBufferWidth || requestedHeight > drawingBufferHeight) {
+      this.resize(type, { ...params, resolution: 1 })
     }
   }
 }
@@ -111,7 +119,7 @@ class Renderer<C extends ICanvas> {
  * @returns Promise that resolves to renderer
  */
 export async function init<C extends ICanvas>(params?: Partial<RenderParams<C>>): Promise<SketchRenderer<C>> {
-  const renderParams = { ...defaultRenderParams, ...params }
+  const renderParams = { ...defaultRenderParams, ...params } as RenderParams<C>
   const pixiRenderer = new PixiRenderer<C>()
   await pixiRenderer.init({
     canvas: renderParams.canvas,
@@ -122,7 +130,7 @@ export async function init<C extends ICanvas>(params?: Partial<RenderParams<C>>)
     canvas: pixiRenderer.canvas,
     antialias: renderParams.antialias,
   })
-  return new Renderer(pixiRenderer, threeRenderer)
+  return new Renderer(pixiRenderer, threeRenderer, renderParams)
 }
 
 export type SketchRenderer<C extends ICanvas = ICanvas> = {
