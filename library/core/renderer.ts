@@ -49,6 +49,7 @@ class Renderer<C extends ICanvas> {
    * @param sketch {@link SketchInstance}
    * @param params {@link SizeParams}
    * @internal
+   * @returns Actual size of the rendered sketch
    */
   render<T extends SketchType>(sketch: SketchInstance<T>, params: Required<SizeParams>) {
     const type = "container" in sketch ? "pixi" : "three"
@@ -61,15 +62,14 @@ class Renderer<C extends ICanvas> {
       stage.setFromMatrix(new Matrix().scale(1, -1).translate(params.width / 2, params.height / 2))
       stage.addChild(sketch.container)
 
-      if (needsReset) {
-        this.pixiRenderer.runners.contextChange.emit(this.pixiRenderer.gl)
-      }
+      if (needsReset) this.pixiRenderer.runners.contextChange.emit(this.pixiRenderer.gl)
       this.pixiRenderer.render(stage)
     } else {
       if (needsReset) this.threeRenderer.resetState()
       this.threeRenderer.render(sketch.scene, sketch.camera)
     }
     this.lastRenderedType = type
+    return this.getSizeParams(type)
   }
 
   /** Destroy this renderer */
@@ -79,15 +79,7 @@ class Renderer<C extends ICanvas> {
   }
 
   private needsResize(type: SketchType, newParams: Required<SizeParams>): boolean {
-    const threeRendererSize = this.threeRenderer.getSize(new Vector2())
-    const { width, height, resolution } =
-      type === "pixi"
-        ? this.pixiRenderer
-        : {
-            width: threeRendererSize.width,
-            height: threeRendererSize.height,
-            resolution: this.threeRenderer.getPixelRatio(),
-          }
+    const { width, height, resolution } = this.getSizeParams(type)
     return resolution != newParams.resolution || width != newParams.width || height != newParams.height
   }
 
@@ -96,20 +88,37 @@ class Renderer<C extends ICanvas> {
       this.pixiRenderer.resolution = params.resolution
       this.pixiRenderer.resize(params.width, params.height)
     } else {
-      this.threeRenderer.setSize(params.width, params.height, this.params.resizeCSS)
       this.threeRenderer.setPixelRatio(params.resolution)
+      this.threeRenderer.setSize(params.width, params.height, this.params.resizeCSS)
     }
 
     // Some browsers have limits for WebGL drawbuffer dimensions. If we set renderer resolution too high,
     // it may cause actual drawbuffer dimensions to be higher than these limits. In order to check for this
     // we compare requested renderer dimensions to actual drawbuffer dimensions, and if they're higher,
     // reset resolution to 1. See for example https://github.com/mrdoob/three.js/issues/5917 for more details.
-    // FIXME: This causes resize to run every frame
     const { width: requestedWidth, height: requestedHeight } = this.canvas
     const { drawingBufferWidth, drawingBufferHeight } =
       type == "pixi" ? this.pixiRenderer.gl : this.threeRenderer.getContext()
     if (requestedWidth > drawingBufferWidth || requestedHeight > drawingBufferHeight) {
       this.resize(type, { ...params, resolution: 1 })
+    }
+  }
+
+  private getSizeParams(type: SketchType): Required<SizeParams> {
+    if (type == "pixi") {
+      return {
+        width: this.pixiRenderer.width,
+        height: this.pixiRenderer.height,
+        resolution: this.pixiRenderer.resolution,
+      }
+    } else {
+      // three.js
+      const threeRendererSize = this.threeRenderer.getSize(new Vector2())
+      return {
+        width: threeRendererSize.width,
+        height: threeRendererSize.height,
+        resolution: this.threeRenderer.getPixelRatio(),
+      }
     }
   }
 }

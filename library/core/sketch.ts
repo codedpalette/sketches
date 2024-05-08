@@ -57,6 +57,14 @@ class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
   }
 
   /**
+   * Check if sketch is updatable
+   * @returns true if sketch has update function
+   */
+  get updatable() {
+    return this.update !== undefined
+  }
+
+  /**
    * Sketch size parameters
    * @returns size params
    */
@@ -77,7 +85,7 @@ class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
    */
   render() {
     const instance = this.instance || this.iterate()
-    this.renderer.render(instance, this.params)
+    this.params = this.renderer.render(instance, this.params)
     this.instance = instance
   }
 
@@ -91,8 +99,8 @@ class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
     Object.assign(this.params, exportParams)
     this.render()
     this.params = currentParams
-    Object.assign(this.params, currentParams)
-    const canvas = this.renderer.canvas
+
+    const canvas = this.canvas
     const blobPromise =
       "convertToBlob" in canvas
         ? canvas.convertToBlob({ type: exportParams?.format })

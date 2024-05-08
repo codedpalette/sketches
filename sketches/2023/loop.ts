@@ -36,6 +36,7 @@ export default three(({ random, bbox }) => {
       scene.add(mesh)
     }
   }
+  updateColors(0)
 
   const update = (totalTime: number, deltaTime: number) => {
     const positionOffSet = (deltaTime * planeDim) / loopDurationSeconds
@@ -49,7 +50,12 @@ export default three(({ random, bbox }) => {
     }
     camera.lookAt(0, 0, camera.position.z - planeDim)
     camera.rotateZ(-cameraRotation / 2)
+    updateColors(totalTime)
+  }
 
+  return { scene, camera, update }
+
+  function updateColors(totalTime: number) {
     const noiseScaleFactor = 3
     for (let i = 0; i < planeMesh.count; i++) {
       const matrix = new Matrix4()
@@ -76,8 +82,6 @@ export default three(({ random, bbox }) => {
       mesh.instanceColor && (mesh.instanceColor.needsUpdate = true)
     }
   }
-
-  return { scene, camera, update }
 
   function createPlaneMesh(): InstancedMesh {
     const packing = rectanglePacking(box(0, 0, planeDim, planeDim), planeDim / rectanglesPerSide, random)
