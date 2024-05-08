@@ -55,7 +55,7 @@ __metadata:
     "@types/culori": "npm:^2.0.1"
     "@types/rbush": "npm:^3.0.3"
     "@types/stats.js": "npm:^0.17.0"
-    "@types/three": "npm:^0"
+    "@types/three": "npm:^0.164.0"
     "@typescript-eslint/eslint-plugin": "npm:^6.2.1"
     "@typescript-eslint/parser": "npm:^6.2.1"
     canvas-capture: "npm:^2.1.1"
@@ -740,9 +740,9 @@ __metadata:
   linkType: hard
 
 "@tweenjs/tween.js@npm:~23.1.1":
-  version: 23.1.1
-  resolution: "@tweenjs/tween.js@npm:23.1.1"
-  checksum: 10c0/7c214cc82be3af3fed42d1405ee266a08441c106be7f3dd566f092d6162d8529633a54dfa28b90343c20f29c718ed1303bc132839badad5d498bcc6853658cbd
+  version: 23.1.2
+  resolution: "@tweenjs/tween.js@npm:23.1.2"
+  checksum: 10c0/8fa754b5fd548750e8cc26a4094b46578ee376bf15e1942e042fb532f469dca31f41c48b4d582f1fabceafa705be31b83d11dd79401a518fbabd97d1472c87df
   languageName: node
   linkType: hard
 
@@ -871,7 +871,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/three@npm:^0":
+"@types/three@npm:^0.164.0":
   version: 0.164.0
   resolution: "@types/three@npm:0.164.0"
   dependencies:
@@ -885,9 +885,9 @@ __metadata:
   linkType: hard
 
 "@types/webxr@npm:*":
-  version: 0.5.15
-  resolution: "@types/webxr@npm:0.5.15"
-  checksum: 10c0/4d96d6c09e2cc748c8ca5a1c12831c0ee3c7794383055dd720d9257d9fa4f2c1ca12174eef66cb11246be6d6ca626b1b22f96e87ef98f185d291c645a765c9b7
+  version: 0.5.16
+  resolution: "@types/webxr@npm:0.5.16"
+  checksum: 10c0/7df4f693c58dc15a6749f37dcf0d29dc72c8e63dc8a7b8990120b2ab3492ad998e6c23a9d175b34a31ced36612b94658b1d6a25abf26d22c9ef35bdce512bcc9
   languageName: node
   linkType: hard
 
