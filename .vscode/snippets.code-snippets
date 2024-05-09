@@ -35,6 +35,29 @@
       ""
     ]
   },
+  "Sketch3D": {
+    "scope": "typescript",
+    "prefix": "sketch3d",
+    "body": [
+      "import { three } from \"library/core/sketch\"",
+      "import { BoxGeometry, Color, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene } from \"three\"",
+      "",
+      "export default three(({ random, bbox }) => {",
+      "\tconst scene = new Scene()",
+      "\tscene.background = new Color(\"white\")",
+      "\tconst camera = new PerspectiveCamera(75, bbox.width / bbox.height, 0.1, 1000)",
+      "",
+      "\tconst geometry = new BoxGeometry(1, 1, 1)",
+      "\tconst material = new MeshBasicMaterial({ color: new Color(...random.color()) })",
+      "\tconst cube = new Mesh(geometry, material)",
+      "\tscene.add(cube)",
+      "",
+      "\tcamera.position.z = 2",
+      "\treturn { scene, camera }",
+      "})",
+      ""
+    ]
+  },
   "Timed": {
     "scope": "typescript",
     "prefix": "timed",
