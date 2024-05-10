@@ -83,8 +83,8 @@ class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
   /**
    * Render this sketch
    */
-  async render() {
-    const instance = this.instance || (await this.iterate())
+  render() {
+    const instance = this.instance || this.iterate()
     this.params = this.renderer.render(instance, this.params)
     this.instance = instance
   }
@@ -94,10 +94,10 @@ class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
    * @param exportParams optional overrides for rendering size params and image type
    * @returns renderer's canvas contents as blob
    */
-  async export(exportParams?: ExportParams): Promise<Blob> {
+  export(exportParams?: ExportParams): Promise<Blob> {
     const currentParams = { ...this.params }
     Object.assign(this.params, exportParams)
-    await this.render()
+    this.render()
     this.params = currentParams
 
     const canvas = this.canvas
@@ -105,26 +105,26 @@ class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
       "convertToBlob" in canvas
         ? canvas.convertToBlob({ type: exportParams?.format })
         : new Promise<Blob>((ok, err) => canvas.toBlob((blob) => (blob ? ok(blob) : err), exportParams?.format))
-    return await blobPromise
+    return blobPromise
   }
 
   /**
    * Generate new sketch instance
    * @internal
    */
-  async next() {
+  next() {
     this.destroy()
     // We store how many random values were generated so far, so that when canvas is resized we could
     // "replay" RNG from this point
     this.randomUseCount = this.mersenneTwister.getUseCount()
-    this.instance = await this.iterate()
+    this.instance = this.iterate()
   }
 
   /**
    * Resize this sketch
    * @param params new {@link SizeParams}
    */
-  async resize(params: Partial<SizeParams>) {
+  resize(params: Partial<SizeParams>) {
     const currentParams = this.params
     Object.assign(this.params, params)
     if (this.params.width !== currentParams.width || this.params.height !== currentParams.height) {
@@ -133,7 +133,7 @@ class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
       // Which is why we need to recreate the state that was prior to last sketch run
       this.mersenneTwister = MersenneTwister.seedWithArray(this.seed).discard(this.randomUseCount)
       this.random = new Random(this.mersenneTwister)
-      this.instance = await this.iterate()
+      this.instance = this.iterate()
     }
   }
 
@@ -141,12 +141,12 @@ class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
    * Method to generate new sketch instance
    * @returns sketch instance with wrapped container
    */
-  private async iterate(): Promise<SketchInstance<T>> {
+  private iterate(): SketchInstance<T> {
     const random = this.random
     const { width, height } = this.params
     // Calculate bounding box
     const bbox = box(-width / 2, -height / 2, width / 2, height / 2)
-    return await this.sketchCreator({ random, bbox, ...this.renderer.getRenderingContext(this.type) })
+    return this.sketchCreator({ random, bbox, ...this.renderer.getRenderingContext(this.type) })
   }
 
   /** Destroy current sketch container and free associated memory */

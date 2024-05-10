@@ -77,9 +77,7 @@ export type SketchInstance<T extends SketchType> = {
  * @param {SketchEnv} context Context for sketch
  * @returns {SketchInstance} Single instance of a sketch
  */
-export type SketchCreator<T extends SketchType> = (
-  context: SketchContext<T>
-) => SketchInstance<T> | Promise<SketchInstance<T>>
+export type SketchCreator<T extends SketchType> = (context: SketchContext<T>) => SketchInstance<T>
 
 /** Parameters for controlling sketch's size */
 export type SizeParams = {

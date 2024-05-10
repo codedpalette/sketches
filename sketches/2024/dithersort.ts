@@ -1,14 +1,33 @@
 import { pixi } from "library/core/sketch"
-import { loadSprite } from "library/drawing/helpers"
+import { ICanvas } from "library/core/types"
 import { filterFragTemplate, filterVertTemplate } from "library/drawing/shaders"
-import { Container, Filter, GlProgram } from "pixi.js"
+import { asset } from "library/utils"
+import { Assets, Container, Filter, GlProgram, RenderTexture, Sprite, Texture, WebGLRenderer } from "pixi.js"
 
-export default pixi(async () => {
+const texture = await Assets.load<Texture>(asset("dither/pic.jpg"))
+
+export default pixi(({ renderer }) => {
+  console.trace("dithersort")
+  const sprite = new Sprite(texture)
   const container = new Container()
-  const sprite = await loadSprite("dither/pic.jpg")
-  sprite.filters = [new DitherFilter()]
-  container.addChild(sprite)
+  const downsampled = downsample(sprite, 1, renderer)
+  downsampled.filters = [new DitherFilter()]
+  container.addChild(downsampled)
   return { container }
+
+  function downsample(sprite: Sprite, level: number, renderer: WebGLRenderer<ICanvas>) {
+    sprite.scale.set(Math.pow(2, -level))
+    const renderTexture = RenderTexture.create({ width: sprite.width, height: sprite.height, scaleMode: "nearest" })
+    const rendererSize = [renderer.width, renderer.height]
+    renderer.resize(renderTexture.width, renderTexture.height)
+    renderer.render({ container: sprite, target: renderTexture })
+    renderer.resize(rendererSize[0], rendererSize[1])
+    const downsampled = new Sprite(renderTexture)
+    downsampled.anchor.set(0.5)
+    const scale = Math.pow(2, level)
+    downsampled.scale.set(scale, -scale)
+    return downsampled
+  }
 })
 
 class DitherFilter extends Filter {

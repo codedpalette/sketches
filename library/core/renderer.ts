@@ -62,7 +62,8 @@ class Renderer<C extends ICanvas> {
       stage.setFromMatrix(new Matrix().scale(1, -1).translate(params.width / 2, params.height / 2))
       stage.addChild(sketch.container)
 
-      if (needsReset) this.pixiRenderer.runners.contextChange.emit(this.pixiRenderer.gl)
+      // TODO: When pixi fixes interop
+      //if (needsReset) this.pixiRenderer.runners.contextChange.emit(this.pixiRenderer.gl)
       this.pixiRenderer.render(stage)
     } else {
       if (needsReset) this.threeRenderer.resetState()
@@ -136,7 +137,7 @@ export async function init<C extends ICanvas>(params?: Partial<RenderParams<C>>)
     autoDensity: renderParams.resizeCSS,
   })
   const threeRenderer = new ThreeRenderer({
-    canvas: pixiRenderer.canvas,
+    //canvas: pixiRenderer.canvas, // TODO: When pixi fixes interop
     antialias: renderParams.antialias,
   })
   return new Renderer(pixiRenderer, threeRenderer, renderParams)

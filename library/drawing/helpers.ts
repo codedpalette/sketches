@@ -1,6 +1,5 @@
 import { Box } from "@flatten-js/core"
-import { asset } from "library/utils"
-import { Assets, ColorSource, Graphics, Sprite } from "pixi.js"
+import { ColorSource, Graphics, Sprite } from "pixi.js"
 
 /**
  * Draw a rectangle with uniform fill to be used as a background.
@@ -30,18 +29,6 @@ export function drawCanvas(render: (ctx: OffscreenCanvasRenderingContext2D) => v
   // and Canvas API assumes Y-axis pointing down and (0, 0) at top-left corner,
   // we need to set scale and anchor on Sprite to take that into account
   sprite.scale.set(1, -1)
-  sprite.anchor.set(0.5, 0.5)
-  return sprite
-}
-
-/**
- * Load a sprite from a given path
- * @param path path to asset relative to `assets` folder in the workspace root
- * @returns Sprite
- */
-export async function loadSprite(path: string): Promise<Sprite> {
-  const sprite = new Sprite(await Assets.load(asset(path)))
   sprite.anchor.set(0.5)
-  sprite.scale.set(1, -1)
   return sprite
 }
