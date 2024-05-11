@@ -7,7 +7,6 @@ import { Assets, Container, Filter, GlProgram, RenderTexture, Sprite, Texture, W
 const texture = await Assets.load<Texture>(asset("dither/pic.jpg"))
 
 export default pixi(({ renderer }) => {
-  console.trace("dithersort")
   const sprite = new Sprite(texture)
   const container = new Container()
   const downsampled = downsample(sprite, 1, renderer)
@@ -15,6 +14,7 @@ export default pixi(({ renderer }) => {
   container.addChild(downsampled)
   return { container }
 
+  // TODO: GLSL shader
   function downsample(sprite: Sprite, level: number, renderer: WebGLRenderer<ICanvas>) {
     sprite.scale.set(Math.pow(2, -level))
     const renderTexture = RenderTexture.create({ width: sprite.width, height: sprite.height, scaleMode: "nearest" })

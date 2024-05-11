@@ -54,6 +54,7 @@
     "voronoijs": "^1.0.0"
   },
   "devDependencies": {
+    "@laynezh/vite-plugin-lib-assets": "0.5.21",
     "@types/culori": "^2.0.1",
     "@types/rbush": "^3.0.3",
     "@types/stats.js": "^0.17.0",

@@ -51,6 +51,7 @@ __metadata:
   resolution: "@codedpalette/sketches@workspace:."
   dependencies:
     "@flatten-js/core": "npm:^1.4.4"
+    "@laynezh/vite-plugin-lib-assets": "npm:0.5.21"
     "@tweenjs/tween.js": "npm:^21.0.0"
     "@types/culori": "npm:^2.0.1"
     "@types/rbush": "npm:^3.0.3"
@@ -397,6 +398,18 @@ __metadata:
   version: 1.4.15
   resolution: "@jridgewell/sourcemap-codec@npm:1.4.15"
   checksum: 10c0/0c6b5ae663087558039052a626d2d7ed5208da36cfd707dcc5cea4a07cfc918248403dcb5989a8f7afaf245ce0573b7cc6fd94c4a30453bd10e44d9363940ba5
+  languageName: node
+  linkType: hard
+
+"@laynezh/vite-plugin-lib-assets@npm:0.5.21":
+  version: 0.5.21
+  resolution: "@laynezh/vite-plugin-lib-assets@npm:0.5.21"
+  dependencies:
+    escape-string-regexp: "npm:^4.0.0"
+    loader-utils: "npm:^3.2.1"
+    mrmime: "npm:^1.0.1"
+    semver: "npm:^7.6.0"
+  checksum: 10c0/b913634392b86e4d4f66758dd5126ce8b9d812d931c3ed25dab292c73e44c40a3d0bdc76e7dda58a16aa8e0db2180d9d04ceb1be709108a321f730baea5056c9
   languageName: node
   linkType: hard
 
@@ -3797,6 +3810,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"loader-utils@npm:^3.2.1":
+  version: 3.2.1
+  resolution: "loader-utils@npm:3.2.1"
+  checksum: 10c0/d3e1f217d160e8e894a0385a33500d4ce14065e8ffb250f5a81ae65bc2c3baa50625ec34182ba4417b46b4ac6725aed64429e1104d6401e074af2aa1dd018394
+  languageName: node
+  linkType: hard
+
 "locate-path@npm:^6.0.0":
   version: 6.0.0
   resolution: "locate-path@npm:6.0.0"
@@ -4150,6 +4170,13 @@ __metadata:
   bin:
     mkdirp: bin/cmd.js
   checksum: 10c0/46ea0f3ffa8bc6a5bc0c7081ffc3907777f0ed6516888d40a518c5111f8366d97d2678911ad1a6882bf592fa9de6c784fea32e1687bb94e1f4944170af48a5cf
+  languageName: node
+  linkType: hard
+
+"mrmime@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "mrmime@npm:1.0.1"
+  checksum: 10c0/ab071441da76fd23b3b0d1823d77aacf8679d379a4a94cacd83e487d3d906763b277f3203a594c613602e31ab5209c26a8119b0477c4541ef8555b293a9db6d3
   languageName: node
   linkType: hard
 

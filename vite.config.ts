@@ -1,5 +1,6 @@
 import type { AddressInfo } from "node:net"
 
+import libAssetsPlugin from "@laynezh/vite-plugin-lib-assets"
 import { resolve } from "path"
 import { defineConfig } from "vite"
 import dts from "vite-plugin-dts"
@@ -19,6 +20,7 @@ export default defineConfig(() => {
       glsl({ root: "library/glsl" }),
       nodePolyfills(),
       tsconfigPaths(),
+      libAssetsPlugin(),
       // Simple plugin to start electron process
       // Based on https://github.com/electron-vite/vite-plugin-electron but without restarts on hot reload
       {
@@ -43,6 +45,7 @@ export default defineConfig(() => {
       },
     },
     build: {
+      target: "es2022",
       lib: {
         entry: resolve(__dirname, "lib.ts"),
         formats: ["es"],

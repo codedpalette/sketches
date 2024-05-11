@@ -77,7 +77,7 @@ class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
    * @returns canvas
    */
   get canvas() {
-    return this.renderer.canvas
+    return this.renderer.getCanvas(this.type)
   }
 
   /**
@@ -94,7 +94,7 @@ class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
    * @param exportParams optional overrides for rendering size params and image type
    * @returns renderer's canvas contents as blob
    */
-  export(exportParams?: ExportParams): Promise<Blob> {
+  async export(exportParams?: ExportParams): Promise<Blob> {
     const currentParams = { ...this.params }
     Object.assign(this.params, exportParams)
     this.render()

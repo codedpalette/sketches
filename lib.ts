@@ -15,7 +15,7 @@ export type SketchModule = {
 }
 
 type SketchModuleImpl = {
-  default: SketchConstructor
+  default: SketchConstructor | Promise<SketchConstructor>
 }
 
 // Only finished artworks here
