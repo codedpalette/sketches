@@ -29,8 +29,6 @@ jobs:
         uses: actions/checkout@v4
       - name: Enable corepack
         run: corepack enable
-      - name: Setup .yarnrc.yml
-        run: yarn config set npmScopes.codedpalette.npmAuthToken $GITHUB_TOKEN
       - name: Install dependencies
         run: yarn install --immutable
       - name: Build
@@ -40,6 +38,8 @@ jobs:
         with:
           version-type: patch
           skip-tag: true
+      - name: Setup .yarnrc.yml
+        run: yarn config set npmScopes.codedpalette.npmAuthToken $GITHUB_TOKEN
       - name: Publish
         run: yarn npm publish
       - name: Trigger website deploy
