@@ -11,7 +11,7 @@ import { Container, NoiseFilter, Rectangle } from "pixi.js"
 export default pixi(({ random, bbox }) => {
   const mainHue = random.realZeroTo(360)
   const bgColor = formatHsl([mainHue, random.real(0.2, 0.3), random.real(0.8, 0.9)])
-  const numLayers = 1 //random.integer(2, 4)
+  const numLayers = random.integer(2, 4)
   const startingRotation = random.realZeroTo(Math.PI * 2)
   // Fragment shader to add variability to line segments. It varies line width, offset and alpha based on noise values
   const lineShader: ShaderProgram = {
@@ -46,7 +46,7 @@ export default pixi(({ random, bbox }) => {
   function drawLayer(layerNum: number) {
     const container = new Container()
     const rotation = startingRotation + layerNum * ((Math.PI / numLayers) * random.real(0.8, 1.2))
-    const noiseScale = random.real(1, 10)
+    const noiseScale = random.real(2, 10)
     const lineSpacing = map(noiseScale, 1, 10, 10, 5)
 
     const lines = drawLines(rotation % Math.PI, lineSpacing)
