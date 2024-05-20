@@ -7,14 +7,14 @@ import { Assets, Container, Filter, GlProgram, RenderTexture, Sprite, Texture, W
 const texture = await Assets.load<Texture>(asset("dither/pic.jpg"))
 
 export default pixi(({ renderer }) => {
-  const sprite = new Sprite(texture)
   const container = new Container()
+  const sprite = new Sprite(texture)
+  // TODO: Sharpness filter
+  sprite.filters = [new DitherFilter()]
   const downsampled = downsample(sprite, 1, renderer)
-  downsampled.filters = [new DitherFilter()]
   container.addChild(downsampled)
   return { container }
 
-  // TODO: GLSL shader
   function downsample(sprite: Sprite, level: number, renderer: WebGLRenderer<ICanvas>) {
     sprite.scale.set(Math.pow(2, -level))
     const renderTexture = RenderTexture.create({ width: sprite.width, height: sprite.height, scaleMode: "nearest" })
@@ -34,6 +34,8 @@ class DitherFilter extends Filter {
   private static fragShader = filterFragTemplate({
     preamble: /*glsl*/ `
       #define PALETTE_SIZE 2
+      uniform vec4 uOutputTexture;
+
       const int indexMatrix4x4[16] = int[](
         0,  8,  2,  10,
         12, 4,  14, 6,
@@ -41,13 +43,13 @@ class DitherFilter extends Filter {
         15, 7,  13, 5
       );
       const vec3 palette[PALETTE_SIZE] = vec3[](
-        vec3(0.886, 0., 0.137),
-        vec3(1., 0.933, 0.172)
+        vec3(0., 0., 0.),//vec3(0.886, 0., 0.137),
+        vec3(1., 1., 1.)//vec3(1., 0.933, 0.172)
       );
 
       float indexValue() {
-        int x = int(mod(gl_FragCoord.x, 4.));
-        int y = int(mod(gl_FragCoord.y, 4.));
+        int x = int(mod(uOutputTexture.x * vTextureCoord.x, 4.));
+        int y = int(mod(uOutputTexture.y * vTextureCoord.y, 4.));
         return float(indexMatrix4x4[(x + y * 4)]) / 16.0;
       }
 
@@ -74,12 +76,20 @@ class DitherFilter extends Filter {
       }
 
       vec3 dither(vec3 color) {
-        vec3[2] colors = closestColors(color);
-        vec3 closestColor = colors[0];
-        vec3 secondClosestColor = colors[1];
-        float d = indexValue();
-        float normalizedDistance = distance(color, closestColor) / distance(closestColor, secondClosestColor);
-        return (normalizedDistance < d) ? closestColor : secondClosestColor;        
+        float numberOfColors = 4.0;
+        float thresholdMap = indexValue() - 0.5;
+        float spread = 0.2;
+        vec3 newColor = color + thresholdMap * spread;
+        newColor.r = floor((numberOfColors - 1.0) * newColor.r + 0.5) / (numberOfColors - 1.0);
+        newColor.g = floor((numberOfColors - 1.0) * newColor.g + 0.5) / (numberOfColors - 1.0);
+        newColor.b = floor((numberOfColors - 1.0) * newColor.b + 0.5) / (numberOfColors - 1.0);
+        return newColor; 
+        // vec3[2] colors = closestColors(color);
+        // vec3 closestColor = colors[0];
+        // vec3 secondClosestColor = colors[1];
+        // float d = indexValue();
+        // float normalizedDistance = distance(color, closestColor) / distance(closestColor, secondClosestColor);
+        // return (normalizedDistance < d) ? closestColor : secondClosestColor;        
       }
     `,
     main: /*glsl*/ `
