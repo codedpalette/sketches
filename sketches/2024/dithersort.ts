@@ -2,29 +2,61 @@ import { pixi } from "library/core/sketch"
 import { ICanvas } from "library/core/types"
 import { filterFragTemplate, filterVertTemplate } from "library/drawing/shaders"
 import { asset } from "library/utils"
-import { Assets, Container, Filter, GlProgram, RenderTexture, Sprite, Texture, WebGLRenderer } from "pixi.js"
+import {
+  Assets,
+  Container,
+  Filter,
+  GlProgram,
+  RenderTexture,
+  SCALE_MODE,
+  Sprite,
+  Texture,
+  WebGLRenderer,
+} from "pixi.js"
+import { ConvolutionFilter } from "pixi-filters"
 
-const texture = await Assets.load<Texture>(asset("dither/pic.jpg"))
+const texture = await Assets.load<Texture>(asset("dither/pic5.jpeg"))
 
 export default pixi(({ renderer }) => {
   const container = new Container()
   const sprite = new Sprite(texture)
-  // TODO: Sharpness filter
-  sprite.filters = [new DitherFilter()]
+
+  sprite.filters = [
+    new ConvolutionFilter({
+      matrix: [0, -1, 0, -1, 5, -1, 0, -1, 0],
+      width: sprite.width,
+      height: sprite.height,
+    }),
+    new DitherFilter(),
+  ]
   const downsampled = downsample(sprite, 1, renderer)
+  //downsampled.filters = [new DitherFilter()]
   container.addChild(downsampled)
+  //container.addChild(sprite)
   return { container }
 
   function downsample(sprite: Sprite, level: number, renderer: WebGLRenderer<ICanvas>) {
-    sprite.scale.set(Math.pow(2, -level))
-    const renderTexture = RenderTexture.create({ width: sprite.width, height: sprite.height, scaleMode: "nearest" })
+    const scale = Math.pow(2, level)
+    const sourceScaleMode: SCALE_MODE = "nearest"
+    const targetScaleMode: SCALE_MODE = "nearest"
+
+    sprite.texture.source.scaleMode = sourceScaleMode
+    sprite.texture.source.style.update()
+    //sprite.anchor.set(0.5)
+    sprite.scale.set(1 / scale)
+
+    const renderTexture = RenderTexture.create({
+      width: sprite.width,
+      height: sprite.height,
+      scaleMode: targetScaleMode,
+    })
     const rendererSize = [renderer.width, renderer.height]
     renderer.resize(renderTexture.width, renderTexture.height)
     renderer.render({ container: sprite, target: renderTexture })
     renderer.resize(rendererSize[0], rendererSize[1])
+
     const downsampled = new Sprite(renderTexture)
     downsampled.anchor.set(0.5)
-    const scale = Math.pow(2, level)
     downsampled.scale.set(scale, -scale)
     return downsampled
   }
@@ -78,7 +110,7 @@ class DitherFilter extends Filter {
       vec3 dither(vec3 color) {
         float numberOfColors = 4.0;
         float thresholdMap = indexValue() - 0.5;
-        float spread = 0.2;
+        float spread = 0.5;
         vec3 newColor = color + thresholdMap * spread;
         newColor.r = floor((numberOfColors - 1.0) * newColor.r + 0.5) / (numberOfColors - 1.0);
         newColor.g = floor((numberOfColors - 1.0) * newColor.g + 0.5) / (numberOfColors - 1.0);

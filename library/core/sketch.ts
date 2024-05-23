@@ -151,7 +151,14 @@ class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
 
   /** Destroy current sketch container and free associated memory */
   private destroy() {
-    this.instance && "container" in this.instance && this.instance.container.destroy(true)
+    if (this.instance && "container" in this.instance) {
+      this.instance.container.destroy({
+        children: true,
+        texture: false,
+        textureSource: false,
+        context: true,
+      })
+    }
     this.instance = undefined
   }
 }
