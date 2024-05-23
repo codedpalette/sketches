@@ -62,7 +62,11 @@ class Renderer<C extends ICanvas> {
     if ("container" in sketch) {
       const stage = new Container()
       // Set transform matrix to translate (0, 0) to the viewport center and point Y-axis upwards
-      stage.setFromMatrix(new Matrix().scale(1, -1).translate(params.width / 2, params.height / 2))
+      //const m = new Matrix(1, 0, 0, -1, params.width / 2, params.height / 2)
+      // TODO: Bugged because of precision
+      const m = new Matrix().scale(1, -1).translate(params.width / 2, params.height / 2)
+      //debugger
+      stage.setFromMatrix(m)
       stage.addChild(sketch.container)
 
       this.pixiRenderer.render(stage)

@@ -42,6 +42,7 @@
     "@tweenjs/tween.js": "^21.0.0",
     "canvas-capture": "^2.1.1",
     "culori": "^3.2.0",
+    "pixi-filters": "^6.0.3",
     "pixi.js": "^8.1.0",
     "random-js": "^2.1.0",
     "rbush": "^3.0.1",

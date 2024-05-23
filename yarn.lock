@@ -72,6 +72,7 @@ __metadata:
     husky: "npm:^9.0.7"
     lint-staged: "npm:^13.2.3"
     pinst: "npm:^3.0.0"
+    pixi-filters: "npm:^6.0.3"
     pixi.js: "npm:^8.1.0"
     prettier: "npm:^2.8.8"
     random-js: "npm:^2.1.0"
@@ -803,6 +804,13 @@ __metadata:
   version: 1.0.5
   resolution: "@types/estree@npm:1.0.5"
   checksum: 10c0/b3b0e334288ddb407c7b3357ca67dbee75ee22db242ca7c56fe27db4e1a31989cb8af48a84dd401deb787fe10cc6b2ab1ee82dc4783be87ededbe3d53c79c70d
+  languageName: node
+  linkType: hard
+
+"@types/gradient-parser@npm:^0.1.2":
+  version: 0.1.5
+  resolution: "@types/gradient-parser@npm:0.1.5"
+  checksum: 10c0/8347fb24885aeb133421baec58d0eab4e8ec43d17f337bc4f1d23bde99ca5e87b82b44834eb00d71fd820503c530d4c75e4d9a98652e09b2f04b08fbc1057762
   languageName: node
   linkType: hard
 
@@ -4617,6 +4625,17 @@ __metadata:
   bin:
     pinst: bin.js
   checksum: 10c0/abb1ed62ea2acb2207a7a860715bdb26ecbde74ede8fad5f6200194f3e22db25e2b7a49af05e5cc7fc05384709c651e0000323f0077d7239060c4b68c8acd428
+  languageName: node
+  linkType: hard
+
+"pixi-filters@npm:^6.0.3":
+  version: 6.0.3
+  resolution: "pixi-filters@npm:6.0.3"
+  dependencies:
+    "@types/gradient-parser": "npm:^0.1.2"
+  peerDependencies:
+    pixi.js: ">=8.0.0-0"
+  checksum: 10c0/5e53578dd09f40237551e2e31df62c1b21fac28129cc0533d0430b516363572cd64fb40b3c5fd3cec2e33afc9372bbcb31b652cc41e8c6b2cb9c333e62127c5b
   languageName: node
   linkType: hard
 
