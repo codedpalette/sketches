@@ -1,8 +1,9 @@
+import dither from "../glsl/dither.glsl"
 import glslNoise2d from "../glsl/noise2D.glsl"
 import glslNoise3d from "../glsl/noise3D.glsl"
 import glslNoise4d from "../glsl/noise4D.glsl"
 
-export { glslNoise2d, glslNoise3d, glslNoise4d }
+export { dither, glslNoise2d, glslNoise3d, glslNoise4d }
 
 export type ShaderProgram = {
   /**
