@@ -1,9 +1,9 @@
 import { pixi } from "library/core/sketch"
-import { ICanvas } from "library/core/types"
-import { filterFragTemplate, filterVertTemplate } from "library/drawing/shaders"
+import { dither as ditherFrag, filterFragTemplate, filterVertTemplate } from "library/drawing/shaders"
 import { asset } from "library/utils"
 import {
   Assets,
+  ColorMatrixFilter,
   Container,
   Filter,
   GlProgram,
@@ -11,129 +11,126 @@ import {
   SCALE_MODE,
   Sprite,
   Texture,
-  WebGLRenderer,
 } from "pixi.js"
 import { ConvolutionFilter } from "pixi-filters"
 
 const texture = await Assets.load<Texture>(asset("dither/pic5.jpeg"))
 
+let _count = 0
+
 export default pixi(({ renderer }) => {
   const container = new Container()
+  const spriteContainer = container.addChild(new Container())
+  spriteContainer.scale.set(1, -1)
+
   const sprite = new Sprite(texture)
 
-  sprite.filters = [
-    new ConvolutionFilter({
-      matrix: [0, -1, 0, -1, 5, -1, 0, -1, 0],
-      width: sprite.width,
-      height: sprite.height,
-    }),
-    new DitherFilter(),
+  const ditherLevel = 2 // 0-2
+  const ditherSpread = 0.1 // 0-1
+  const paletteSize = 5 // 2-16
+  const sharpnessFactor = 0.5 // 0-1
+  const downsampleLevel = 1
+  const grayScale = 0.4 // 0-1
+  const pipeline = [
+    grayscale(grayScale),
+    sharpen(sharpnessFactor),
+    dither(ditherLevel, ditherSpread, paletteSize, false),
+    downsample(downsampleLevel),
   ]
-  const downsampled = downsample(sprite, 1, renderer)
-  //downsampled.filters = [new DitherFilter()]
-  container.addChild(downsampled)
-  //container.addChild(sprite)
+  //const pipeline = [dither(ditherLevel, ditherSpread, paletteSize, false)]
+  const output = pipeline.reduce((input, fn) => fn(input), sprite)
+  output.anchor.set(0.5)
+  spriteContainer.addChild(output)
+
+  _count++
   return { container }
 
-  function downsample(sprite: Sprite, level: number, renderer: WebGLRenderer<ICanvas>) {
-    const scale = Math.pow(2, level)
-    const sourceScaleMode: SCALE_MODE = "nearest"
-    const targetScaleMode: SCALE_MODE = "nearest"
+  function downsample(level: number) {
+    return (input: Sprite) => {
+      const scale = Math.pow(2, level)
+      const sourceScaleMode: SCALE_MODE = "nearest"
+      const targetScaleMode: SCALE_MODE = "nearest"
 
-    sprite.texture.source.scaleMode = sourceScaleMode
-    sprite.texture.source.style.update()
-    //sprite.anchor.set(0.5)
-    sprite.scale.set(1 / scale)
+      const sprite = new Sprite(input.texture)
+      sprite.filters = input.filters
+      sprite.texture.source.scaleMode = sourceScaleMode
+      sprite.texture.source.style.update()
+      sprite.scale.set(1 / scale)
 
-    const renderTexture = RenderTexture.create({
-      width: sprite.width,
-      height: sprite.height,
-      scaleMode: targetScaleMode,
-    })
-    const rendererSize = [renderer.width, renderer.height]
-    renderer.resize(renderTexture.width, renderTexture.height)
-    renderer.render({ container: sprite, target: renderTexture })
-    renderer.resize(rendererSize[0], rendererSize[1])
+      const renderTexture = RenderTexture.create({
+        width: sprite.width,
+        height: sprite.height,
+        scaleMode: targetScaleMode,
+      })
+      const rendererSize = [renderer.width, renderer.height]
+      renderer.resize(renderTexture.width, renderTexture.height)
+      renderer.render({ container: sprite, target: renderTexture })
+      renderer.resize(rendererSize[0], rendererSize[1])
 
-    const downsampled = new Sprite(renderTexture)
-    downsampled.anchor.set(0.5)
-    downsampled.scale.set(scale, -scale)
-    return downsampled
+      const downsampled = new Sprite(renderTexture)
+      downsampled.scale.set(scale, scale)
+      return downsampled
+    }
   }
 })
 
-class DitherFilter extends Filter {
-  private static fragShader = filterFragTemplate({
-    preamble: /*glsl*/ `
-      #define PALETTE_SIZE 2
-      uniform vec4 uOutputTexture;
+function grayscale(scale: number) {
+  return (input: Sprite) => {
+    const inputFilters = input.filters === undefined ? [] : (input.filters as Filter[])
+    const grayscaleFilter = new ColorMatrixFilter()
+    grayscaleFilter.grayscale(scale, true)
+    input.filters = [...inputFilters, grayscaleFilter]
+    return input
+  }
+}
 
-      const int indexMatrix4x4[16] = int[](
-        0,  8,  2,  10,
-        12, 4,  14, 6,
-        3,  11, 1,  9,
-        15, 7,  13, 5
-      );
-      const vec3 palette[PALETTE_SIZE] = vec3[](
-        vec3(0., 0., 0.),//vec3(0.886, 0., 0.137),
-        vec3(1., 1., 1.)//vec3(1., 0.933, 0.172)
-      );
+function sharpen(sharpnessFactor: number) {
+  return (input: Sprite) => {
+    const inputFilters = input.filters === undefined ? [] : (input.filters as Filter[])
+    input.filters = [
+      ...inputFilters,
+      new ConvolutionFilter({
+        matrix: [
+          0,
+          -1 * sharpnessFactor,
+          0,
+          -1 * sharpnessFactor,
+          4 * sharpnessFactor + 1,
+          -1 * sharpnessFactor,
+          0,
+          -1 * sharpnessFactor,
+          0,
+        ],
+        width: input.width,
+        height: input.height,
+      }),
+    ]
+    return input
+  }
+}
 
-      float indexValue() {
-        int x = int(mod(uOutputTexture.x * vTextureCoord.x, 4.));
-        int y = int(mod(uOutputTexture.y * vTextureCoord.y, 4.));
-        return float(indexMatrix4x4[(x + y * 4)]) / 16.0;
-      }
-
-      vec3[2] closestColors(vec3 color) {
-        vec3 ret[2];
-        vec3 closest = vec3(-2., 0., 0.);
-        vec3 secondClosest = vec3(-2., 0., 0.);
-        vec3 temp;
-        for (int i = 0; i < PALETTE_SIZE; ++i) {
-            temp = palette[i];
-            float tempDistance = distance(temp, color);
-            if (tempDistance < distance(closest, color)) {
-                secondClosest = closest;
-                closest = temp;
-            } else {
-                if (tempDistance < distance(secondClosest, color)) {
-                    secondClosest = temp;
-                }
-            }
-        }
-        ret[0] = closest;
-        ret[1] = secondClosest;
-        return ret;
-      }
-
-      vec3 dither(vec3 color) {
-        float numberOfColors = 4.0;
-        float thresholdMap = indexValue() - 0.5;
-        float spread = 0.5;
-        vec3 newColor = color + thresholdMap * spread;
-        newColor.r = floor((numberOfColors - 1.0) * newColor.r + 0.5) / (numberOfColors - 1.0);
-        newColor.g = floor((numberOfColors - 1.0) * newColor.g + 0.5) / (numberOfColors - 1.0);
-        newColor.b = floor((numberOfColors - 1.0) * newColor.b + 0.5) / (numberOfColors - 1.0);
-        return newColor; 
-        // vec3[2] colors = closestColors(color);
-        // vec3 closestColor = colors[0];
-        // vec3 secondClosestColor = colors[1];
-        // float d = indexValue();
-        // float normalizedDistance = distance(color, closestColor) / distance(closestColor, secondClosestColor);
-        // return (normalizedDistance < d) ? closestColor : secondClosestColor;        
-      }
-    `,
-    main: /*glsl*/ `
-      fragColor = vec4(dither(fragColor.rgb), 1.);      
-    `,
-  })
-  constructor() {
-    const uniforms = {
-      // noiseScale: { value: noiseScale, type: "f32" },
-      // noiseOffset: { value: random?.realZeroToOneInclusive() ?? 0, type: "f32" },
-    }
-    const glProgram = new GlProgram({ vertex: filterVertTemplate(), fragment: DitherFilter.fragShader })
-    super({ glProgram, resources: { uniforms } })
+function dither(level: number, spread: number, paletteSize: number, convertToLinear: boolean) {
+  return (input: Sprite) => {
+    const inputFilters = input.filters === undefined ? [] : (input.filters as Filter[])
+    input.filters = [
+      ...inputFilters,
+      new Filter({
+        glProgram: GlProgram.from({
+          vertex: filterVertTemplate(),
+          fragment: filterFragTemplate({
+            preamble: convertToLinear ? /*glsl*/ `#define LINEAR\n${ditherFrag}` : ditherFrag,
+            main: /*glsl*/ `fragColor = vec4(dither(fragColor.rgb), 1.);`,
+          }),
+        }),
+        resources: {
+          uniforms: {
+            uLevel: { value: level, type: "i32" },
+            uSpread: { value: spread, type: "f32" },
+            uPaletteSize: { value: paletteSize, type: "i32" },
+          },
+        },
+      }),
+    ]
+    return input
   }
 }
