@@ -14,7 +14,7 @@ import {
 } from "pixi.js"
 import { ConvolutionFilter } from "pixi-filters"
 
-const texture = await Assets.load<Texture>(asset("dither/pic5.jpeg"))
+const texture = await Assets.load<Texture>(asset("dither/pic.jpg"))
 
 let _count = 0
 
@@ -25,19 +25,18 @@ export default pixi(({ renderer }) => {
 
   const sprite = new Sprite(texture)
 
-  const ditherLevel = 2 // 0-2
-  const ditherSpread = 0.1 // 0-1
-  const paletteSize = 5 // 2-16
+  const ditherLevel = 1 // 0-2
+  const ditherSpread = 0.5 // 0-1
+  const paletteSize = 4 // 2-16
   const sharpnessFactor = 0.5 // 0-1
   const downsampleLevel = 1
-  const grayScale = 0.4 // 0-1
+  const _grayScale = 0.5 // 0-1
   const pipeline = [
-    grayscale(grayScale),
+    //grayscale(grayScale),
     sharpen(sharpnessFactor),
-    dither(ditherLevel, ditherSpread, paletteSize, false),
+    dither(ditherLevel, ditherSpread, paletteSize, true),
     downsample(downsampleLevel),
   ]
-  //const pipeline = [dither(ditherLevel, ditherSpread, paletteSize, false)]
   const output = pipeline.reduce((input, fn) => fn(input), sprite)
   output.anchor.set(0.5)
   spriteContainer.addChild(output)
@@ -68,15 +67,15 @@ export default pixi(({ renderer }) => {
       renderer.resize(rendererSize[0], rendererSize[1])
 
       const downsampled = new Sprite(renderTexture)
-      downsampled.scale.set(scale, scale)
+      downsampled.scale.set(scale)
       return downsampled
     }
   }
 })
 
-function grayscale(scale: number) {
+function _grayscale(scale: number) {
   return (input: Sprite) => {
-    const inputFilters = input.filters === undefined ? [] : (input.filters as Filter[])
+    const inputFilters = input.filters ? (input.filters as Filter[]) : []
     const grayscaleFilter = new ColorMatrixFilter()
     grayscaleFilter.grayscale(scale, true)
     input.filters = [...inputFilters, grayscaleFilter]
@@ -86,7 +85,7 @@ function grayscale(scale: number) {
 
 function sharpen(sharpnessFactor: number) {
   return (input: Sprite) => {
-    const inputFilters = input.filters === undefined ? [] : (input.filters as Filter[])
+    const inputFilters = input.filters ? (input.filters as Filter[]) : []
     input.filters = [
       ...inputFilters,
       new ConvolutionFilter({
@@ -111,7 +110,7 @@ function sharpen(sharpnessFactor: number) {
 
 function dither(level: number, spread: number, paletteSize: number, convertToLinear: boolean) {
   return (input: Sprite) => {
-    const inputFilters = input.filters === undefined ? [] : (input.filters as Filter[])
+    const inputFilters = input.filters ? (input.filters as Filter[]) : []
     input.filters = [
       ...inputFilters,
       new Filter({
@@ -127,6 +126,7 @@ function dither(level: number, spread: number, paletteSize: number, convertToLin
             uLevel: { value: level, type: "i32" },
             uSpread: { value: spread, type: "f32" },
             uPaletteSize: { value: paletteSize, type: "i32" },
+            uTextureSize: { value: [input.width, input.height], type: "vec2<f32>" },
           },
         },
       }),
