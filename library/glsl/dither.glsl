@@ -1,7 +1,8 @@
 uniform vec2 uTextureSize;
 uniform float uSpread;
 uniform int uLevel;
-uniform int uPaletteSize;
+//uniform int uPaletteSize;
+uniform vec3 uPalette[PALETTE_SIZE * PALETTE_SIZE * PALETTE_SIZE];
 
 const int bayer2[4] = int[](0, 2, 
 /**/                        3, 1);
@@ -19,6 +20,25 @@ const int bayer8[64] = int[](0, 32, 8, 40, 2, 34, 10, 42,
 /**/                         15, 47, 7, 39, 13, 45, 5, 37, 
 /**/                         63, 31, 55, 23, 61, 29, 53, 21);
 
+// TODO: move these to a shared file
+// Converts a color from linear light gamma to sRGB gamma
+vec3 fromLinear(vec3 linearRGB) {
+  bvec3 cutoff = lessThan(linearRGB, vec3(0.0031308));
+  vec3 higher = vec3(1.055) * pow(linearRGB, vec3(1.0 / 2.4)) - vec3(0.055);
+  vec3 lower = linearRGB * vec3(12.92);
+
+  return mix(higher, lower, cutoff);
+}
+
+// Converts a color from sRGB gamma to linear light gamma
+vec3 toLinear(vec3 sRGB) {
+  bvec3 cutoff = lessThan(sRGB, vec3(0.04045));
+  vec3 higher = pow((sRGB + vec3(0.055)) / vec3(1.055), vec3(2.4));
+  vec3 lower = sRGB / vec3(12.92);
+
+  return mix(higher, lower, cutoff);
+}
+
 float indexValue(int level) {
   float filterSize = pow(2.0, float(level + 1));
   vec2 pos = mod(uTextureSize * vTextureCoord, filterSize);
@@ -33,15 +53,44 @@ float indexValue(int level) {
 }
 
 vec3 dither_acerola(vec3 color) {
-  float numberOfColors = float(uPaletteSize);
+  float numberOfColors = float(PALETTE_SIZE);
   float thresholdMap = indexValue(uLevel) - 0.5;
   vec3 ditheredColor = color + thresholdMap * uSpread;
   vec3 quantizedColor = floor((numberOfColors - 1.0) * ditheredColor + 0.5) / (numberOfColors - 1.0);
   return quantizedColor;
 }
 
+vec3 dither_yliluoma(vec3 color) {
+  float thresholdMap = indexValue(uLevel) - 0.5;
+  vec3 ditheredColor = color + thresholdMap * uSpread;
+#ifdef LINEAR
+  ditheredColor = toLinear(ditheredColor);
+#endif
+
+  vec3 closestColor = uPalette[0];
+#ifdef LINEAR
+  closestColor = toLinear(closestColor);
+#endif
+  float closestDistance = distance(ditheredColor, closestColor);
+  for(int i = 1; i < uPalette.length(); i++) {
+    vec3 attempt = uPalette[i];
+#ifdef LINEAR
+    attempt = toLinear(attempt);
+#endif
+    float dist = distance(ditheredColor, attempt);
+    if(dist < closestDistance) {
+      closestColor = attempt;
+      closestDistance = dist;
+    }
+  }
+#ifdef LINEAR
+  closestColor = fromLinear(closestColor);
+#endif
+  return closestColor;
+}
+
 vec3 dither(vec3 color) {
-  return dither_acerola(color);
+  return dither_yliluoma(color);
   //return vec3(vTextureCoord * 2., 0.0);
 }
 
@@ -117,23 +166,4 @@ vec3 dither(vec3 color) {
 //   color = dither_linear(color);  
 // #endif
 //   return color;
-// }
-
-// // TODO: move these to a shared file
-// // Converts a color from linear light gamma to sRGB gamma
-// vec3 fromLinear(vec3 linearRGB) {
-//   bvec3 cutoff = lessThan(linearRGB, vec3(0.0031308));
-//   vec3 higher = vec3(1.055) * pow(linearRGB, vec3(1.0 / 2.4)) - vec3(0.055);
-//   vec3 lower = linearRGB * vec3(12.92);
-
-//   return mix(higher, lower, cutoff);
-// }
-
-// // Converts a color from sRGB gamma to linear light gamma
-// vec3 toLinear(vec3 sRGB) {
-//   bvec3 cutoff = lessThan(sRGB, vec3(0.04045));
-//   vec3 higher = pow((sRGB + vec3(0.055)) / vec3(1.055), vec3(2.4));
-//   vec3 lower = sRGB / vec3(12.92);
-
-//   return mix(higher, lower, cutoff);
 // }
