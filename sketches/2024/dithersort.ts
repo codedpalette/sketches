@@ -3,6 +3,8 @@ import { dither as ditherFrag, filterFragTemplate, filterVertTemplate } from "li
 import { asset } from "library/utils"
 import {
   Assets,
+  BufferImageSource,
+  Color,
   ColorMatrixFilter,
   Container,
   Filter,
@@ -113,15 +115,22 @@ function sharpen(sharpnessFactor: number) {
 
 function dither(level: number, spread: number, paletteSize: number) {
   function generatePalette() {
-    const palette: [number, number, number][] = []
+    const palette: Color[] = []
     for (let i = 0; i < paletteSize; i++) {
       for (let j = 0; j < paletteSize; j++) {
         for (let k = 0; k < paletteSize; k++) {
-          palette.push([i / (paletteSize - 1), j / (paletteSize - 1), k / (paletteSize - 1)])
+          palette.push(new Color([i / (paletteSize - 1), j / (paletteSize - 1), k / (paletteSize - 1)]))
         }
       }
     }
-    return palette.flat()
+    const buffer = new Float32Array(palette.flatMap((c) => c.toArray()))
+    const textureSource = new BufferImageSource({
+      resource: buffer,
+      width: paletteSize * paletteSize * paletteSize,
+      height: 1,
+      scaleMode: "nearest",
+    })
+    return textureSource
   }
   return (input: Sprite) => {
     const inputFilters = input.filters ? (input.filters as Filter[]) : []
@@ -140,16 +149,10 @@ function dither(level: number, spread: number, paletteSize: number) {
           }),
         }),
         resources: {
+          uPalette: generatePalette(),
           uniforms: {
             uLevel: { value: level, type: "i32" },
             uSpread: { value: spread, type: "f32" },
-            // TODO: Pass as texture
-            // https://webgl2fundamentals.org/webgl/lessons/webgl-data-textures.html
-            uPalette: {
-              value: generatePalette(),
-              type: "vec3<f32>",
-              size: paletteSize * paletteSize * paletteSize,
-            },
             uTextureSize: { value: [input.width, input.height], type: "vec2<f32>" },
           },
         },
