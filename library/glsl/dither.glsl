@@ -1,8 +1,8 @@
 uniform vec2 uTextureSize;
 uniform float uSpread;
 uniform int uLevel;
-//uniform int uPaletteSize;
-uniform vec3 uPalette[PALETTE_SIZE * PALETTE_SIZE * PALETTE_SIZE];
+// Not a good idea generally becuase of expensive texture sampling operations
+uniform sampler2D uPalette;
 
 const int bayer2[4] = int[](0, 2, 
 /**/                        3, 1);
@@ -67,13 +67,14 @@ vec3 dither_yliluoma(vec3 color) {
   ditheredColor = toLinear(ditheredColor);
 #endif
 
-  vec3 closestColor = uPalette[0];
+  vec3 closestColor = texture(uPalette, vec2(0., 0.)).rgb;
 #ifdef LINEAR
   closestColor = toLinear(closestColor);
 #endif
   float closestDistance = distance(ditheredColor, closestColor);
-  for(int i = 1; i < uPalette.length(); i++) {
-    vec3 attempt = uPalette[i];
+  int paletteSize = PALETTE_SIZE * PALETTE_SIZE * PALETTE_SIZE;
+  for(int i = 1; i < paletteSize; i++) {
+    vec3 attempt = texture(uPalette, vec2(float(i) / float(paletteSize)), 0.).rgb;
 #ifdef LINEAR
     attempt = toLinear(attempt);
 #endif
