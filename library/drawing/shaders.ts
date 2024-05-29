@@ -1,19 +1,8 @@
-import dither from "../glsl/dither.glsl"
-import glslNoise2d from "../glsl/noise2D.glsl"
-import glslNoise3d from "../glsl/noise3D.glsl"
-import glslNoise4d from "../glsl/noise4D.glsl"
-
-export { dither, glslNoise2d, glslNoise3d, glslNoise4d }
-
 export type ShaderProgram = {
-  /**
-   *
-   */
-  preamble?: string // Code that goes outside of main function (attribute and uniform definitions, function dependencies)
-  /**
-   *
-   */
-  main?: string // Code that extends main function, can override local variables and varyings
+  /** Code that goes outside of main function (attribute and uniform definitions, function dependencies) */
+  preamble?: string
+  /** Code that extends main function, can override local variables and varyings */
+  main?: string
 }
 
 export const globalPreamble = /*glsl*/ `#version 300 es   

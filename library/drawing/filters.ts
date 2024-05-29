@@ -1,8 +1,7 @@
 import { Random } from "library/core/random"
-import fxaa from "library/glsl/fxaa.glsl"
+import { filterFragTemplate, filterVertTemplate } from "library/drawing/shaders"
+import { fxaa, glNoise3d } from "library/glsl"
 import { Filter, GlProgram } from "pixi.js"
-
-import { filterFragTemplate, filterVertTemplate, glslNoise3d } from "./shaders"
 
 /**
  * Pixi.js filter for setting pixel opacity based on a noise value
@@ -12,7 +11,7 @@ export class NoiseAlphaFilter extends Filter {
     preamble: /*glsl*/ `
       uniform float noiseScale;
       uniform float noiseOffset;      
-      ${glslNoise3d}
+      ${glNoise3d}
     `,
     main: /*glsl*/ `
       float n = snoise(vec3(vTextureCoord, noiseOffset) * noiseScale);

@@ -4,7 +4,8 @@ import { formatHsl } from "library/drawing/color"
 import { FXAAFilter, NoiseAlphaFilter } from "library/drawing/filters"
 import { drawBackground } from "library/drawing/helpers"
 import { renderLines } from "library/drawing/meshes"
-import { glslNoise2d, ShaderProgram } from "library/drawing/shaders"
+import { ShaderProgram } from "library/drawing/shaders"
+import { glNoise2d } from "library/glsl"
 import { map } from "library/utils"
 import { Container, NoiseFilter, Rectangle } from "pixi.js"
 
@@ -16,7 +17,7 @@ export default pixi(({ random, bbox }) => {
   // Fragment shader to add variability to line segments. It varies line width, offset and alpha based on noise values
   const lineShader: ShaderProgram = {
     preamble: /*glsl*/ `
-      ${glslNoise2d}
+      ${glNoise2d}
       const float widthNoiseScale = 10.0;
       const float offsetNoiseScale = 100.0;
       const float alphaNoiseScale = 1000.0;
