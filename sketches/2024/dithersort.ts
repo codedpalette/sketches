@@ -1,5 +1,6 @@
 import { pixi } from "library/core/sketch"
-import { dither as ditherFrag, filterFragTemplate, filterVertTemplate } from "library/drawing/shaders"
+import { filterFragTemplate, filterVertTemplate } from "library/drawing/shaders"
+import { dither as ditherFrag } from "library/glsl"
 import { asset } from "library/utils"
 import {
   Assets,
@@ -128,6 +129,7 @@ function dither(level: number, spread: number, paletteSize: number) {
       resource: buffer,
       width: paletteSize * paletteSize * paletteSize,
       height: 1,
+      format: "rgba32float",
       scaleMode: "nearest",
     })
     return textureSource
@@ -142,7 +144,7 @@ function dither(level: number, spread: number, paletteSize: number) {
           fragment: filterFragTemplate({
             preamble: /*glsl*/ `
               ${_count % 3 == 2 ? "#define LINEAR" : ""}
-              #define PALETTE_SIZE ${paletteSize}
+              #define PALETTE_SIZE ${paletteSize * paletteSize * paletteSize}
               ${ditherFrag}
             `,
             main: /*glsl*/ `fragColor = vec4(dither(fragColor.rgb), 1.);`,

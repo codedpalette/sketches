@@ -17,7 +17,7 @@ export default defineConfig(() => {
         devDeps: true, // Exclude dev dependencies
       }),
       dts({ rollupTypes: true }),
-      glsl({ root: "library/glsl" }),
+      glsl({ root: "/library/glsl" }),
       nodePolyfills(),
       tsconfigPaths(),
       libAssetsPlugin(),
