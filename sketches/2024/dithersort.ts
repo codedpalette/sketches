@@ -1,3 +1,4 @@
+import { extractColors } from "extract-colors"
 import { pixi } from "library/core/sketch"
 import { filterFragTemplate, filterVertTemplate } from "library/drawing/shaders"
 import { dither as ditherFrag } from "library/glsl"
@@ -17,7 +18,8 @@ import {
 } from "pixi.js"
 import { ConvolutionFilter } from "pixi-filters"
 
-const texture = await Assets.load<Texture>(asset("dither/pic.jpg"))
+const texture = await Assets.load<Texture>(asset("dither/pic5.jpeg"))
+const colors = await extractPalette()
 
 let _count = 0
 
@@ -29,18 +31,18 @@ export default pixi(({ renderer }) => {
   const sprite = new Sprite(texture)
 
   const ditherLevel = 1 // 0-2
-  const ditherSpread = 0.1 // 0-1
-  const paletteSize = 4 // 2-16
-  const sharpnessFactor = 0.5 // 0-1
+  const ditherSpread = 0.25
+  const paletteSize = 14
+  const sharpnessFactor = 0
   const downsampleLevel = 1
-  const _grayScale = 0.5 // 0-1
+  const brightness = 1
   const pipeline =
     _count % 3 == 0
       ? []
       : [
-          //grayscale(grayScale),
+          brighten(brightness),
           sharpen(sharpnessFactor),
-          dither(ditherLevel, ditherSpread, paletteSize),
+          dither(ditherLevel, ditherSpread, paletteSize, true),
           downsample(downsampleLevel),
         ]
   const output = pipeline.reduce((input, fn) => fn(input), sprite)
@@ -79,12 +81,12 @@ export default pixi(({ renderer }) => {
   }
 })
 
-function _grayscale(scale: number) {
+function brighten(scale: number) {
   return (input: Sprite) => {
     const inputFilters = input.filters ? (input.filters as Filter[]) : []
-    const grayscaleFilter = new ColorMatrixFilter()
-    grayscaleFilter.grayscale(scale, true)
-    input.filters = [...inputFilters, grayscaleFilter]
+    const brightnessFilter = new ColorMatrixFilter()
+    brightnessFilter.brightness(scale, true)
+    input.filters = [...inputFilters, brightnessFilter]
     return input
   }
 }
@@ -114,28 +116,33 @@ function sharpen(sharpnessFactor: number) {
   }
 }
 
-function dither(level: number, spread: number, paletteSize: number) {
+function dither(level: number, spread: number, paletteSize: number, extractPalette: boolean) {
   function generatePalette() {
-    const palette: Color[] = []
-    for (let i = 0; i < paletteSize; i++) {
-      for (let j = 0; j < paletteSize; j++) {
-        for (let k = 0; k < paletteSize; k++) {
-          palette.push(new Color([i / (paletteSize - 1), j / (paletteSize - 1), k / (paletteSize - 1)]))
+    const palette: Color[] = !extractPalette
+      ? []
+      : colors
+          .sort((a, b) => a.area - b.area)
+          .slice(0, paletteSize)
+          .map((c) => new Color(c.hex))
+    if (!extractPalette) {
+      for (let i = 0; i < paletteSize; i++) {
+        for (let j = 0; j < paletteSize; j++) {
+          for (let k = 0; k < paletteSize; k++) {
+            palette.push(new Color([i / (paletteSize - 1), j / (paletteSize - 1), k / (paletteSize - 1)]))
+          }
         }
       }
     }
-    const buffer = new Float32Array(palette.flatMap((c) => c.toArray()))
-    const textureSource = new BufferImageSource({
-      resource: buffer,
-      width: paletteSize * paletteSize * paletteSize,
+    return new BufferImageSource({
+      resource: new Float32Array(palette.flatMap((c) => c.toArray())),
+      width: palette.length,
       height: 1,
-      format: "rgba32float",
       scaleMode: "nearest",
     })
-    return textureSource
   }
   return (input: Sprite) => {
     const inputFilters = input.filters ? (input.filters as Filter[]) : []
+    const uPalette = generatePalette()
     input.filters = [
       ...inputFilters,
       new Filter({
@@ -144,14 +151,14 @@ function dither(level: number, spread: number, paletteSize: number) {
           fragment: filterFragTemplate({
             preamble: /*glsl*/ `
               ${_count % 3 == 2 ? "#define LINEAR" : ""}
-              #define PALETTE_SIZE ${paletteSize * paletteSize * paletteSize}
+              #define PALETTE_SIZE ${uPalette.width}
               ${ditherFrag}
             `,
             main: /*glsl*/ `fragColor = vec4(dither(fragColor.rgb), 1.);`,
           }),
         }),
         resources: {
-          uPalette: generatePalette(),
+          uPalette,
           uniforms: {
             uLevel: { value: level, type: "i32" },
             uSpread: { value: spread, type: "f32" },
@@ -162,4 +169,14 @@ function dither(level: number, spread: number, paletteSize: number) {
     ]
     return input
   }
+}
+
+async function extractPalette() {
+  const canvas = document.createElement("canvas")
+  canvas.width = texture.width
+  canvas.height = texture.height
+  const ctx = canvas.getContext("2d")!
+  ctx.drawImage(texture.source.resource as ImageBitmap, 0, 0)
+  const imageData = ctx.getImageData(0, 0, texture.width, texture.height)
+  return await extractColors(imageData, { distance: 0.01 })
 }

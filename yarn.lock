@@ -69,6 +69,7 @@ __metadata:
     eslint-plugin-jsdoc: "npm:^48.0.2"
     eslint-plugin-simple-import-sort: "npm:^10.0.0"
     eslint-plugin-unused-imports: "npm:^3.0.0"
+    extract-colors: "npm:^4.0.6"
     husky: "npm:^9.0.7"
     lint-staged: "npm:^13.2.3"
     pinst: "npm:^3.0.0"
@@ -2651,6 +2652,13 @@ __metadata:
   version: 3.1.1
   resolution: "exponential-backoff@npm:3.1.1"
   checksum: 10c0/160456d2d647e6019640bd07111634d8c353038d9fa40176afb7cd49b0548bdae83b56d05e907c2cce2300b81cae35d800ef92fefb9d0208e190fa3b7d6bb579
+  languageName: node
+  linkType: hard
+
+"extract-colors@npm:^4.0.6":
+  version: 4.0.6
+  resolution: "extract-colors@npm:4.0.6"
+  checksum: 10c0/426850ffc519907bdb55f22ae451264db4c6281d60ce51519e87350b6c1629940d4a7b50e7922caee9dfc58f6c071fbb85c66a71e432300f3adced5f7710bda3
   languageName: node
   linkType: hard
 
