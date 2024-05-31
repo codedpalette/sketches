@@ -29,7 +29,7 @@ export class NoiseAlphaFilter extends Filter {
       noiseScale: { value: noiseScale, type: "f32" },
       noiseOffset: { value: random?.realZeroToOneInclusive() ?? 0, type: "f32" },
     }
-    const glProgram = new GlProgram({ vertex: filterVertTemplate(), fragment: NoiseAlphaFilter.fragShader })
+    const glProgram = GlProgram.from({ vertex: filterVertTemplate(), fragment: NoiseAlphaFilter.fragShader })
     super({ glProgram, resources: { uniforms } })
   }
 }
@@ -50,7 +50,7 @@ export class FXAAFilter extends Filter {
 
   /** Creates {@link FXAAFilter} */
   constructor() {
-    const glProgram = new GlProgram({ vertex: filterVertTemplate(), fragment: FXAAFilter.fragShader })
+    const glProgram = GlProgram.from({ vertex: filterVertTemplate(), fragment: FXAAFilter.fragShader })
     super({ glProgram })
   }
 }
