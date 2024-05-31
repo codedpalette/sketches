@@ -1,3 +1,5 @@
+import { GlProgram } from "pixi.js"
+
 export type ShaderProgram = {
   /** Code that goes outside of main function (attribute and uniform definitions, function dependencies) */
   preamble?: string
@@ -5,8 +7,12 @@ export type ShaderProgram = {
   main?: string
 }
 
-export const globalPreamble = /*glsl*/ `#version 300 es   
-  precision highp float;
+GlProgram.defaultOptions = {
+  preferredFragmentPrecision: "highp",
+  preferredVertexPrecision: "highp",
+}
+
+export const globalPreamble = /*glsl*/ `#version 300 es     
   #define PI 3.1415926535897932384626433832795
 `
 
