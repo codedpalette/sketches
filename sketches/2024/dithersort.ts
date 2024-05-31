@@ -18,7 +18,7 @@ import {
 } from "pixi.js"
 import { ConvolutionFilter } from "pixi-filters"
 
-const texture = await Assets.load<Texture>(asset("dither/pic5.jpeg"))
+const texture = await Assets.load<Texture>(asset("dither/pic.jpg"))
 const colors = await extractPalette()
 
 let _count = 0
@@ -31,19 +31,19 @@ export default pixi(({ renderer }) => {
   const sprite = new Sprite(texture)
 
   const ditherLevel = 1 // 0-2
-  const ditherSpread = 0.25
-  const paletteSize = 14
-  const sharpnessFactor = 0
+  const ditherSpread = 0.1
+  const paletteSize = 4
+  const sharpnessFactor = 0.5
   const downsampleLevel = 1
   const brightness = 1
   const pipeline =
-    _count % 3 == 0
+    _count % 5 == 0
       ? []
       : [
-          brighten(brightness),
           sharpen(sharpnessFactor),
-          dither(ditherLevel, ditherSpread, paletteSize, true),
+          dither(ditherLevel, ditherSpread, paletteSize, false),
           downsample(downsampleLevel),
+          brighten(brightness),
         ]
   const output = pipeline.reduce((input, fn) => fn(input), sprite)
   output.anchor.set(0.5)
@@ -133,16 +133,35 @@ function dither(level: number, spread: number, paletteSize: number, extractPalet
         }
       }
     }
-    return new BufferImageSource({
-      resource: new Float32Array(palette.flatMap((c) => c.toArray())),
-      width: palette.length,
-      height: 1,
+    const paletteLength = palette.length
+    const paletteSquareDim = Math.sqrt(paletteLength)
+    const closestPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(paletteSquareDim)))
+    console.log(`paletteLength=${paletteLength}, texture dimensions=${closestPowerOfTwo}x${closestPowerOfTwo}`)
+
+    //TODO: Maybe interleave colors with float32
+    const bufferLength = closestPowerOfTwo * closestPowerOfTwo * 4
+    const paletteBuffer = Object.assign(
+      new Array(bufferLength).fill(0, 0, bufferLength),
+      palette.flatMap((c) => c.toArray()).map((v) => v * 255)
+    )
+    const bufferSource = new BufferImageSource({
+      resource: new Uint8Array(paletteBuffer),
+      width: closestPowerOfTwo,
+      height: closestPowerOfTwo,
+      format: "rgba8unorm",
       scaleMode: "nearest",
     })
+    return {
+      paletteLength,
+      uPalette: bufferSource,
+      uniforms: {
+        uPaletteDim: { value: closestPowerOfTwo, type: "i32" },
+      },
+    }
   }
   return (input: Sprite) => {
     const inputFilters = input.filters ? (input.filters as Filter[]) : []
-    const uPalette = generatePalette()
+    const { uPalette, uniforms, paletteLength } = generatePalette()
     input.filters = [
       ...inputFilters,
       new Filter({
@@ -150,8 +169,9 @@ function dither(level: number, spread: number, paletteSize: number, extractPalet
           vertex: filterVertTemplate(),
           fragment: filterFragTemplate({
             preamble: /*glsl*/ `
-              ${_count % 3 == 2 ? "#define LINEAR" : ""}
-              #define PALETTE_SIZE ${uPalette.width}
+              ${_count % 5 == 2 || _count % 5 == 4 ? "#define LINEAR" : ""}
+              ${_count % 5 == 3 || _count % 5 == 4 ? "#define YLILUOMA" : ""}
+              #define PALETTE_SIZE ${paletteLength}
               ${ditherFrag}
             `,
             main: /*glsl*/ `fragColor = vec4(dither(fragColor.rgb), 1.);`,
@@ -160,6 +180,7 @@ function dither(level: number, spread: number, paletteSize: number, extractPalet
         resources: {
           uPalette,
           uniforms: {
+            ...uniforms,
             uLevel: { value: level, type: "i32" },
             uSpread: { value: spread, type: "f32" },
             uTextureSize: { value: [input.width, input.height], type: "vec2<f32>" },
