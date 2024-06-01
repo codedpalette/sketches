@@ -33,8 +33,8 @@ export default pixi(({ renderer }) => {
   const ditherLevel = 1 // 0-2
   const ditherSpread = 0.1
   const paletteSize = 4
-  const sharpnessFactor = 0.5
-  const downsampleLevel = 1
+  const sharpnessFactor = 0
+  const downsampleLevel = 0
   const brightness = 1
   const pipeline =
     _count % 5 == 0
@@ -139,6 +139,7 @@ function dither(level: number, spread: number, paletteSize: number, extractPalet
     console.log(`paletteLength=${paletteLength}, texture dimensions=${closestPowerOfTwo}x${closestPowerOfTwo}`)
 
     //TODO: Maybe interleave colors with float32
+    //TODO: Instanced rendering
     const bufferLength = closestPowerOfTwo * closestPowerOfTwo * 4
     const paletteBuffer = Object.assign(
       new Array(bufferLength).fill(0, 0, bufferLength),
@@ -172,6 +173,7 @@ function dither(level: number, spread: number, paletteSize: number, extractPalet
               ${_count % 5 == 2 || _count % 5 == 4 ? "#define LINEAR" : ""}
               ${_count % 5 == 3 || _count % 5 == 4 ? "#define YLILUOMA" : ""}
               #define PALETTE_SIZE ${paletteLength}
+              const int ditherLevel = ${level};
               ${ditherFrag}
             `,
             main: /*glsl*/ `fragColor = vec4(dither(fragColor.rgb), 1.);`,
@@ -181,7 +183,6 @@ function dither(level: number, spread: number, paletteSize: number, extractPalet
           uPalette,
           uniforms: {
             ...uniforms,
-            uLevel: { value: level, type: "i32" },
             uSpread: { value: spread, type: "f32" },
             uTextureSize: { value: [input.width, input.height], type: "vec2<f32>" },
           },
