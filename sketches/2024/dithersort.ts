@@ -1,85 +1,81 @@
 import { extractColors } from "extract-colors"
 import { pixi } from "library/core/sketch"
-import { filterFragTemplate, filterVertTemplate } from "library/drawing/shaders"
-import { dither as ditherFrag } from "library/glsl"
+import { DitherFilter, DownsampleFilter } from "library/drawing/filters"
 import { asset } from "library/utils"
-import {
-  Assets,
-  BufferImageSource,
-  Color,
-  ColorMatrixFilter,
-  Container,
-  Filter,
-  GlProgram,
-  RenderTexture,
-  SCALE_MODE,
-  Sprite,
-  Texture,
-} from "pixi.js"
+import { GUI } from "lil-gui"
+import { Assets, ColorMatrixFilter, Container, Filter, Sprite, Texture } from "pixi.js"
 import { ConvolutionFilter } from "pixi-filters"
 
 const texture = await Assets.load<Texture>(asset("dither/pic.jpg"))
-const colors = await extractPalette()
+const _colors = await extractPalette()
+const container = new Container()
 
-let _count = 0
+const gui = new GUI()
+const params = {
+  sharpness: 0,
+  brightness: 1,
+  dither: {
+    level: 0,
+    spread: 0.1,
+    paletteSize: 4,
+    isLinear: false,
+  },
+  downsample: {
+    level: 0,
+  },
+}
 
-export default pixi(({ renderer }) => {
-  const container = new Container()
+gui.add(params, "sharpness", 0, 1)
+gui.add(params, "brightness", 0, 2)
+
+const ditherFolder = gui.addFolder("Dither")
+ditherFolder.add(params.dither, "level", 0, 2, 1)
+ditherFolder.add(params.dither, "spread", 0, 1)
+ditherFolder.add(params.dither, "paletteSize", 2, 8, 1)
+ditherFolder.add(params.dither, "isLinear")
+
+const downsampleFolder = gui.addFolder("Downsample")
+downsampleFolder.add(params.downsample, "level", 0, 2, 1)
+
+gui.onChange(() => {
+  const children = container.removeChildren()
+  children.forEach((child) => child.destroy())
+  process()
+})
+
+function process() {
   const spriteContainer = container.addChild(new Container())
   spriteContainer.scale.set(1, -1)
 
   const sprite = new Sprite(texture)
-
-  const ditherLevel = 1 // 0-2
-  const ditherSpread = 0.1
-  const paletteSize = 4
-  const sharpnessFactor = 0
-  const downsampleLevel = 0
-  const brightness = 1
-  const pipeline =
-    _count % 5 == 0
-      ? []
-      : [
-          sharpen(sharpnessFactor),
-          dither(ditherLevel, ditherSpread, paletteSize, false),
-          downsample(downsampleLevel),
-          brighten(brightness),
-        ]
+  const ditherParams = params.dither
+  const downsampleParams = params.downsample
+  const pipeline = [
+    sharpen(params.sharpness),
+    dither(ditherParams.level, ditherParams.spread, ditherParams.paletteSize, ditherParams.isLinear),
+    brighten(params.brightness),
+    downsample(downsampleParams.level),
+  ]
   const output = pipeline.reduce((input, fn) => fn(input), sprite)
   output.anchor.set(0.5)
   spriteContainer.addChild(output)
+}
 
-  _count++
+export default pixi(() => {
+  process()
   return { container }
-
-  function downsample(level: number) {
-    return (input: Sprite) => {
-      const scale = Math.pow(2, level)
-      const sourceScaleMode: SCALE_MODE = "nearest"
-      const targetScaleMode: SCALE_MODE = "nearest"
-
-      const sprite = new Sprite(input.texture)
-      sprite.filters = input.filters
-      sprite.texture.source.scaleMode = sourceScaleMode
-      sprite.texture.source.style.update()
-      sprite.scale.set(1 / scale)
-
-      const renderTexture = RenderTexture.create({
-        width: sprite.width,
-        height: sprite.height,
-        scaleMode: targetScaleMode,
-      })
-      const rendererSize = [renderer.width, renderer.height]
-      renderer.resize(renderTexture.width, renderTexture.height)
-      renderer.render({ container: sprite, target: renderTexture })
-      renderer.resize(rendererSize[0], rendererSize[1])
-
-      const downsampled = new Sprite(renderTexture)
-      downsampled.scale.set(scale)
-      return downsampled
-    }
-  }
 })
+
+function dither(level: number, spread: number, paletteSize: number, isLinear: boolean) {
+  return (input: Sprite) => {
+    const inputFilters = input.filters ? (input.filters as Filter[]) : []
+    input.filters = [
+      ...inputFilters,
+      new DitherFilter({ level, spread, isLinear, palette: paletteSize, inputSize: [input.width, input.height] }),
+    ]
+    return input
+  }
+}
 
 function brighten(scale: number) {
   return (input: Sprite) => {
@@ -116,79 +112,10 @@ function sharpen(sharpnessFactor: number) {
   }
 }
 
-function dither(level: number, spread: number, paletteSize: number, extractPalette: boolean) {
-  function generatePalette() {
-    const palette: Color[] = !extractPalette
-      ? []
-      : colors
-          .sort((a, b) => a.area - b.area)
-          .slice(0, paletteSize)
-          .map((c) => new Color(c.hex))
-    if (!extractPalette) {
-      for (let i = 0; i < paletteSize; i++) {
-        for (let j = 0; j < paletteSize; j++) {
-          for (let k = 0; k < paletteSize; k++) {
-            palette.push(new Color([i / (paletteSize - 1), j / (paletteSize - 1), k / (paletteSize - 1)]))
-          }
-        }
-      }
-    }
-    const paletteLength = palette.length
-    const paletteSquareDim = Math.sqrt(paletteLength)
-    const closestPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(paletteSquareDim)))
-    console.log(`paletteLength=${paletteLength}, texture dimensions=${closestPowerOfTwo}x${closestPowerOfTwo}`)
-
-    //TODO: Maybe interleave colors with float32
-    //TODO: Instanced rendering
-    const bufferLength = closestPowerOfTwo * closestPowerOfTwo * 4
-    const paletteBuffer = Object.assign(
-      new Array(bufferLength).fill(0, 0, bufferLength),
-      palette.flatMap((c) => c.toArray()).map((v) => v * 255)
-    )
-    const bufferSource = new BufferImageSource({
-      resource: new Uint8Array(paletteBuffer),
-      width: closestPowerOfTwo,
-      height: closestPowerOfTwo,
-      format: "rgba8unorm",
-      scaleMode: "nearest",
-    })
-    return {
-      paletteLength,
-      uPalette: bufferSource,
-      uniforms: {
-        uPaletteDim: { value: closestPowerOfTwo, type: "i32" },
-      },
-    }
-  }
+function downsample(level: number) {
   return (input: Sprite) => {
     const inputFilters = input.filters ? (input.filters as Filter[]) : []
-    const { uPalette, uniforms, paletteLength } = generatePalette()
-    input.filters = [
-      ...inputFilters,
-      new Filter({
-        glProgram: GlProgram.from({
-          vertex: filterVertTemplate(),
-          fragment: filterFragTemplate({
-            preamble: /*glsl*/ `
-              ${_count % 5 == 2 || _count % 5 == 4 ? "#define LINEAR" : ""}
-              ${_count % 5 == 3 || _count % 5 == 4 ? "#define YLILUOMA" : ""}
-              #define PALETTE_SIZE ${paletteLength}
-              const int ditherLevel = ${level};
-              ${ditherFrag}
-            `,
-            main: /*glsl*/ `fragColor = vec4(dither(fragColor.rgb), 1.);`,
-          }),
-        }),
-        resources: {
-          uPalette,
-          uniforms: {
-            ...uniforms,
-            uSpread: { value: spread, type: "f32" },
-            uTextureSize: { value: [input.width, input.height], type: "vec2<f32>" },
-          },
-        },
-      }),
-    ]
+    input.filters = [...inputFilters, new DownsampleFilter({ level, inputSize: [input.width, input.height] })]
     return input
   }
 }
