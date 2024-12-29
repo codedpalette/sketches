@@ -3,11 +3,11 @@ import { pixi } from "library/core/sketch"
 import { DitherFilter, DownsampleFilter } from "library/drawing/filters"
 import { asset } from "library/utils"
 import { GUI } from "lil-gui"
-import { Assets, ColorMatrixFilter, Container, Filter, Sprite, Texture } from "pixi.js"
+import { Assets, Color, ColorMatrixFilter, Container, Filter, Sprite, Texture } from "pixi.js"
 import { ConvolutionFilter } from "pixi-filters"
 
 const texture = await Assets.load<Texture>(asset("dither/pic.jpg"))
-const _colors = await extractPalette()
+const colors = await extractPalette()
 const container = new Container()
 
 const gui = new GUI()
@@ -17,8 +17,9 @@ const params = {
   dither: {
     level: 0,
     spread: 0.1,
-    paletteSize: 4,
+    paletteSize: 8,
     isLinear: false,
+    method: "regular" as "regular" | "yliluoma1" | "yliluoma2",
   },
   downsample: {
     level: 0,
@@ -31,8 +32,9 @@ gui.add(params, "brightness", 0, 2)
 const ditherFolder = gui.addFolder("Dither")
 ditherFolder.add(params.dither, "level", 0, 2, 1)
 ditherFolder.add(params.dither, "spread", 0, 1)
-ditherFolder.add(params.dither, "paletteSize", 2, 8, 1)
+ditherFolder.add(params.dither, "paletteSize", 2, 16, 1)
 ditherFolder.add(params.dither, "isLinear")
+ditherFolder.add(params.dither, "method", ["regular", "yliluoma1", "yliluoma2"])
 
 const downsampleFolder = gui.addFolder("Downsample")
 downsampleFolder.add(params.downsample, "level", 0, 2, 1)
@@ -52,7 +54,7 @@ function process() {
   const downsampleParams = params.downsample
   const pipeline = [
     sharpen(params.sharpness),
-    dither(ditherParams.level, ditherParams.spread, ditherParams.paletteSize, ditherParams.isLinear),
+    dither(ditherParams),
     brighten(params.brightness),
     downsample(downsampleParams.level),
   ]
@@ -66,12 +68,19 @@ export default pixi(() => {
   return { container }
 })
 
-function dither(level: number, spread: number, paletteSize: number, isLinear: boolean) {
+function dither({ level, spread, isLinear, paletteSize, method }: (typeof params)["dither"]) {
   return (input: Sprite) => {
     const inputFilters = input.filters ? (input.filters as Filter[]) : []
     input.filters = [
       ...inputFilters,
-      new DitherFilter({ level, spread, isLinear, palette: paletteSize, inputSize: [input.width, input.height] }),
+      new DitherFilter({
+        level,
+        spread,
+        isLinear,
+        method,
+        palette: colors.slice(0, paletteSize),
+        inputSize: [input.width, input.height],
+      }),
     ]
     return input
   }
@@ -127,5 +136,5 @@ async function extractPalette() {
   const ctx = canvas.getContext("2d")!
   ctx.drawImage(texture.source.resource as ImageBitmap, 0, 0)
   const imageData = ctx.getImageData(0, 0, texture.width, texture.height)
-  return await extractColors(imageData, { distance: 0.01 })
+  return (await extractColors(imageData, { distance: 0.01 })).map((color) => new Color(color.hex))
 }

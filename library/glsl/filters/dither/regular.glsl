@@ -14,10 +14,9 @@ vec3 ditherRegular(vec3 color) {
   for(int i = 1; i < PALETTE_SIZE; i += 1) {
     vec3 attempt = fetchColor(i);
     float dist = distSquared(ditheredColor, attempt);
-    if(dist < closestDistance) {
-      closestColor = attempt;
-      closestDistance = dist;
-    }
+    bool isLess = dist < closestDistance;
+    closestColor = isLess ? attempt : closestColor;
+    closestDistance = isLess ? dist : closestDistance;
   }
   return closestColor;
 }

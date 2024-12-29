@@ -44,6 +44,8 @@ vec3 fetchColor(int idx) {
 }
 
 #include ./dither/regular
+#include ./dither/yliluoma1
+#include ./dither/yliluoma2
 
 vec3 dither(vec3 color) {
   vec3 inputColor = color;

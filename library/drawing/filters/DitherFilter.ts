@@ -6,9 +6,10 @@ import { filterFragTemplate, filterVertTemplate } from "../shaders"
 interface DitherFilterOptions {
   level: number
   spread: number
-  palette: number
+  palette: number | Color[]
   isLinear: boolean
   inputSize: [number, number]
+  method: "regular" | "yliluoma1" | "yliluoma2"
 }
 
 /**
@@ -19,12 +20,12 @@ export class DitherFilter extends Filter {
    * @param options - Dither filter options
    */
   constructor(options: DitherFilterOptions) {
-    const palette = generatePalette(options.palette)
+    const paletteUniform = Array.isArray(options.palette) ? options.palette : generatePalette(options.palette)
     const uniforms = {
       uPalette: {
-        value: palette.map((c) => (options.isLinear ? toLinear(c) : c)).flatMap((c) => c.toRgbArray()),
+        value: paletteUniform.map((c) => (options.isLinear ? toLinear(c) : c)).flatMap((c) => c.toRgbArray()),
         type: "vec3<f32>",
-        size: palette.length,
+        size: paletteUniform.length,
       },
       uSpread: { value: options.spread, type: "f32" },
       uTextureSize: { value: options.inputSize, type: "vec2<f32>" },
@@ -35,8 +36,8 @@ export class DitherFilter extends Filter {
       fragment: filterFragTemplate({
         preamble: /*glsl*/ `
           const int DITHER_LEVEL = ${options.level};
-          const int PALETTE_SIZE = ${palette.length};
-          #define REGULAR
+          const int PALETTE_SIZE = ${paletteUniform.length};
+          #define ${options.method.toUpperCase()}
           ${options.isLinear ? "#define LINEAR" : ""}
           ${dither}
         `,
