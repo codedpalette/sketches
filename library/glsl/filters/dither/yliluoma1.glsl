@@ -22,6 +22,9 @@ void deviseMixingPlan(in vec3 inputColor, out vec3 color1, out vec3 color2, out 
   vec3 outColor2 = vec3(0., 0., 0.);
   float outRatio = 0.5;
   float leastPenalty = 1e99;
+  // TODO: Optimize this loop
+  // Render color mixes to texture, using penalty as depth value
+  // Combinations may be generated on CPU or with transform feedback
   for(int i = 0; i < PALETTE_SIZE; i++) {
     vec3 c1 = fetchColor(i);
     for(int j = i; j < PALETTE_SIZE; j++) {
@@ -44,7 +47,7 @@ void deviseMixingPlan(in vec3 inputColor, out vec3 color1, out vec3 color2, out 
   ratio = outRatio;
 }
 
-// Based on https://bisqwit.iki.fi/story/howto/dither/jy/
+// Based on https://bisqwit.iki.fi/story/howto/dither/jy/#YliluomaSOrderedDitheringAlgorithm%201
 vec3 ditherYliluoma1(vec3 color) {
   float thresholdMap = indexValue(DITHER_LEVEL);
   vec3 color1, color2;

@@ -56,7 +56,7 @@ vec3[PALETTE_SIZE] deviseMixingPlan(vec3 inputColor) {
   return result;
 }
 
-// Based on https://bisqwit.iki.fi/story/howto/dither/jy/
+// Based on https://bisqwit.iki.fi/story/howto/dither/jy/#YliluomaSOrderedDitheringAlgorithm%202
 vec3 ditherYliluoma2(vec3 color) {
   for(int i = 0; i < PALETTE_SIZE; i++) {
     lumaPalette[i] = dot(fetchColor(i), lumaWeights);
