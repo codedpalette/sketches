@@ -16,7 +16,8 @@ float gscale(in vec3 color) {
 vec3 sort(vec3 color) {
   vec2 size = uOutputFrame.zw;
   vec2 pixelCoord = vPosition * size;
-  int factor = ((int(pixelCoord.x) % 2) * 2 - 1) * ((uFrame % 2) * 2 - 1);
+  int coord = int(dot(pixelCoord, uDirection));
+  int factor = ((coord % 2) * 2 - 1) * ((uFrame % 2) * 2 - 1);
   vec2 direction = (uDirection / uInputSize.xy) * float(factor);
   vec2 neighborOffset = vTextureCoord + direction;
 
@@ -40,23 +41,27 @@ vec3 sort(vec3 color) {
 
   float classed = sign(direction.x * 2. + direction.y);
 
+  if(gComp < uThreshold.x || gComp > uThreshold.y || gAct < uThreshold.x || gAct > uThreshold.y) {
+    return outColor;
+  }
+
   if(classed < 0.) {
     if(uInvert) {
-      if(gComp > uThreshold.x && gComp < uThreshold.y && gAct > gComp) {
+      if(gAct > gComp) {
         outColor = comp;
       }
     } else {
-      if(gAct > uThreshold.x && gAct < uThreshold.y && gAct < gComp) {
+      if(gAct < gComp) {
         outColor = comp;
       }
     }
   } else {
     if(uInvert) {
-      if(gAct > uThreshold.x && gAct < uThreshold.y && gAct < gComp) {
+      if(gAct < gComp) {
         outColor = comp;
       }
     } else {
-      if(gComp > uThreshold.x && gComp < uThreshold.y && gAct > gComp) {
+      if(gAct > gComp) {
         outColor = comp;
       }
     }

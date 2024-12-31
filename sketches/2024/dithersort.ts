@@ -1,14 +1,14 @@
 import { extractColors } from "extract-colors"
 import { pixi } from "library/core/sketch"
-import { DitherFilter, DownsampleFilter } from "library/drawing/filters"
+import { DitherFilter, DownsampleFilter, PixelSortFilter } from "library/drawing/filters"
 import { asset } from "library/utils"
 import { GUI } from "lil-gui"
 import { Assets, Color, ColorMatrixFilter, Container, Filter, Sprite, Texture } from "pixi.js"
 import { ConvolutionFilter } from "pixi-filters"
 
 const texture = await Assets.load<Texture>(asset("dither/pic.jpg"))
-const colors = await extractPalette()
 const container = new Container()
+export const sizeParams = { resolution: 1, width: texture.width, height: texture.height }
 
 const gui = new GUI()
 const params = {
@@ -17,12 +17,19 @@ const params = {
   dither: {
     level: 0,
     spread: 0.1,
-    paletteSize: 8,
     isLinear: false,
-    method: "regular" as "regular" | "yliluoma1" | "yliluoma2",
+    method: "yliluoma1" as "regular" | "yliluoma1" | "yliluoma2",
+    colorDistance: 0.22,
   },
   downsample: {
     level: 0,
+  },
+  pixelsort: {
+    minThreshold: 0,
+    maxThreshold: 1,
+    direction: "horizontal" as "horizontal" | "vertical",
+    invert: false,
+    enabled: false,
   },
 }
 
@@ -32,30 +39,39 @@ gui.add(params, "brightness", 0, 2)
 const ditherFolder = gui.addFolder("Dither")
 ditherFolder.add(params.dither, "level", 0, 2, 1)
 ditherFolder.add(params.dither, "spread", 0, 1)
-ditherFolder.add(params.dither, "paletteSize", 2, 16, 1)
 ditherFolder.add(params.dither, "isLinear")
 ditherFolder.add(params.dither, "method", ["regular", "yliluoma1", "yliluoma2"])
+ditherFolder.add(params.dither, "colorDistance", 0, 1)
 
 const downsampleFolder = gui.addFolder("Downsample")
 downsampleFolder.add(params.downsample, "level", 0, 2, 1)
 
+const pixelsortFolder = gui.addFolder("Pixelsort")
+pixelsortFolder.add(params.pixelsort, "minThreshold", 0, 0.5)
+pixelsortFolder.add(params.pixelsort, "maxThreshold", 0.5, 1)
+pixelsortFolder.add(params.pixelsort, "direction", ["horizontal", "vertical"])
+pixelsortFolder.add(params.pixelsort, "invert")
+pixelsortFolder.add(params.pixelsort, "enabled")
+
 gui.onChange(() => {
   const children = container.removeChildren()
   children.forEach((child) => child.destroy())
-  process()
+  void extractPalette(params.dither.colorDistance).then((colors) => process(colors))
 })
 
-function process() {
+function process(colors: Color[]) {
   const spriteContainer = container.addChild(new Container())
   spriteContainer.scale.set(1, -1)
 
   const sprite = new Sprite(texture)
   const ditherParams = params.dither
   const downsampleParams = params.downsample
+  const pixelsortParams = params.pixelsort
   const pipeline = [
     sharpen(params.sharpness),
-    dither(ditherParams),
     brighten(params.brightness),
+    pixelsortParams.enabled ? pixelsort(pixelsortParams) : (input: Sprite) => input,
+    dither(ditherParams, colors),
     downsample(downsampleParams.level),
   ]
   const output = pipeline.reduce((input, fn) => fn(input), sprite)
@@ -64,13 +80,29 @@ function process() {
 }
 
 export default pixi(() => {
-  process()
+  void extractPalette(params.dither.colorDistance).then((colors) => process(colors))
   return { container }
 })
 
-function dither({ level, spread, isLinear, paletteSize, method }: (typeof params)["dither"]) {
+function pixelsort({ minThreshold, maxThreshold, direction, invert }: (typeof params)["pixelsort"]) {
   return (input: Sprite) => {
     const inputFilters = input.filters ? (input.filters as Filter[]) : []
+    input.filters = [
+      ...inputFilters,
+      new PixelSortFilter({
+        threshold: [minThreshold, maxThreshold],
+        direction: direction,
+        invert: invert,
+      }),
+    ]
+    return input
+  }
+}
+
+function dither({ level, spread, isLinear, method }: (typeof params)["dither"], colors: Color[]) {
+  return (input: Sprite) => {
+    const inputFilters = input.filters ? (input.filters as Filter[]) : []
+    console.log(colors.length)
     input.filters = [
       ...inputFilters,
       new DitherFilter({
@@ -78,7 +110,7 @@ function dither({ level, spread, isLinear, paletteSize, method }: (typeof params
         spread,
         isLinear,
         method,
-        palette: colors.slice(0, paletteSize),
+        palette: colors.slice(1, Math.min(32, colors.length)),
         inputSize: [input.width, input.height],
       }),
     ]
@@ -129,12 +161,12 @@ function downsample(level: number) {
   }
 }
 
-async function extractPalette() {
+async function extractPalette(distance: number): Promise<Color[]> {
   const canvas = document.createElement("canvas")
   canvas.width = texture.width
   canvas.height = texture.height
   const ctx = canvas.getContext("2d")!
   ctx.drawImage(texture.source.resource as ImageBitmap, 0, 0)
   const imageData = ctx.getImageData(0, 0, texture.width, texture.height)
-  return (await extractColors(imageData, { distance: 0.01 })).map((color) => new Color(color.hex))
+  return (await extractColors(imageData, { distance })).map((color) => new Color(color.hex))
 }
