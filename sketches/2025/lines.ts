@@ -1,8 +1,8 @@
 import { Box, PlanarSet, Segment, segment } from "@flatten-js/core"
 import { pixi } from "library/core/sketch"
-import { drawBackground } from "library/drawing/helpers"
 import { rectanglePacking } from "library/geometry/packing"
-import { Color, Container, Graphics } from "pixi.js"
+import { asset } from "library/utils"
+import { Assets, Color, ColorSource, Container, Graphics, RenderTexture, Sprite, Texture } from "pixi.js"
 
 interface SpanningTree {
   ncols: number
@@ -22,38 +22,57 @@ interface Hamiltonian {
   path: number[]
 }
 
-export default pixi(({ random, bbox }) => {
-  const container = new Container()
-  container.addChild(drawBackground("white", bbox))
+const paperTexture = await Assets.load<Texture>(asset("paper_texture.jpg"))
 
-  const cellSize = 50
-  const st = gridSpanningTree(bbox.width / cellSize, bbox.height / cellSize)
+export default pixi(({ random, bbox, renderer }) => {
+  const container = new Container()
+  const sprite = new Sprite(paperTexture)
+  const spriteScale = bbox.height / sprite.height
+  sprite.scale.set(spriteScale)
+  sprite.anchor.set(0.5)
+
+  const pathContainer = new Container()
+  const gridCellSize = 50
+  const pathCellSize = gridCellSize * 0.5
+  const hue = random.realZeroTo(360)
+  const st = gridSpanningTree(bbox.width / gridCellSize, bbox.height / gridCellSize)
   const ham = hamiltonianFromSpanningTree(st)
-  const segments = graphToSegments(ham, cellSize * 0.5)
+  const segments = graphToSegments(ham, pathCellSize)
   const planarSet = new PlanarSet()
   segments.forEach((seg) => planarSet.add(seg))
-  const packing = rectanglePacking(bbox, (cellSize * 0.5) / Math.min(bbox.width, bbox.height), random)
+  const packing = rectanglePacking(bbox, random.real(0.5, 1) / pathCellSize, random)
   packing.forEach((rect) => {
-    // TODO: Colors
-    if (random.bool(0.3))
-      container.addChild(new Graphics()).rect(rect.xmin, rect.ymin, rect.width, rect.height).fill("white")
-    else {
-      container.addChild(drawSegments(planarSet, rect, cellSize * 0.5, random.real(0.55, 0.75)))
-    }
+    const lowSat = random.real(10, 30)
+    const highSat = random.real(70, 90)
+    const isEmpty = random.bool(0.3)
+    const invertColors = random.bool(0.5)
+    const isMonochrome = !isEmpty && random.bool(0.6)
+    const backgroundColor = new Color({ h: hue, s: lowSat, v: random.real(50, 100) })
+    const foregroundColor = isMonochrome ? "black" : new Color({ h: hue, s: highSat, v: random.real(50, 100) })
+    const [back, front] = invertColors ? [foregroundColor, backgroundColor] : [backgroundColor, foregroundColor]
+    pathContainer.addChild(new Graphics()).rect(rect.xmin, rect.ymin, rect.width, rect.height).fill(back)
+    if (!isEmpty) pathContainer.addChild(drawSegments(planarSet, rect, front, pathCellSize, random.real(0.25, 0.75)))
   })
+  const renderTexture = RenderTexture.create({ width: bbox.width, height: bbox.height })
+  pathContainer.position.set(bbox.width / 2, bbox.height / 2)
+  renderer.render({ container: pathContainer, target: renderTexture })
+  const pathSprite = new Sprite(renderTexture)
+  pathSprite.anchor.set(0.5)
+  pathSprite.blendMode = "multiply"
+  container.addChild(sprite)
+  container.addChild(pathSprite)
 
   return { container }
 
-  function drawSegments(planarSet: PlanarSet, box: Box, cellSize: number, strokeWidthFactor: number) {
-    const g = new Graphics().setStrokeStyle({
-      width: cellSize * strokeWidthFactor,
-      color: new Color({
-        h: random.real(0, 360),
-        s: random.real(50, 100),
-        l: random.real(25, 75),
-      }),
-      cap: "square",
-    })
+  function drawSegments(
+    planarSet: PlanarSet,
+    box: Box,
+    color: ColorSource,
+    cellSize: number,
+    strokeWidthFactor: number
+  ) {
+    const c = new Container()
+
     const segments = planarSet.search(box) as Segment[]
     for (const segment of segments) {
       const startInBox = box.contains(segment.start)
@@ -68,9 +87,15 @@ export default pixi(({ random, bbox }) => {
       } else if (!endInBox) {
         end = intersectionPoints[0]
       }
+      const g = new Graphics().setStrokeStyle({
+        width: cellSize * strokeWidthFactor,
+        color,
+        cap: "square",
+      })
+      c.addChild(g)
       g.moveTo(start.x, start.y).lineTo(end.x, end.y).stroke()
     }
-    return g
+    return c
   }
 
   // Random space-filling curves
