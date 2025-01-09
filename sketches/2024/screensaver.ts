@@ -4,7 +4,7 @@ import { noise3d, Random } from "library/core/random"
 import { SketchLike } from "library/core/sketch"
 import { SizeParams, SketchParams } from "library/core/types"
 import { globalPreamble } from "library/drawing/shaders"
-import fxaa from "library/glsl/fxaa.glsl"
+import fxaa from "library/glsl/filters/fxaa.glsl"
 import { clamp } from "library/utils"
 import { createEntropy, MersenneTwister19937 as MersenneTwister } from "random-js"
 import {

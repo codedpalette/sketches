@@ -2,7 +2,7 @@ import { three } from "library/core/sketch"
 import { AxesHelper, Color, DoubleSide, Mesh, MeshBasicMaterial, OrthographicCamera, PlaneGeometry, Scene } from "three"
 import { OrbitControls } from "three/examples/jsm/Addons"
 
-export default three(({ random, bbox, renderer }) => {
+export default three(({ random, renderer }) => {
   const scene = new Scene()
   //const camera = new PerspectiveCamera(75, bbox.width / bbox.height, 0.1, 1000)
   const camera = new OrthographicCamera(-1, 1, 1, -1, 0.001, 1000)
@@ -24,7 +24,7 @@ export default three(({ random, bbox, renderer }) => {
   const helper = new AxesHelper()
   scene.add(helper)
 
-  function update(totalTime: number) {
+  function update() {
     controls.update()
   }
   return { scene, camera, update }
