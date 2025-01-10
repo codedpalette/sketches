@@ -156,7 +156,7 @@ class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
         children: true,
         texture: false,
         textureSource: false,
-        context: true,
+        //context: true, // TODO: Bug with shared context
       })
     }
     this.instance = undefined
