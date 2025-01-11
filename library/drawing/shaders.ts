@@ -12,7 +12,8 @@ GlProgram.defaultOptions = {
   preferredVertexPrecision: "highp",
 }
 
-export const globalPreamble = /*glsl*/ `#version 300 es     
+export const globalPreamble = /*glsl*/ `#version 300 es
+  precision highp float;     
   #define PI 3.1415926535897932384626433832795
 `
 

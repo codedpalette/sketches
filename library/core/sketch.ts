@@ -1,5 +1,6 @@
 import { box } from "@flatten-js/core"
 import { createEntropy, MersenneTwister19937 as MersenneTwister } from "random-js"
+import { resizeCanvasToDisplaySize, setDefaults } from "twgl.js"
 
 import { Random } from "./random"
 import { SketchRenderer } from "./renderer"
@@ -202,4 +203,48 @@ export function three(sketchCreator: SketchCreator<"three">): SketchConstructor 
 
 export type ISketch<C extends ICanvas = HTMLCanvasElement> = {
   [P in keyof Sketch<SketchType, C>]: Sketch<SketchType, C>[P]
+}
+
+// TODO: Refactor to Sketch class
+type WebglSketchCreator = (context: {
+  gl: WebGL2RenderingContext
+  random: Random
+}) => Omit<SketchLike<HTMLCanvasElement>, "canvas" | "resize">
+type WebglSketchConstructor = (canvas: HTMLCanvasElement, params?: SketchParams) => SketchLike<HTMLCanvasElement>
+/**
+ * Helper method to define WebGL sketch
+ * @param sketchCreator function producing new sketch instances
+ * @returns function that creates WebGL sketch with given params
+ */
+export function webgl(sketchCreator: WebglSketchCreator): WebglSketchConstructor {
+  return (canvas, params) => {
+    const seed = params?.seed || createEntropy()
+    const mersenneTwister = MersenneTwister.seedWithArray(seed)
+    const random = new Random(mersenneTwister)
+
+    let resolution = params?.resolution || 1
+    params && resize(params)
+
+    const gl = canvas.getContext("webgl2") as WebGL2RenderingContext
+    setDefaults({ attribPrefix: "a_" })
+    const sketch = sketchCreator({ gl, random })
+
+    return {
+      canvas,
+      resize,
+      next: sketch.next.bind(sketch),
+      update: sketch.update?.bind(sketch),
+      render() {
+        resizeCanvasToDisplaySize(canvas, resolution)
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
+        sketch.render()
+      },
+    }
+
+    function resize(params: Partial<SizeParams>) {
+      params.width && (canvas.style.width = `${params.width}px`)
+      params.height && (canvas.style.height = `${params.height}px`)
+      params.resolution && (resolution = params.resolution)
+    }
+  }
 }

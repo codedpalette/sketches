@@ -1,11 +1,11 @@
 import { init } from "library/core/renderer"
 import { SketchRunner } from "library/core/runner"
 import { initUI } from "library/core/ui"
-import constructor from "sketches/2025/tau"
+import constructor from "sketches/2025/million"
 
 const defaultSizeParams = { resolution: 1, width: 1250, height: 1250 }
 const renderer = await init<HTMLCanvasElement>()
-const sketch = constructor(renderer, defaultSizeParams)
+const sketch = constructor(renderer.getCanvas("pixi"), defaultSizeParams)
 document.body.appendChild(sketch.canvas)
 
 const ui = initUI(sketch, defaultSizeParams)
