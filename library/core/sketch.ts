@@ -1,6 +1,6 @@
 import { box } from "@flatten-js/core"
 import { createEntropy, MersenneTwister19937 as MersenneTwister } from "random-js"
-import { resizeCanvasToDisplaySize, setDefaults } from "twgl.js"
+import { resizeCanvasToDisplaySize } from "twgl.js"
 
 import { Random } from "./random"
 import { SketchRenderer } from "./renderer"
@@ -226,7 +226,6 @@ export function webgl(sketchCreator: WebglSketchCreator): WebglSketchConstructor
     params && resize(params)
 
     const gl = canvas.getContext("webgl2") as WebGL2RenderingContext
-    setDefaults({ attribPrefix: "a_" })
     const sketch = sketchCreator({ gl, random })
 
     return {
