@@ -21,6 +21,7 @@ export default three(({ random, renderer }) => {
   const scene = new Scene()
   const camera = new OrthographicCamera(-1, 1, 1, -1, 0.001, 1000)
 
+  // TODO: Displace based on noise
   const geometry = new PlaneGeometry(1, 1)
   const material = new MeshPhongMaterial({ color: new Color(0x90ee90), side: DoubleSide })
   const plane = new Mesh(geometry, material)
@@ -52,7 +53,7 @@ export default three(({ random, renderer }) => {
   scene.add(light)
 
   const amb = new AmbientLight(0xffff00, 1)
-  // TODO: Different lights
+  // TODO: Different light sources and stylized light rendering
   scene.add(amb)
 
   function update() {

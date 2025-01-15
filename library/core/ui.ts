@@ -63,7 +63,7 @@ function initSpector(canvas: HTMLCanvasElement) {
  * @param sketch {@link Sketch} instance to resize
  * @param defaultParams default {@link SizeParams} to fallback to
  */
-// TODO: Move to lil-gui
+// FIXME: Move to lil-gui
 function initResizeUI(sketch: SketchLike<HTMLCanvasElement>, defaultParams: Required<SizeParams>) {
   const resizeForm = document.createElement("form")
   const getParam = (paramKey: string) => parseInt((<HTMLInputElement>document.getElementById(paramKey)).value) || 0

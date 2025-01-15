@@ -157,7 +157,7 @@ class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
         children: true,
         texture: false,
         textureSource: false,
-        //context: true, // TODO: Bug with shared context
+        //context: true, // FIXME: Bug with shared context
       })
     }
     this.instance = undefined
@@ -205,7 +205,7 @@ export type ISketch<C extends ICanvas = HTMLCanvasElement> = {
   [P in keyof Sketch<SketchType, C>]: Sketch<SketchType, C>[P]
 }
 
-// TODO: Refactor to Sketch class
+// FIXME: Refactor to Sketch class
 type WebglSketchCreator = (context: {
   gl: WebGL2RenderingContext
   random: Random

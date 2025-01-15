@@ -1,4 +1,4 @@
-// TODO: Move to flat config
+// FIXME: Move to flat config
 module.exports = {
   root: true,
   parser: "@typescript-eslint/parser",

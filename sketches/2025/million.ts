@@ -83,6 +83,7 @@ export default webgl(({ gl, random }) => {
     },
   }
 
+  // TODO: Strange attractors and blending
   function initTransforms(): number[] {
     // prettier-ignore
     const transforms = [
@@ -117,6 +118,7 @@ const vertParticleUpdate = /*glsl*/ `${globalPreamble}
   out vec2 v_position;
 
   // TODO: Other random implementation
+  // https://umbcgaim.wordpress.com/2010/07/01/gpu-random-numbers/
   float random(float x) {
     return fract(sin(x)*100000.0);
   }
