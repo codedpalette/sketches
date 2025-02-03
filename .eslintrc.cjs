@@ -24,6 +24,7 @@ module.exports = {
     },
     {
       files: ["./library/**", "./*.ts"],
+      ignores: ["./library/core/v2/**"],
       extends: ["plugin:jsdoc/recommended-typescript"],
       rules: {
         "jsdoc/require-jsdoc": [
