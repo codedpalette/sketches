@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-brew install gawk wget fribidi
-wget git.io/trans -O translate
-chmod +x ./translate
-cat ./codes.txt | while read code; do ./translate -b :"$code" "$1"; done
-rm ./translate
