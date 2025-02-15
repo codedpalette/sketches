@@ -1,13 +1,13 @@
-import eslint from "@eslint/js";
-import eslintConfigPrettier from "eslint-config-prettier";
-import eslintPluginImport from "eslint-plugin-import";
-import simpleImportSort from "eslint-plugin-simple-import-sort";
-import unusedImports from "eslint-plugin-unused-imports";
-import globals from "globals";
-import tsEslint, { configs as tsConfig } from "typescript-eslint";
+import eslint from "@eslint/js"
+import eslintConfigPrettier from "eslint-config-prettier"
+import eslintPluginImport from "eslint-plugin-import"
+import simpleImportSort from "eslint-plugin-simple-import-sort"
+import unusedImports from "eslint-plugin-unused-imports"
+import globals from "globals"
+import tsEslint, { configs as tsConfig } from "typescript-eslint"
 
 export default tsEslint.config(
-  { ignores: ["node_modules/", "dist/", "vite.config.ts"] },
+  { ignores: ["node_modules/", "dist/", "vite.config.ts", "typings/p5"] },
   eslint.configs.recommended,
   ...tsConfig.recommendedTypeChecked,
   ...tsConfig.stylisticTypeChecked,
@@ -53,4 +53,4 @@ export default tsEslint.config(
   },
   { files: ["**/*.js"], extends: [tsConfig.disableTypeChecked] },
   eslintConfigPrettier,
-);
+)

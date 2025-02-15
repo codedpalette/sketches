@@ -12,7 +12,6 @@
     "isolatedModules": true,
     "moduleDetection": "force",
     "noEmit": true,
-    "esModuleInterop": true,
 
     /* Linting */
     "strict": true,
@@ -26,7 +25,5 @@
       "p5": ["./typings/p5"],
       "sketches/*": ["./sketches/*"]
     }
-  },
-  // "include": ["./types"],
-  "exclude": ["./p5.ts/"]
+  }
 }
