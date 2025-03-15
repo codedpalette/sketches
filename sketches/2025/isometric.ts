@@ -155,7 +155,7 @@ export default three(({ random, renderer }) => {
       width: number,
       height: number,
       p: Vector2,
-      radiusSquared: number
+      radiusSquared: number,
     ) {
       /* Make sure the point is on the screen */
       if (p.x < 0 || p.x >= 1 || p.y < 0 || p.y >= 1) return false

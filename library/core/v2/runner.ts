@@ -1,11 +1,22 @@
 import { Renderer } from "./renderer"
 import { PixiSketch } from "./sketch"
 
+/**
+ *
+ */
 export class Runner {
   private runningSketch: PixiSketch | null = null
   private requestId?: number
+  /**
+   *
+   * @param renderer
+   */
   constructor(private renderer: Renderer) {}
 
+  /**
+   *
+   * @param sketch
+   */
   start(sketch: PixiSketch) {
     this.runningSketch = sketch
     this.renderer.render(sketch)

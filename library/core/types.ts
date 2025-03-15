@@ -12,7 +12,7 @@ export type ICanvas = HTMLCanvasElement | OffscreenCanvas
 export type SketchType = "pixi" | "three"
 
 /** Context for generating sketch instances (shared between all types) */
-export type SharedSketchContext = {
+export interface SharedSketchContext {
   /** {@link Random} instance to enable repeatability of RNG values */
   random: Random
   /** Bounding box of sketch's model space */
@@ -20,12 +20,12 @@ export type SharedSketchContext = {
 }
 
 /** Pixi.js-specific context */
-export type PixiContext = {
+export interface PixiContext {
   renderer: PixiRenderer<ICanvas>
 }
 
 /** Three.js-specific context */
-export type ThreeContext = {
+export interface ThreeContext {
   renderer: ThreeRenderer
 }
 
@@ -46,19 +46,19 @@ export type SketchContext<T extends SketchType> = SharedSketchContext & SketchRe
 export type UpdateFn = (totalTime: number, deltaTime: number) => void
 
 /** Single sketch instance (shared between all types) */
-export type SharedSketchInstance = {
+export interface SharedSketchInstance {
   /** Sketch update function */
   update?: UpdateFn
 }
 
 /** Single iteration of a Pixi.js sketch */
-export type PixiInstance = {
+export interface PixiInstance {
   /** Pixi.js {@link Container} */
   container: Container
 }
 
 /** Single iteration of a Three.js sketch */
-export type ThreeInstance = {
+export interface ThreeInstance {
   /** Three.js {@link Scene} */
   scene: Scene
   /** Three.js {@link Camera} */
@@ -80,7 +80,7 @@ export type SketchInstance<T extends SketchType> = {
 export type SketchCreator<T extends SketchType> = (context: SketchContext<T>) => SketchInstance<T>
 
 /** Parameters for controlling sketch's size */
-export type SizeParams = {
+export interface SizeParams {
   /** Sketch's width (in pixels) */
   width: number
   /** Sketch's height (in pixels) */
@@ -96,7 +96,7 @@ export type SketchParams = SizeParams & {
 }
 
 /** Parameters for controlling rendering process */
-export type RenderParams<T extends ICanvas = ICanvas> = {
+export interface RenderParams<T extends ICanvas = ICanvas> {
   /** Enable WebGL antialiasing */
   antialias: boolean
   /** Whether or not to resize canvas css dimensions when resizing renderer*/
@@ -112,7 +112,7 @@ export type ExportParams = Partial<SizeParams> & {
 }
 
 /** Parameters for controlling sketch running */
-export type RunnerParams = {
+export interface RunnerParams {
   /** Enable/disable generating new sketches with a click on canvas and provide custom click handler */
   click: ((ev: Event) => void) | false
   /** Enable/disable running an update loop */

@@ -64,7 +64,7 @@ function generatePalette(colorsPerChannel: number): Color[] {
 function toLinear(color: Color): Color {
   const rgb = color.toRgbArray()
   const linearRgb = rgb.map((channel) =>
-    channel <= 0.04045 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4)
+    channel <= 0.04045 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4),
   )
   return new Color(linearRgb)
 }

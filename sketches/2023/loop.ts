@@ -74,7 +74,7 @@ export default three(({ random, bbox }) => {
       for (const mesh of planes) {
         mesh.setColorAt(
           i,
-          new Color().setHSL(Math.round(hue * 10) / 10, Math.round(sat * 10) / 10, Math.round(bri * 10) / 10)
+          new Color().setHSL(Math.round(hue * 10) / 10, Math.round(sat * 10) / 10, Math.round(bri * 10) / 10),
         )
       }
     }

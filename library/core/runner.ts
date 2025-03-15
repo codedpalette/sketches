@@ -24,7 +24,10 @@ export class SketchRunner {
    * @param sketch sketch to run
    * @param params parameters overrides for this runner
    */
-  constructor(private sketch: SketchLike<ICanvas>, params?: Partial<RunnerParams>) {
+  constructor(
+    private sketch: SketchLike<ICanvas>,
+    params?: Partial<RunnerParams>,
+  ) {
     this.params = { ...defaultRunnerParams, ...params }
   }
 

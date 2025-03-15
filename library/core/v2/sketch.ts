@@ -1,6 +1,7 @@
-import { box, Box } from "@flatten-js/core"
-import { Random } from "../random"
+import { Box, box } from "@flatten-js/core"
 import { Container, Matrix } from "pixi.js"
+
+import { Random } from "../random"
 
 export type SketchContext = Readonly<{
   random: Random
@@ -17,11 +18,14 @@ type IPixiSketch = (context: SketchContext) => { container: Container }
 export class PixiSketch {
   private random = new Random()
   private _stage?: Container
-  constructor(private sketch: IPixiSketch, readonly size: SizeParams) {}
+  constructor(
+    private sketch: IPixiSketch,
+    readonly size: SizeParams,
+  ) {}
 
   get stage() {
     if (!this._stage) this.next()
-    return this._stage as Container
+    return this._stage!
   }
 
   next() {

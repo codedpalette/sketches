@@ -25,7 +25,7 @@ import {
   setUniforms,
 } from "twgl.js"
 
-type Metaball = {
+interface Metaball {
   radius: number
   position: [number, number]
   color: [number, number, number]
@@ -39,7 +39,7 @@ export default (canvas: HTMLCanvasElement, params?: SketchParams) => {
   const random = new Random(mersenneTwister)
   const noise = noise3d(random)
 
-  const gl = canvas.getContext("webgl2") as WebGL2RenderingContext
+  const gl = canvas.getContext("webgl2")!
   const background = rgb(parse(getComputedStyle(canvas).backgroundColor)) || { r: 0, g: 0, b: 0 }
   const numBalls = 100
   const fxaa = true
@@ -78,7 +78,7 @@ export default (canvas: HTMLCanvasElement, params?: SketchParams) => {
   createMetaballs()
   params && resize(params)
 
-  return <SketchLike<HTMLCanvasElement>>{
+  return {
     canvas,
     update(totalTime) {
       time = totalTime
@@ -113,7 +113,7 @@ export default (canvas: HTMLCanvasElement, params?: SketchParams) => {
       time = tweenTime = balls.length = 0
       createMetaballs()
     },
-  }
+  } as SketchLike<HTMLCanvasElement>
 
   function createMetaballs() {
     for (let i = 0; i < numBalls; i++) {

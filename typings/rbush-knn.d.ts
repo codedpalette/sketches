@@ -16,7 +16,7 @@ declare module "rbush-knn" {
     y: number,
     k = Infinity,
     filterFn?: (item: T) => boolean,
-    maxDistance = Infinity
+    maxDistance = Infinity,
   ): T[]
 
   export default knn

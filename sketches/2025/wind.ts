@@ -59,7 +59,7 @@ export default pixi(({ random, bbox }) => {
     return flowField[index]
   }
 
-  function visualizeFlowField(flowField: Array<PointData>) {
+  function visualizeFlowField(flowField: PointData[]) {
     const flowFieldContainer = new Container()
     for (let i = 0; i < flowFieldGridResolution; i++) {
       for (let j = 0; j < flowFieldGridResolution; j++) {

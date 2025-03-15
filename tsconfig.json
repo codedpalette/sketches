@@ -1,22 +1,32 @@
 {
   "compilerOptions": {
+    "target": "ES2020", // Vite build target
+    "useDefineForClassFields": true, // https://vitejs.dev/guide/features.html#usedefineforclassfields
+    "module": "ESNext", // Needed for import.meta.url support
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true, // Skip typechecking library files
+
+    /* Bundler mode */
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true, // Because esbuild only performs transpilation without type information
+    "moduleDetection": "force",
+    "noEmit": true, // Because we're using Vite for building
+    "stripInternal": true,
+
+    /* Linting */
     "strict": true,
-    "baseUrl": ".",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+    "forceConsistentCasingInFileNames": true,
+
     "paths": {
       "library/*": ["./library/*"], // Path mapping for resolving library classes from sketches scripts
       "sketches/*": ["./sketches/*"]
     },
-    "target": "ES2020", // Vite build target
-    "module": "ESNext", // Needed for import.meta.url support
-    "skipLibCheck": true, // Skip typechecking library files
-    "esModuleInterop": true, // Needed for importing CommonJS modules
-    "moduleResolution": "node", // Otherwise type imports don't work
-    "noEmit": true, // Because we're using Vite for building
-    "isolatedModules": true, // Because esbuild only performs transpilation without type information
-    "useDefineForClassFields": true, // https://vitejs.dev/guide/features.html#usedefineforclassfields
-    "forceConsistentCasingInFileNames": true,
-    "stripInternal": true,
-    "types": ["vite-plugin-glsl/ext"]
+    "types": ["vite/client", "vite-plugin-glsl/ext"]
   },
   "exclude": ["dist"]
 }

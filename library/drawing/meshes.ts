@@ -16,7 +16,7 @@ export function renderLines(
   segments: Segment[],
   width: number,
   color: ColorSource,
-  fragShaderExt: ShaderProgram = {}
+  fragShaderExt: ShaderProgram = {},
 ): Mesh<Geometry, Shader> {
   // Initialize a quad for instance geometry
   // prettier-ignore

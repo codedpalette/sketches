@@ -49,7 +49,7 @@ For educational purposes and for future reference I will outline below all top l
 repository and what they are for.
 
 - `.github/` - Contains [GitHub Actions](https://github.com/features/actions) descriptions for automatically deploying
-latest version of my sketches to [Github Pages](https://pages.github.com/) on every commit to `master` branch
+  latest version of my sketches to [Github Pages](https://pages.github.com/) on every commit to `master` branch
 - `.husky/` - [Husky](https://typicode.github.io/husky/) pre-commit hooks
 - `.vscode/` - VSCode workspace settings and code snippets
 - `.yarn/` - [Yarn Modern](https://yarnpkg.com/) binaries
@@ -57,7 +57,7 @@ latest version of my sketches to [Github Pages](https://pages.github.com/) on ev
 - `library/` - Code unrelated to any specific sketch: setup code, helper and utility functions etc.
 - `sketches/` - Actual artworks code grouped by year
 - `typings/` - TypeScript [type declarations](https://www.typescriptlang.org/docs/handbook/2/type-declarations.html) for
-3rd party libraries that don't provide them
+  3rd party libraries that don't provide them
 - `.eslintignore`, `.eslintrc.cjs` - [ESLint](https://eslint.org/) linter configuration files
 - `.gitignore` - [gitignore](https://git-scm.com/docs/gitignore) file
 - `.prettierignore`, `.prettierrc` - [Prettier](https://prettier.io/) formatter configuration files

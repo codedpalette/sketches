@@ -8,7 +8,7 @@ import RBush, { BBox } from "rbush"
 import knn from "rbush-knn"
 
 // Type for describing space colonization nodes
-type Node = {
+interface Node {
   position: Point // node position
   parent?: Node // reference to parent node
   isTip: boolean // is this node a tip node (no children)
@@ -45,7 +45,7 @@ export default pixi(({ random, bbox }) => {
 
   const container = new Container()
   container.addChild(
-    drawBackground(isDarkBackground ? gray(random.realZeroTo(20)) : gray(255 - random.realZeroTo(20)), bbox)
+    drawBackground(isDarkBackground ? gray(random.realZeroTo(20)) : gray(255 - random.realZeroTo(20)), bbox),
   )
   for (let i = 0; i < numLayers; i++) {
     container.addChild(colonize((mainHue + (360 / numLayers) * i) % 360, i))

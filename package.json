@@ -7,6 +7,9 @@
     "type": "git",
     "url": "https://github.com/codedpalette/sketches.git"
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
   "files": [
     "dist",
     "!electron.js"
@@ -19,73 +22,77 @@
     }
   },
   "types": "./dist/sketches.d.ts",
-  "scripts": {
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint --fix .",
-    "format": "prettier --write .",
-    "ci": "yarn typecheck && yarn lint && yarn format",
-    "start": "vite dev",
-    "build": "vite build",
-    "preview": "vite preview",
-    "postinstall": "husky",
-    "prepack": "pinst --disable",
-    "postpack": "pinst --enable"
-  },
   "lint-staged": {
     "*.ts": [
       "eslint --fix",
       "prettier --write"
     ]
   },
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint --fix .",
+    "ci": "yarn typecheck && yarn lint && yarn format",
+    "prepare": "husky"
+  },
   "dependencies": {
-    "@flatten-js/core": "^1.4.4",
-    "@tweenjs/tween.js": "^21.0.0",
+    "@flatten-js/core": "^1.6.2",
+    "@tweenjs/tween.js": "^25.0.0",
     "canvas-capture": "^2.1.1",
-    "culori": "^3.2.0",
+    "culori": "^4.0.1",
     "delaunator": "^5.0.1",
-    "extract-colors": "^4.0.6",
+    "extract-colors": "^4.1.1",
     "lil-gui": "^0.20.0",
-    "pixi-filters": "^6.0.3",
-    "pixi.js": "^8.6.6",
+    "pixi-filters": "^6.1.0",
+    "pixi.js": "^8.8.1",
     "random-js": "^2.1.0",
-    "rbush": "^3.0.1",
-    "rbush-knn": "https://github.com/mourner/rbush-knn.git",
-    "simplex-noise": "^4.0.1",
-    "spectorjs": "https://github.com/BabylonJS/Spector.js",
+    "rbush": "^4.0.1",
+    "rbush-knn": "github:mourner/rbush-knn",
+    "simplex-noise": "^4.0.3",
+    "spectorjs": "github:BabylonJS/Spector.js",
     "stats.js": "^0.17.0",
-    "three": "^0.172.0",
-    "twgl.js": "^5.5.3",
+    "three": "^0.174.0",
+    "twgl.js": "^5.5.4",
     "voronoijs": "^1.0.0"
   },
   "devDependencies": {
-    "@laynezh/vite-plugin-lib-assets": "0.5.21",
-    "@types/culori": "^2.0.1",
-    "@types/delaunator": "^5",
-    "@types/rbush": "^3.0.3",
-    "@types/stats.js": "^0.17.0",
-    "@types/three": "^0.172.0",
-    "@typescript-eslint/eslint-plugin": "^6.2.1",
-    "@typescript-eslint/parser": "^6.2.1",
-    "electron": "^28.0.0",
-    "eslint": "^8.44.0",
-    "eslint-config-prettier": "^8.9.0",
-    "eslint-import-resolver-typescript": "^3.5.5",
-    "eslint-plugin-import": "^2.28.0",
-    "eslint-plugin-jsdoc": "^48.0.2",
-    "eslint-plugin-simple-import-sort": "^10.0.0",
-    "eslint-plugin-unused-imports": "^3.0.0",
-    "husky": "^9.0.7",
-    "lint-staged": "^13.2.3",
-    "pinst": "^3.0.0",
-    "prettier": "^2.8.8",
-    "typescript": "^5.1.6",
-    "vite": "^5.0.12",
-    "vite-plugin-dts": "^3.6.4",
-    "vite-plugin-electron": "^0.15.5",
-    "vite-plugin-externalize-deps": "^0.8.0",
-    "vite-plugin-glsl": "^1.1.2",
-    "vite-plugin-node-polyfills": "^0.9.0",
-    "vite-tsconfig-paths": "^4.2.0"
+    "@eslint/js": "^9.22.0",
+    "@laynezh/vite-plugin-lib-assets": "1.1.0",
+    "@types/culori": "^2.1.1",
+    "@types/delaunator": "^5.0.3",
+    "@types/rbush": "^4.0.0",
+    "@types/stats.js": "^0.17.3",
+    "@types/three": "^0.174.0",
+    "electron": "^35.0.1",
+    "eslint": "^9.22.0",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-import-resolver-typescript": "^3.9.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-jsdoc": "^50.6.6",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-unused-imports": "^4.1.4",
+    "globals": "^16.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.26.1",
+    "vite": "^6.2.2",
+    "vite-plugin-dts": "^4.5.3",
+    "vite-plugin-electron": "^0.29.0",
+    "vite-plugin-externalize-deps": "^0.9.0",
+    "vite-plugin-glsl": "^1.3.3",
+    "vite-plugin-node-polyfills": "^0.23.0",
+    "vite-tsconfig-paths": "^5.1.4"
   },
-  "packageManager": "yarn@4.1.1"
+  "packageManager": "pnpm@10.6.3+sha512.bb45e34d50a9a76e858a95837301bfb6bd6d35aea2c5d52094fa497a467c43f5c440103ce2511e9e0a2f89c3d6071baac3358fc68ac6fb75e2ceb3d2736065e6",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild"
+    ]
+  }
 }

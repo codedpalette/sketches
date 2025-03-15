@@ -8,7 +8,7 @@ export default pixi(({ random, bbox }) => {
   const noise = noise2d(random)
   const palette: ColorSource[] = ["#2E294E", "#541388", "#F1E9DA", "#FFD400", "#D90368"]
   random.shuffle(palette)
-  const bgColor = palette.shift() as ColorSource
+  const bgColor = palette.shift()!
   const rOuter = random.real(100, 150)
   const innerLayerScale = random.real(0.5, Math.SQRT2 / 2)
   const innerRadiusFactor = random.real(0.3 * innerLayerScale, 0.7 * innerLayerScale)

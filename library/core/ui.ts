@@ -10,7 +10,7 @@ const minWidth = 100
 const minHeight = 100
 
 /** Type for holding reference to parts UI system */
-export type UI = {
+export interface UI {
   stats: Stats
   capture: typeof CanvasCapture
 }
@@ -66,7 +66,7 @@ function initSpector(canvas: HTMLCanvasElement) {
 // FIXME: Move to lil-gui
 function initResizeUI(sketch: SketchLike<HTMLCanvasElement>, defaultParams: Required<SizeParams>) {
   const resizeForm = document.createElement("form")
-  const getParam = (paramKey: string) => parseInt((<HTMLInputElement>document.getElementById(paramKey)).value) || 0
+  const getParam = (paramKey: string) => parseInt((document.getElementById(paramKey) as HTMLInputElement).value) || 0
 
   const inputHandler = () => {
     const newOptions = {
@@ -111,7 +111,7 @@ function setInputFilter(textBox: Element, inputFilter: (value: string) => boolea
           oldValue: string
           oldSelectionStart: number | null
           oldSelectionEnd: number | null
-        }
+        },
       ) {
         if (inputFilter(this.value)) {
           this.oldValue = this.value
@@ -126,7 +126,7 @@ function setInputFilter(textBox: Element, inputFilter: (value: string) => boolea
         } else {
           this.value = ""
         }
-      }
+      },
     )
   })
 }

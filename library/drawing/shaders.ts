@@ -1,6 +1,9 @@
 import { GlProgram } from "pixi.js"
 
-export type ShaderProgram = {
+/**
+ *
+ */
+export interface ShaderProgram {
   /** Code that goes outside of main function (attribute and uniform definitions, function dependencies) */
   preamble?: string
   /** Code that extends main function, can override local variables and varyings */

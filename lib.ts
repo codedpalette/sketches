@@ -7,14 +7,14 @@ export type { ISketch as Sketch } from "library/core/sketch"
 export * from "library/core/types"
 
 /** Sketch module definition */
-export type SketchModule = {
+export interface SketchModule {
   /** Artwork title */
   name: string
   /** Artwork year (specifies folder to load sketch from) */
   year: number
 }
 
-type SketchModuleImpl = {
+interface SketchModuleImpl {
   default: SketchConstructor | Promise<SketchConstructor>
 }
 

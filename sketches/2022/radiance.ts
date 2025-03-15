@@ -9,7 +9,7 @@ export default pixi(({ random, bbox }) => {
   const gradientCenter = vector(random.minmax(bbox.width * 0.4), random.minmax(bbox.height * 0.4))
   const gradientRotation = Math.atan2(gradientCenter.y, gradientCenter.x) + random.minmax(Math.PI / 8)
   const palette = [random.color(), random.color(), random.color()]
-  const paletteCss = palette.map((color) => formatCss(new Color(color).toHex()) as string)
+  const paletteCss = palette.map((color) => formatCss(new Color(color).toHex())!)
 
   const container = new Container()
   container.addChild(drawBackground(), drawRays(), drawCircle())
@@ -22,7 +22,7 @@ export default pixi(({ random, bbox }) => {
       const gradient = ctx.createConicGradient(
         -gradientRotation + Math.PI,
         bbox.width / 2 + gradientCenter.x,
-        bbox.height / 2 - gradientCenter.y
+        bbox.height / 2 - gradientCenter.y,
       )
       gradient
       gradient.addColorStop(0, paletteCss[0])
@@ -49,7 +49,7 @@ export default pixi(({ random, bbox }) => {
         .addChild(new Graphics())
         .poly(
           [vector(0, 0), vector(-triangleHeight, triangleHalfBase), vector(-triangleHeight, -triangleHalfBase)],
-          false
+          false,
         )
         .fill("white")
 

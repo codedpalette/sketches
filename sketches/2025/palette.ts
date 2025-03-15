@@ -16,7 +16,7 @@ export default pixi(({ random, bbox }) => {
     { x: -bbox.width / 2, y: -bbox.width / 2 },
     { x: bbox.width / 2, y: -bbox.width / 2 },
     { x: bbox.width / 2, y: bbox.width / 2 },
-    { x: -bbox.width / 2, y: bbox.width / 2 }
+    { x: -bbox.width / 2, y: bbox.width / 2 },
   )
   const triangles = generateTriangles(points)
   triangles.forEach((triangleData) => {
@@ -54,7 +54,7 @@ export default pixi(({ random, bbox }) => {
     const delaunay = Delaunator.from(
       points,
       (p: PointData) => p.x,
-      (p: PointData) => p.y
+      (p: PointData) => p.y,
     )
     const triangles: PointData[][] = []
     for (let i = 0; i < delaunay.triangles.length; i += 3) {

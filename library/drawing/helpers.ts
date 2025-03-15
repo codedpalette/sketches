@@ -21,7 +21,7 @@ export function drawBackground(color: ColorSource, bbox: Box): Graphics {
  */
 export function drawCanvas(render: (ctx: OffscreenCanvasRenderingContext2D) => void, bbox: Box): Sprite {
   const canvas = new OffscreenCanvas(bbox.width, bbox.height)
-  const ctx = canvas.getContext("2d") as OffscreenCanvasRenderingContext2D
+  const ctx = canvas.getContext("2d")!
   render(ctx)
 
   const sprite = Sprite.from(canvas)

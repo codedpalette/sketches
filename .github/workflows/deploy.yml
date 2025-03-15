@@ -23,25 +23,31 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      HUSKY: 0
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Enable corepack
-        run: corepack enable
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23
+          cache: "pnpm"
+          registry-url: https://npm.pkg.github.com/
       - name: Install dependencies
-        run: yarn install --immutable
+        run: pnpm install
       - name: Build
-        run: yarn build
+        run: pnpm build
       - name: Version bump
         uses: phips28/gh-action-bump-version@master
         with:
           version-type: patch
           skip-tag: true
-      - name: Setup .yarnrc.yml
-        run: yarn config set npmScopes.codedpalette.npmAuthToken $GITHUB_TOKEN
       - name: Publish
-        run: yarn npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm publish
       # - name: Trigger website deploy
       #   run: gh workflow run deploy.yml -R ${{github.repository_owner}}/${{github.repository_owner}}.github.io
       #   env:

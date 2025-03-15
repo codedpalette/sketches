@@ -6,12 +6,23 @@ import { WebGLRenderer } from "pixi.js"
 
 import { PixiSketch, SizeParams } from "./sketch"
 
+/**
+ *
+ */
 export class Renderer {
   readonly canvas: HTMLCanvasElement
+  /**
+   *
+   * @param pixiRenderer
+   */
   constructor(private pixiRenderer: WebGLRenderer) {
     this.canvas = pixiRenderer.canvas
   }
 
+  /**
+   *
+   * @param sketch
+   */
   render(sketch: PixiSketch) {
     if (this.needsResize(sketch.size)) this.resize(sketch.size)
     this.pixiRenderer.render(sketch.stage)
@@ -26,6 +37,10 @@ export class Renderer {
   }
 }
 
+/**
+ *
+ * @param canvas
+ */
 export async function initRenderer(canvas: HTMLCanvasElement) {
   const pixiRenderer = new WebGLRenderer()
   await pixiRenderer.init({ canvas, antialias: true })

@@ -90,7 +90,7 @@ export default pixi(({ random, bbox }) => {
           x0 + bbox.width / 2,
           -y0 + bbox.height / 2,
           x1 + bbox.width / 2,
-          -y1 + bbox.height / 2
+          -y1 + bbox.height / 2,
         )
         const startColor = random.real(0, 10)
         const endColor = random.real(30, 40)
@@ -98,7 +98,7 @@ export default pixi(({ random, bbox }) => {
         gradient.addColorStop(1, `rgb(${endColor} ${endColor} ${endColor})`)
         ctx.fillStyle = gradient
         ctx.fillRect(0, 0, bbox.width, bbox.height)
-      }, bbox)
+      }, bbox),
     )
     backgroundContainer.filters = [
       new NoiseFilter({ noise: random.real(0.125, 0.25), seed: random.realZeroToOneExclusive() }),

@@ -69,7 +69,7 @@ export default pixi(({ random, bbox, renderer }) => {
     box: Box,
     color: ColorSource,
     cellSize: number,
-    strokeWidthFactor: number
+    strokeWidthFactor: number,
   ) {
     const c = new Container()
 

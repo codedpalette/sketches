@@ -43,7 +43,7 @@ export default pixi(({ random, bbox }) => {
           new Matrix()
             .rotate(random.real(0, 2 * Math.PI))
             .scale(random.real(0.8, 2), random.real(0.8, 2))
-            .translate(x - bbox.width / 2, -y + bbox.height / 2)
+            .translate(x - bbox.width / 2, -y + bbox.height / 2),
         )
         container.addChild(brokenRect(graphics))
       }

@@ -13,9 +13,7 @@ import tsconfigPaths from "vite-tsconfig-paths"
 export default defineConfig(() => {
   return {
     plugins: [
-      externalizeDeps({
-        devDeps: true, // Exclude dev dependencies
-      }),
+      externalizeDeps(),
       dts({ rollupTypes: true }),
       glsl({ root: "/library/glsl" }),
       nodePolyfills(),
@@ -45,7 +43,6 @@ export default defineConfig(() => {
       },
     },
     build: {
-      target: "es2022",
       lib: {
         entry: resolve(__dirname, "lib.ts"),
         formats: ["es"],

@@ -124,7 +124,7 @@ export default pixi(({ random, bbox }) => {
         results
           .map((result) => entries.map((entry) => result.concat([entry])))
           .reduce((subResults, result) => subResults.concat(result), []),
-      [[]]
+      [[]],
     )
   }
 })

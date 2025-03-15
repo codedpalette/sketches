@@ -21,7 +21,10 @@ class Renderer<C extends ICanvas> {
    * @param pixiRenderer Pixi.js {@link PixiRenderer}
    * @param params {@link RenderParams}
    */
-  constructor(private pixiRenderer: PixiRenderer<C>, private params: RenderParams<C>) {}
+  constructor(
+    private pixiRenderer: PixiRenderer<C>,
+    private params: RenderParams<C>,
+  ) {}
 
   private get threeRenderer(): ThreeRenderer {
     return (

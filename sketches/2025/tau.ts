@@ -85,7 +85,7 @@ export default pixi(({ random, bbox }) => {
           zero,
           random.real(radiusStart, radiusEnd) * rayRadius * (one - two / ten),
           random.realZeroTo(TAU),
-          random.realZeroTo(TAU)
+          random.realZeroTo(TAU),
         )
         .stroke({
           color: "white",

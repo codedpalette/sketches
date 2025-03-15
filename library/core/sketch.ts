@@ -40,7 +40,7 @@ class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
     private type: T,
     private sketchCreator: SketchCreator<T>,
     private renderer: SketchRenderer<C>,
-    params: SketchParams
+    params: SketchParams,
   ) {
     this.params = { resolution: 1, ...params }
     this.seed = params.seed || createEntropy()
@@ -165,9 +165,7 @@ class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
 }
 
 /** Interface for curried {@link SketchCreator} functions with {@link SketchType} already set */
-export interface SketchConstructor {
-  <C extends ICanvas>(renderer: SketchRenderer<C>, params: SketchParams): ISketch<C>
-}
+export type SketchConstructor = <C extends ICanvas>(renderer: SketchRenderer<C>, params: SketchParams) => ISketch<C>
 
 /**
  * Interface for sketches that aren't using {@link SketchRenderer} (such as WebGL)
@@ -225,7 +223,7 @@ export function webgl(sketchCreator: WebglSketchCreator): WebglSketchConstructor
     let resolution = params?.resolution || 1
     params && resize(params)
 
-    const gl = canvas.getContext("webgl2") as WebGL2RenderingContext
+    const gl = canvas.getContext("webgl2")!
     const sketch = sketchCreator({ gl, random })
 
     return {
