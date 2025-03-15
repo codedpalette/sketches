@@ -12,7 +12,6 @@
     "isolatedModules": true, // Because esbuild only performs transpilation without type information
     "moduleDetection": "force",
     "noEmit": true, // Because we're using Vite for building
-    "stripInternal": true,
 
     /* Linting */
     "strict": true,
@@ -23,10 +22,11 @@
     "forceConsistentCasingInFileNames": true,
 
     "paths": {
-      "library/*": ["./library/*"], // Path mapping for resolving library classes from sketches scripts
+      // Path mapping for resolving library classes from sketches scripts
+      // Cannot specify baseUrl explicitly because of https://github.com/qmhc/vite-plugin-dts#internal-error-occurs-when-using-rolluptypes-true
+      "library/*": ["./library/*"],
       "sketches/*": ["./sketches/*"]
     },
     "types": ["vite/client", "vite-plugin-glsl/ext"]
-  },
-  "exclude": ["dist"]
+  }
 }

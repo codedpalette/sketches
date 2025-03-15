@@ -13,7 +13,7 @@ import {
   ShaderMaterial,
   Vector3,
 } from "three"
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
+import { OrbitControls } from "three/examples/jsm/Addons.js"
 
 export default three(({ bbox, renderer }) => {
   const scene = new Scene()

@@ -8,6 +8,7 @@ import globals from "globals"
 import tsEslint, { configs as tsConfig } from "typescript-eslint"
 
 export default tsEslint.config(
+  { ignores: ["dist/"] },
   eslint.configs.recommended,
   ...tsConfig.recommendedTypeChecked,
   ...tsConfig.stylisticTypeChecked,
@@ -23,7 +24,7 @@ export default tsEslint.config(
       globals: globals.browser,
       parserOptions: {
         projectService: {
-          allowDefaultProject: ["*.js"],
+          allowDefaultProject: ["./*.ts"],
         },
         tsconfigRootDir: import.meta.dirname,
       },

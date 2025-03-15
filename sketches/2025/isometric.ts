@@ -14,7 +14,7 @@ import {
   Scene,
   Vector2,
 } from "three"
-import { OrbitControls } from "three/examples/jsm/Addons"
+import { OrbitControls } from "three/examples/jsm/Addons.js"
 
 export default three(({ random, renderer }) => {
   renderer.shadowMap.enabled = true
