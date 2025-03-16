@@ -6,7 +6,7 @@ import { GUI } from "lil-gui"
 import { Assets, Color, ColorMatrixFilter, Container, Filter, Sprite, Texture } from "pixi.js"
 import { ConvolutionFilter } from "pixi-filters"
 
-const texture = await Assets.load<Texture>(asset("dither/pic.jpg"))
+const texture = await Assets.load<Texture>(asset("dither", "pic.jpg"))
 const container = new Container()
 export const sizeParams = { resolution: 1, width: texture.width, height: texture.height }
 

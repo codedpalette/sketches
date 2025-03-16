@@ -1,12 +1,17 @@
 import { Point, point } from "@flatten-js/core"
 
 /**
- * @param path path to asset relative to `assets` folder in the workspace root
+ * @param fileOrDirectory fileName or `assets` subdirectory
+ * @param fileName if first argument is a directory, name of the asset file, including file extension
  * @returns resolved URL to a static asset
  */
-export function asset(path: string): string {
+export function asset(fileOrDirectory: string, fileName?: string): string {
   // https://vitejs.dev/guide/assets.html#new-url-url-import-meta-url
-  return new URL(`/assets/${path}`, import.meta.url).href
+  if (fileName) {
+    return new URL(`/assets/${fileOrDirectory}/${fileName}`, import.meta.url).href
+  } else {
+    return new URL(`/assets/${fileOrDirectory}`, import.meta.url).href
+  }
 }
 
 /**
