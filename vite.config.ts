@@ -25,7 +25,7 @@ export default defineConfig(() => {
         configureServer(server) {
           server.httpServer?.once("listening", () => {
             const addressInfo = server.httpServer?.address() as AddressInfo
-            process.env.VITE_DEV_SERVER_URL = `http://localhost:${addressInfo.port}`
+            process.env["VITE_DEV_SERVER_URL"] = `http://localhost:${addressInfo.port}`
             void electronStartup(["./electron.js"])
           })
         },
@@ -41,7 +41,6 @@ export default defineConfig(() => {
       },
     },
     build: {
-      copyPublicDir: false,
       target: "es2022",
       lib: {
         entry: resolve(__dirname, "lib.ts"),
