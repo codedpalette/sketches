@@ -36,7 +36,10 @@ export default pixi(({ random, bbox }) => {
     points.push({ x, y })
 
     // point bounds
-    ;(maxX = -1e32), (minX = 1e32), (maxY = -1e32), (minY = 1e32)
+    maxX = -1e32
+    minX = 1e32
+    maxY = -1e32
+    minY = 1e32
 
     let converging = false
     let lyapunov = 0

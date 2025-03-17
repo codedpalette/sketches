@@ -16,13 +16,13 @@ interface Node {
 }
 // Extend an RBush class to work with Node objects
 class NodeIndex extends RBush<Node> {
-  toBBox(item: Node): BBox {
+  override toBBox(item: Node): BBox {
     return { minX: item.position.x, minY: item.position.y, maxX: item.position.x, maxY: item.position.y }
   }
-  compareMinX(a: Node, b: Node): number {
+  override compareMinX(a: Node, b: Node): number {
     return a.position.x - b.position.x
   }
-  compareMinY(a: Node, b: Node): number {
+  override compareMinY(a: Node, b: Node): number {
     return a.position.y - b.position.y
   }
 }
@@ -86,14 +86,14 @@ export default pixi(({ random, bbox }) => {
       for (const attractor of attractors) {
         const closestNode = knn(nodeIndex, attractor.x, attractor.y, 1, undefined, attractionDist).pop()
         if (closestNode) {
-          const influencingAttractors = mapNodeToAttractors.get(closestNode) || []
+          const influencingAttractors = mapNodeToAttractors.get(closestNode) ?? []
           mapNodeToAttractors.set(closestNode, [...influencingAttractors, attractor])
         }
       }
 
       // Grow the network by adding nodes
       for (const node of nodes) {
-        const nodeAttractors = mapNodeToAttractors.get(node) || []
+        const nodeAttractors = mapNodeToAttractors.get(node) ?? []
         if (nodeAttractors.length > 0) {
           const attractionVectors = nodeAttractors.map((attractor) => vector(node.position, attractor))
           const attractionVectorsSum = attractionVectors.reduce((a, b) => a.add(b)).normalize()

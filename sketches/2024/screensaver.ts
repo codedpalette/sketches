@@ -34,13 +34,13 @@ interface Metaball {
 
 const rgb = converter("rgb")
 export default (canvas: HTMLCanvasElement, params?: SketchParams) => {
-  const seed = params?.seed || createEntropy()
+  const seed = params?.seed ?? createEntropy()
   const mersenneTwister = MersenneTwister.seedWithArray(seed)
   const random = new Random(mersenneTwister)
   const noise = noise3d(random)
 
   const gl = canvas.getContext("webgl2")!
-  const background = rgb(parse(getComputedStyle(canvas).backgroundColor)) || { r: 0, g: 0, b: 0 }
+  const background = rgb(parse(getComputedStyle(canvas).backgroundColor)) ?? { r: 0, g: 0, b: 0 }
   const numBalls = 100
   const fxaa = true
 
@@ -76,7 +76,7 @@ export default (canvas: HTMLCanvasElement, params?: SketchParams) => {
     tweenTime = 0,
     resolution = 1
   createMetaballs()
-  params && resize(params)
+  if (params) resize(params)
 
   return {
     canvas,
@@ -88,7 +88,7 @@ export default (canvas: HTMLCanvasElement, params?: SketchParams) => {
     },
     render() {
       const resized = resizeCanvasToDisplaySize(canvas, resolution)
-      resized && resizeFramebufferInfo(gl, fbi, attachments)
+      if (resized) resizeFramebufferInfo(gl, fbi, attachments)
 
       const dimensions = [gl.canvas.width, gl.canvas.height]
       bindFramebufferInfo(gl, fxaa ? fbi : null)
@@ -163,9 +163,9 @@ export default (canvas: HTMLCanvasElement, params?: SketchParams) => {
   }
 
   function resize(params: Partial<SizeParams>) {
-    params.width && (canvas.style.width = `${params.width}px`)
-    params.height && (canvas.style.height = `${params.height}px`)
-    params.resolution && (resolution = params.resolution)
+    if (params.width) canvas.style.width = `${params.width}px`
+    if (params.height) canvas.style.height = `${params.height}px`
+    if (params.resolution) resolution = params.resolution
   }
 }
 

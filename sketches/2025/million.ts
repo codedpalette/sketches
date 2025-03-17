@@ -25,14 +25,14 @@ export default webgl(({ gl, random }) => {
     v_position: { numComponents: 2, data: pointsData.length },
   })
   const particleBufferInfoFlop = createBufferInfoFromArrays(gl, {
-    a_position: { numComponents: 2, buffer: particleBufferInfoFlip.attribs?.v_position.buffer },
-    v_position: { numComponents: 2, buffer: particleBufferInfoFlip.attribs?.a_position.buffer },
+    a_position: { numComponents: 2, buffer: particleBufferInfoFlip.attribs?.["v_position"].buffer },
+    v_position: { numComponents: 2, buffer: particleBufferInfoFlip.attribs?.["a_position"].buffer },
   })
   const drawBufferInfoFlip = createBufferInfoFromArrays(gl, {
-    a_position: { numComponents: 2, buffer: particleBufferInfoFlip.attribs?.v_position.buffer },
+    a_position: { numComponents: 2, buffer: particleBufferInfoFlip.attribs?.["v_position"].buffer },
   })
   const drawBufferInfoFlop = createBufferInfoFromArrays(gl, {
-    a_position: { numComponents: 2, buffer: particleBufferInfoFlop.attribs?.v_position.buffer },
+    a_position: { numComponents: 2, buffer: particleBufferInfoFlop.attribs?.["v_position"].buffer },
   })
 
   const feedbackFlip = createTransformFeedback(gl, particleUpdateProgramInfo, particleBufferInfoFlip)

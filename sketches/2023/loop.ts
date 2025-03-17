@@ -79,7 +79,7 @@ export default three(({ random, bbox }) => {
       }
     }
     for (const mesh of planes) {
-      mesh.instanceColor && (mesh.instanceColor.needsUpdate = true)
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
     }
   }
 

@@ -3,6 +3,7 @@ import { ICanvas, RunnerParams } from "./types"
 
 const recordingFPS = 60 // Used for canvas-capture recorder to count seconds of recording
 const defaultRunnerParams: RunnerParams = {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   click: () => {},
   update: true,
 }
@@ -46,13 +47,13 @@ export class SketchRunner {
   /** Stop update loop and reset timer */
   stop() {
     this.startTime = this.prevTime = this.frameRecordCounter = 0
-    this.requestId && cancelAnimationFrame(this.requestId)
+    if (this.requestId) cancelAnimationFrame(this.requestId)
     this.toggleListeners(false)
   }
 
   private clickListener = (ev: Event) => {
     ev.stopPropagation()
-    this.params.click && this.params.click(ev)
+    if (this.params.click) this.params.click(ev)
     this.nextSketch()
   }
 
@@ -60,9 +61,11 @@ export class SketchRunner {
     const event = "click"
     if (this.params.click) {
       const canvas = this.sketch.canvas
-      add
-        ? canvas.addEventListener?.(event, this.clickListener)
-        : canvas.removeEventListener?.(event, this.clickListener)
+      if (add) {
+        canvas.addEventListener?.(event, this.clickListener)
+      } else {
+        canvas.removeEventListener?.(event, this.clickListener)
+      }
     }
   }
 
@@ -91,7 +94,7 @@ export class SketchRunner {
    */
   private updateTime(timestamp: number) {
     // If startTime isn't set - set it to the current timestamp
-    !this.startTime && (this.startTime = timestamp)
+    if (!this.startTime) this.startTime = timestamp
     const totalSeconds = (timestamp - this.startTime) / 1000
     const deltaSeconds = (timestamp - (this.prevTime || this.startTime)) / 1000
     this.prevTime = timestamp
@@ -105,8 +108,10 @@ export class SketchRunner {
     this.params.ui?.capture?.checkHotkeys()
     if (this.params.ui?.capture?.isRecording()) {
       this.params.ui?.capture?.recordFrame()
-      ++this.frameRecordCounter % recordingFPS == 0 &&
+      if (++this.frameRecordCounter % recordingFPS == 0)
         console.log(`Recorded ${this.frameRecordCounter / recordingFPS} seconds`)
-    } else if (this.frameRecordCounter != 0) this.frameRecordCounter == 0
+    } else if (this.frameRecordCounter != 0) {
+      this.frameRecordCounter = 0
+    }
   }
 }

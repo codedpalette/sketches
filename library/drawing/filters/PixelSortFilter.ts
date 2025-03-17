@@ -66,7 +66,7 @@ export class PixelSortFilter extends Filter {
   // TODO: Can we render it in one pass?
   // Check when to stop by comparing the input and output or with occlusion queries
   // Or come up with a different strategy altogether
-  apply(filterManager: FilterSystem, input: Texture, output: RenderSurface, clearMode: boolean): void {
+  override apply(filterManager: FilterSystem, input: Texture, output: RenderSurface, clearMode: boolean): void {
     this.tempTexture1 = this.tempTexture1 ?? TexturePool.getSameSizeTexture(input)
     this.tempTexture2 = this.tempTexture2 ?? TexturePool.getSameSizeTexture(input)
     const tempTextures = [this.tempTexture1, this.tempTexture2]
@@ -75,6 +75,6 @@ export class PixelSortFilter extends Filter {
     super.apply(filterManager, inputTexture, outputTexture, false)
     this.outputPass.apply(filterManager, outputTexture, output, clearMode)
     this.frame++
-    ;(this.resources.uniforms as UniformGroup<{ uFrame: UniformData }>).uniforms.uFrame = this.frame
+    ;(this.resources["uniforms"] as UniformGroup<{ uFrame: UniformData }>).uniforms.uFrame = this.frame
   }
 }

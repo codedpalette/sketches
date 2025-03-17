@@ -43,7 +43,7 @@ class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
     params: SketchParams,
   ) {
     this.params = { resolution: 1, ...params }
-    this.seed = params.seed || createEntropy()
+    this.seed = params.seed ?? createEntropy()
     this.mersenneTwister = MersenneTwister.seedWithArray(this.seed)
     this.random = new Random(this.mersenneTwister)
   }
@@ -85,7 +85,7 @@ class Sketch<T extends SketchType, C extends ICanvas> implements SketchLike<C> {
    * Render this sketch
    */
   render() {
-    const instance = this.instance || this.iterate()
+    const instance = this.instance ?? this.iterate()
     this.params = this.renderer.render(instance, this.params)
     this.instance = instance
   }
@@ -216,12 +216,12 @@ type WebglSketchConstructor = (canvas: HTMLCanvasElement, params?: SketchParams)
  */
 export function webgl(sketchCreator: WebglSketchCreator): WebglSketchConstructor {
   return (canvas, params) => {
-    const seed = params?.seed || createEntropy()
+    const seed = params?.seed ?? createEntropy()
     const mersenneTwister = MersenneTwister.seedWithArray(seed)
     const random = new Random(mersenneTwister)
 
-    let resolution = params?.resolution || 1
-    params && resize(params)
+    let resolution = params?.resolution ?? 1
+    if (params) resize(params)
 
     const gl = canvas.getContext("webgl2")!
     const sketch = sketchCreator({ gl, random })
@@ -239,9 +239,9 @@ export function webgl(sketchCreator: WebglSketchCreator): WebglSketchConstructor
     }
 
     function resize(params: Partial<SizeParams>) {
-      params.width && (canvas.style.width = `${params.width}px`)
-      params.height && (canvas.style.height = `${params.height}px`)
-      params.resolution && (resolution = params.resolution)
+      if (params.width) canvas.style.width = `${params.width}px`
+      if (params.height) canvas.style.height = `${params.height}px`
+      if (params.resolution) resolution = params.resolution
     }
   }
 }

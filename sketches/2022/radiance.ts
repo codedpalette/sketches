@@ -24,7 +24,6 @@ export default pixi(({ random, bbox }) => {
         bbox.width / 2 + gradientCenter.x,
         bbox.height / 2 - gradientCenter.y,
       )
-      gradient
       gradient.addColorStop(0, paletteCss[0])
       gradient.addColorStop(random.real(0.3, 0.7), paletteCss[1])
       gradient.addColorStop(1, paletteCss[1])
