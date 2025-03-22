@@ -77,7 +77,6 @@ export default tsEslint.config(
   { files: ["*.js"], extends: [tsConfig.disableTypeChecked], languageOptions: { globals: globals.node } },
   {
     files: ["library/**", "./*.ts"],
-    ignores: ["library/core/v2/**"],
     extends: [jsdoc.configs["flat/recommended-typescript"]],
     rules: {
       "jsdoc/require-jsdoc": [
