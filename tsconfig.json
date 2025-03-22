@@ -29,5 +29,6 @@
       "/assets/*": ["./assets/*"]
     },
     "types": ["vite/client", "vite-plugin-glsl/ext"]
-  }
+  },
+  "exclude": ["dist"]
 }
