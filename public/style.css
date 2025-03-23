@@ -4,44 +4,11 @@ body {
   padding: 0;
 }
 
-body > canvas,
-#canvas-container {
+canvas {
   display: block;
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-}
-
-body > canvas,
-#canvas-container canvas {
-  outline: 1px solid black;
-}
-
-#canvas-container {
-  text-align: center;
-}
-
-#canvas-container p {
-  font-size: 25px;
-  font-family: monospace;
-}
-
-body > form {
-  text-align: right;
-  position: fixed;
-  top: 0px;
-  right: 0px;
-  z-index: 1000;
-  background: white;
-}
-
-select {
-  position: fixed;
-  top: 10px;
-  left: 20px;
-  width: 150px;
-  height: 40px;
-  font-size: 24px;
-  border-radius: 15px;
+  border: 1px solid black;
 }

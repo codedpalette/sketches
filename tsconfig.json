@@ -25,10 +25,9 @@
       // Path mapping for resolving library classes from sketches scripts
       // Cannot specify baseUrl explicitly because of https://github.com/qmhc/vite-plugin-dts#internal-error-occurs-when-using-rolluptypes-true
       "library/*": ["./library/*"],
-      "sketches/*": ["./sketches/*"],
-      "/assets/*": ["./assets/*"]
+      "sketches/*": ["./sketches/*"]
     },
-    "types": ["vite/client", "vite-plugin-glsl/ext"]
+    "types": ["vite/client"]
   },
   "exclude": ["dist"]
 }
