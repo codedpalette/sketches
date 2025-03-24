@@ -76,13 +76,12 @@ export default tsEslint.config(
   },
   { files: ["*.js"], extends: [tsConfig.disableTypeChecked], languageOptions: { globals: globals.node } },
   {
-    files: ["library/**", "./*.ts", "typings/*.d.ts"],
+    files: ["library/**", "./*.ts"],
     extends: [jsdoc.configs["flat/recommended-typescript"]],
     rules: {
       "jsdoc/require-jsdoc": [
         "warn",
         {
-          //publicOnly: true,
           require: { ClassDeclaration: true, MethodDefinition: true },
           contexts: ["TSInterfaceDeclaration", "TSMethodSignature"],
         },
