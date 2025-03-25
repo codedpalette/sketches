@@ -4,7 +4,8 @@ declare module "p5" {
   // eslint-disable-next-line jsdoc/require-jsdoc
   interface p5InstanceExtensions {
     /**
-     * Draws a circle with a given number of detail segments.
+     * Draws a circle with a given number of detail segments. More detail makes the circle smoother.
+     * NOTE: If detail is greater than 24, the circle will not render stroke.
      * @param x x-coordinate of the center of the circle.
      * @param y y-coordinate of the center of the circle.
      * @param d diameter of the circle.
