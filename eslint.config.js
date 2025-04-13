@@ -8,7 +8,7 @@ import globals from "globals"
 import tsEslint, { configs as tsConfig } from "typescript-eslint"
 
 export default tsEslint.config(
-  { ignores: ["dist/"] },
+  { ignores: ["dist/", "typings/p5"] },
   eslint.configs.recommended,
   ...tsConfig.recommendedTypeChecked,
   ...tsConfig.stylisticTypeChecked,
