@@ -42,7 +42,7 @@ export default (p: p5) => {
     // Sunset color
     p.fill("#F6D55C")
     p.rect(-1, 1, 2, -1)
-    // TODO: Sky with clouds and moon
+    // FIXME: Sky with clouds and moon
     p.filter("blur", 0.1)
   }
 
