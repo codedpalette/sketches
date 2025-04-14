@@ -1,4 +1,4 @@
-import { Application, Container } from "pixi.js"
+import { Application, Container, WebGLRenderer } from "pixi.js"
 import { TextSlide } from "sketches/2025/smokes/slides/text"
 
 export interface Slide {
@@ -7,12 +7,11 @@ export interface Slide {
   next?: () => boolean
 }
 
-const slides: Slide[] = [TextSlide("Как компьютеры рисуют", 180)]
-
-const app = new Application()
+const app = new Application<WebGLRenderer>()
 await app.init({ width: 1250, height: 1250, antialias: true, background: "white" })
 document.body.appendChild(app.canvas)
 
+const slides: Slide[] = [TextSlide("Как компьютеры рисуют", 170, app.renderer)]
 const currentSlide = slides[0]
 const container = currentSlide.setup()
 container.position.set(app.screen.width / 2, -app.screen.height / 2)
